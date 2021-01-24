@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30517.126
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PoseHelper", "PoseHelper\PoseHelper.csproj", "{954E785C-FF93-445A-A6F9-B2EBB57A941B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{954E785C-FF93-445A-A6F9-B2EBB57A941B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{954E785C-FF93-445A-A6F9-B2EBB57A941B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{954E785C-FF93-445A-A6F9-B2EBB57A941B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{954E785C-FF93-445A-A6F9-B2EBB57A941B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8A37DFBD-6064-4E5B-B720-265D23A549F8}
+	EndGlobalSection
+EndGlobal
