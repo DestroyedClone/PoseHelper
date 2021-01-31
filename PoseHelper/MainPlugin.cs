@@ -11,6 +11,7 @@ namespace PoseHelper
 
         internal static BepInEx.Logging.ManualLogSource _logger;
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "<Pending>")]
         private void Awake()
         {
             _logger = Logger;
