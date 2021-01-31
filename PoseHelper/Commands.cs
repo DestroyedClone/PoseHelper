@@ -20,6 +20,7 @@ namespace PoseHelper
         {
             var deathstate = args.senderBody.GetComponent<CharacterDeathBehavior>();
             if (deathstate) deathstate.deathState = new SerializableEntityStateType();
+            args.senderMaster.preventGameOver = true;
         }
 
         [ConCommand(commandName = "cloak", flags = ConVarFlags.ExecuteOnServer, helpText = "Toggles cloak.")]
@@ -85,13 +86,14 @@ namespace PoseHelper
                 var animator = GetModelAnimator(cb);
                 if (animator)
                 {
-                    animator.enabled = true;
+                    if (animator.enabled) animator.SetBool("enabled", false);
+                    else animator.SetBool("enabled", true);
                     Debug.Log("Animator.enabled = "+ animator.enabled);
                 }
             }
         }
 
-        [ConCommand(commandName = "nextpose", flags = ConVarFlags.ExecuteOnServer, helpText = "finishpose [true/false]. true: kills the animator too.")]
+        [ConCommand(commandName = "nextpose", flags = ConVarFlags.ExecuteOnServer, helpText = "finishpose [true/false]. true: destroys the animator too.")]
         private static void FinishPose(ConCommandArgs args)
         {
             var cb = args.senderBody;
@@ -105,11 +107,16 @@ namespace PoseHelper
                         var animator = GetModelAnimator(cb);
                         if (animator)
                         {
-                            animator.enabled = false;
+                            UnityEngine.Object.DestroyImmediate(animator);
                         }
                     } else
                     {
                         hc.Suicide();
+                        var stopwatch = 0f;
+                        while (stopwatch <= 1.5f)
+                        {
+                            stopwatch += Time.deltaTime;
+                        }
                         args.senderMaster.Respawn(cb.footPosition, Quaternion.identity, false);
                     }
                 }
@@ -124,7 +131,12 @@ namespace PoseHelper
             {
                 GameObject body = BodyCatalog.FindBodyPrefab("BeetleBody");
                 GameObject gameObject = UnityEngine.Object.Instantiate<GameObject>(body, args.sender.master.GetBody().transform.position, Quaternion.identity);
-                gameObject.GetComponent<Inventory>().GiveItem(ItemIndex.InvadingDoppelganger);
+                //gameObject.GetComponent<CharacterBody>().masterObject.GetComponent<Inventory>().GiveItem(ItemIndex.InvadingDoppelganger);
+                GivePickupsOnStart givePickups = gameObject.AddComponent<GivePickupsOnStart>();
+                GivePickupsOnStart.ItemInfo iteminfo;
+                iteminfo.itemString = "InvadingDoppelganger";
+                iteminfo.count = 1;
+                givePickups.itemInfos = new GivePickupsOnStart.ItemInfo[1] { iteminfo };
                 gameObject.AddComponent<UmbraBeetle>();
                 NetworkServer.Spawn(gameObject);
                 Debug.Log("Spawned umbra beetle");
@@ -234,6 +246,7 @@ namespace PoseHelper
         public class DesCloneCommandComponent : MonoBehaviour
         {
             public GameObject chosenObject;
+            public 
         }
     }
 }

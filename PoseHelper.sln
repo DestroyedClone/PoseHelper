@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30517.126
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PoseHelper", "PoseHelper\PoseHelper.csproj", "{954E785C-FF93-445A-A6F9-B2EBB57A941B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PoseHelper", "PoseHelper\PoseHelper.csproj", "{954E785C-FF93-445A-A6F9-B2EBB57A941B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoonToOutro", "MoonToOutro\MoonToOutro.csproj", "{C7C3EF07-DD16-4062-A9BA-D8439F8B4B30}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{954E785C-FF93-445A-A6F9-B2EBB57A941B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{954E785C-FF93-445A-A6F9-B2EBB57A941B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{954E785C-FF93-445A-A6F9-B2EBB57A941B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C7C3EF07-DD16-4062-A9BA-D8439F8B4B30}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C7C3EF07-DD16-4062-A9BA-D8439F8B4B30}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C7C3EF07-DD16-4062-A9BA-D8439F8B4B30}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C7C3EF07-DD16-4062-A9BA-D8439F8B4B30}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
