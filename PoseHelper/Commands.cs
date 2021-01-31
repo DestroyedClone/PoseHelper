@@ -45,12 +45,12 @@ namespace PoseHelper
                 var position = new Vector3(array[0], array[1], array[2]);
                 if (cb.characterMotor)
                 {
-                    Debug.Log(string.Format("Teleported charactermotor to {0} {1} {2}", array[0], array[1], array[2]));
+                    Debug.Log(string.Format("Teleported charactermotor to {0}", position));
                     cb.characterMotor.Motor.SetPositionAndRotation(position, Quaternion.identity, true);
                 }
                 else if (rbm)
                 {
-                    Debug.Log(string.Format("Teleported rigidbody to {0} {1} {2}", array[0], array[1], array[2]));
+                    Debug.Log(string.Format("Teleported rigidbody to {0}", position));
                     rbm.rigid.position = position;
                 }
             }
@@ -133,6 +133,88 @@ namespace PoseHelper
                 UnityEngine.Object.DestroyImmediate(beetles[0].gameObject);
                 Debug.Log("Destroyed umbra beetle");
             }
+        }
+
+
+
+        [ConCommand(commandName = "dc_find", flags = ConVarFlags.ExecuteOnServer, helpText = "dc_findobject [string:gameObject]")]
+        private static void DCFindObject(ConCommandArgs args)
+        {
+            var component = args.senderMasterObject.GetComponent<DesCloneCommandComponent>();
+            if (component)
+            {
+                var gameObj = GetGameObject(args.GetArgString(0));
+                if (gameObj)
+                {
+                    component.chosenObject = gameObj;
+                    Debug.Log(string.Format("Found GameObject {0} : {1}", gameObj, gameObj.name));
+                }
+                else
+                    Debug.Log("Couldn't find object!");
+            }
+        }
+
+        [ConCommand(commandName = "dc_destroy", flags = ConVarFlags.ExecuteOnServer, helpText = "dc_destroy")]
+        private static void DCDestroyObject(ConCommandArgs args)
+        {
+            var component = args.senderMasterObject.GetComponent<DesCloneCommandComponent>();
+            if (component)
+            {
+                if (component.chosenObject)
+                {
+                    Debug.Log(string.Format("Destroyed GameObject {0} : {1}", component.chosenObject, component.chosenObject.name));
+                    GameObject.Destroy(component.chosenObject);
+                } else
+                {
+                    Debug.Log("You haven't selected an object yet!");
+                }
+            }
+        }
+
+        [ConCommand(commandName = "dc_teleport", flags = ConVarFlags.ExecuteOnServer, helpText = "dc_teleport [x] [y] [z]")]
+        private static void DCTeleportObject(ConCommandArgs args)
+        {
+            var component = args.senderMasterObject.GetComponent<DesCloneCommandComponent>();
+            if (component)
+            {
+                if (component.chosenObject)
+                {
+                    float[] array = { args.GetArgFloat(0), args.GetArgFloat(1), args.GetArgFloat(2) };
+                    var position = new Vector3(array[0], array[1], array[2]);
+                    component.chosenObject.transform.position = position;
+                    Debug.Log(string.Format("Teleported {0} : {1} to {2}", component.chosenObject, component.chosenObject.name, position));
+                }
+                else
+                {
+                    Debug.Log("You haven't selected an object yet!");
+                }
+            }
+        }
+        [ConCommand(commandName = "dc_teleport_here", flags = ConVarFlags.ExecuteOnServer, helpText = "Teleports the gameObject to your position")]
+        private static void DCTeleportObjectHere(ConCommandArgs args)
+        {
+            var component = args.senderMasterObject.GetComponent<DesCloneCommandComponent>();
+            if (component)
+            {
+                if (component.chosenObject)
+                {
+                    component.chosenObject.transform.position = args.senderBody.corePosition;
+                    Debug.Log(string.Format("Teleported {0} : {1} to player's position.", component.chosenObject, component.chosenObject.name));
+                }
+                else
+                {
+                    Debug.Log("You haven't selected an object yet!");
+                }
+            }
+        }
+
+
+
+
+
+        public static GameObject GetGameObject(string text)
+        {
+            return GameObject.Find(text);
         }
 
         public static Animator GetModelAnimator(CharacterBody characterBody)
