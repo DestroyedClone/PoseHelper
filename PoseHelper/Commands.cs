@@ -75,6 +75,21 @@ namespace PoseHelper
                 }
             }
         }
+        [ConCommand(commandName = "animator_toggle", flags = ConVarFlags.ExecuteOnServer, helpText = "animator_speed [float]")]
+        private static void AnimatorToggle(ConCommandArgs args)
+        {
+            var cb = args.senderBody;
+
+            if (cb)
+            {
+                var animator = GetModelAnimator(cb);
+                if (animator)
+                {
+                    animator.enabled = true;
+                    Debug.Log("Animator.enabled = "+ animator.enabled);
+                }
+            }
+        }
 
         [ConCommand(commandName = "nextpose", flags = ConVarFlags.ExecuteOnServer, helpText = "finishpose [true/false]. true: kills the animator too.")]
         private static void FinishPose(ConCommandArgs args)
@@ -130,6 +145,11 @@ namespace PoseHelper
         }
 
         public class UmbraBeetle : MonoBehaviour
+        {
+
+        }
+
+        public class DesCloneCommandComponent : MonoBehaviour
         {
 
         }

@@ -16,6 +16,20 @@ namespace PoseHelper
         {
             _logger = Logger;
             CommandHelper.AddToConsoleWhenReady();
+            Hooks();
+        }
+
+        private void Hooks()
+        {
+            RoR2.CharacterBody.onBodyStartGlobal += CharacterBody_onBodyStartGlobal;
+        }
+
+        private void CharacterBody_onBodyStartGlobal(RoR2.CharacterBody obj)
+        {
+            if (obj && obj.isPlayerControlled)
+            {
+
+            }
         }
     }
 }
