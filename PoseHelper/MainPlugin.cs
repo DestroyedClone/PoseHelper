@@ -26,9 +26,10 @@ namespace PoseHelper
 
         private void CharacterBody_onBodyStartGlobal(RoR2.CharacterBody obj)
         {
-            if (obj && obj.isPlayerControlled)
+            if (obj && obj.isPlayerControlled && obj.master)
             {
-
+                if (!obj.masterObject.GetComponent<Commands.DesCloneCommandComponent>())
+                    obj.masterObject.AddComponent<Commands.DesCloneCommandComponent>();
             }
         }
     }

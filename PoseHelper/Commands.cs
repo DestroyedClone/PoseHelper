@@ -151,7 +151,7 @@ namespace PoseHelper
 
         public class DesCloneCommandComponent : MonoBehaviour
         {
-
+            public GameObject chosenObject;
         }
     }
 }

@@ -91,19 +91,4 @@
     </Reference>
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Update="README.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>README.md</DependentUpon>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="README.md">
-      <Generator>MSDataSetGenerator</Generator>
-      <LastGenOutput>README.Designer.cs</LastGenOutput>
-    </None>
-  </ItemGroup>
-
 </Project>
