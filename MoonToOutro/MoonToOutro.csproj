@@ -80,6 +80,9 @@
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>..\PoseHelper\lib\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.DirectorModule">
+      <HintPath>..\PoseHelper\lib\UnityEngine.DirectorModule.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine.Networking">
       <HintPath>..\PoseHelper\lib\UnityEngine.Networking.dll</HintPath>
     </Reference>

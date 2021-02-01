@@ -131,12 +131,6 @@ namespace PoseHelper
             {
                 GameObject body = BodyCatalog.FindBodyPrefab("BeetleBody");
                 GameObject gameObject = UnityEngine.Object.Instantiate<GameObject>(body, args.sender.master.GetBody().transform.position, Quaternion.identity);
-                //gameObject.GetComponent<CharacterBody>().masterObject.GetComponent<Inventory>().GiveItem(ItemIndex.InvadingDoppelganger);
-                GivePickupsOnStart givePickups = gameObject.AddComponent<GivePickupsOnStart>();
-                GivePickupsOnStart.ItemInfo iteminfo;
-                iteminfo.itemString = "InvadingDoppelganger";
-                iteminfo.count = 1;
-                givePickups.itemInfos = new GivePickupsOnStart.ItemInfo[1] { iteminfo };
                 gameObject.AddComponent<UmbraBeetle>();
                 NetworkServer.Spawn(gameObject);
                 Debug.Log("Spawned umbra beetle");
@@ -210,7 +204,7 @@ namespace PoseHelper
             {
                 if (component.chosenObject)
                 {
-                    component.chosenObject.transform.position = args.senderBody.corePosition;
+                    component.chosenObject.transform.position = args.senderBody.footPosition;
                     Debug.Log(string.Format("Teleported {0} : {1} to player's position.", component.chosenObject, component.chosenObject.name));
                 }
                 else
@@ -238,15 +232,19 @@ namespace PoseHelper
             return null;
         }
 
-        public class UmbraBeetle : MonoBehaviour
+        [RequireComponent(typeof(Inventory))]
+        public class UmbraBeetle : MonoBehaviour //ref'd from GivePickupsOnStart because it sucks
         {
-
+            private void Start()
+            {
+                var inventory = base.GetComponent<Inventory>();
+                inventory.GiveItem(ItemIndex.InvadingDoppelganger);
+            }
         }
 
         public class DesCloneCommandComponent : MonoBehaviour
         {
             public GameObject chosenObject;
-            public 
         }
     }
 }

@@ -46,19 +46,27 @@ namespace PoseHelper
             _logger = Logger;
             CommandHelper.AddToConsoleWhenReady();
             Hooks();
-            MakeRadarScannerNotBright();
         }
 
-        private void MakeRadarScannerNotBright()
+        private void MakeRadarScannerNotBright() //https://stackoverflow.com/questions/55013068/changing-prefabs-fields-from-script-unity
         {
-            var prefab = Resources.Load<GameObject>("Prefabs/NetworkedObjects/ChestScanner");
-            prefab.GetComponent<ChestRevealer>().pulseEffectPrefab = null;
+            GameObject prefab = Resources.Load<GameObject>("Prefabs/NetworkedObjects/ChestScanner");
+            prefab.GetComponent<ChestRevealer>().pulseEffectScale = 0f;
+
         }
 
         private void Hooks()
         {
             RoR2.CharacterBody.onBodyStartGlobal += CharacterBody_onBodyStartGlobal;
             On.RoR2.SceneDirector.Start += SceneDirector_Start;
+            On.RoR2.ChestRevealer.Init += ChestRevealer_Init;
+        }
+
+        private void ChestRevealer_Init(On.RoR2.ChestRevealer.orig_Init orig)
+        {
+            orig();
+            orig.Target.SetFieldValue<GameObject>("pulseEffectPrefab", null);
+            Debug.Log("pulse effect prefab wiped");
         }
 
         private void SceneDirector_Start(On.RoR2.SceneDirector.orig_Start orig, SceneDirector self)
@@ -66,18 +74,13 @@ namespace PoseHelper
             orig(self);
             switch (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name)
             {
-                case "moon":
-                    //var EscapeSequenceController = GameObject.Find("EscapeSequenceController");
-                    //var EscapeSequenceObjects = EscapeSequenceController.transform.Find("EscapeSequenceObjects");
-                    //EscapeSequenceObjects.gameObject.SetActive(true);
-                    //GameObject.Find("Ending Trigger").transform.position = new Vector3(2654, 206, 723);
-                    UnityEngine.Object.FindObjectOfType<EscapeSequenceController>().CompleteEscapeSequence();
-                    break;
-                case "outro":
-                    GameObject.Find("CutsceneController").GetComponent<PlayableDirector>().initialTime = 40f;
-                    break;
                 case "lobby":
                     GameObject.Find("Directional Light").GetComponent<Light>().color = Color.white;
+                    var localMaster = PlayerCharacterMasterController.instances[0].master;
+                    if (localMaster)
+                    {
+                        localMaster.GetBody().characterMotor.Motor.SetPositionAndRotation(new Vector3(0.12f, 0.91f, 7.76f), Quaternion.identity, true);
+                    }
                     break;
             }
         }
