@@ -5,7 +5,8 @@ using BepInEx.Configuration;
 
 namespace RadarEffectToggleMod
 {
-    [BepInPlugin("com.DestroyedClone.MoonToOutro", "Immediate Moon To Outro", "1.0.0")]
+    [BepInPlugin("com.DestroyedClone.RadarEffectToggle", "Radar Effect Toggle", "1.0.0")]
+    [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     public class RETMPlugin : BaseUnityPlugin
     {
         public static ConfigEntry<bool> PostProcessing { get; set; }
@@ -17,7 +18,7 @@ namespace RadarEffectToggleMod
         {
             PostProcessing = Config.Bind("Default", "Post Processing", true, "Toggles the bright light that fades out on scan." );
             PointLight = Config.Bind("Default", "Point Light", true, "Toggles the small light that's emitted pretty much right where you are.");
-            Kill = Config.Bind("Default", "Early Death", false, "Normally it dies after 4 seconds, if \"true\", it will now die after 0 seconds.");
+            Kill = Config.Bind("Default", "Early Death", true, "Normally it dies after 4 seconds, if \"true\", it will now die after 0 seconds. Doesn't affect the actual scan.");
 
 
             On.RoR2.RoR2Application.Awake += RoR2Application_Awake;

@@ -4,6 +4,7 @@ using RoR2;
 namespace MoonToOutro
 {
     [BepInPlugin("com.DestroyedClone.MoonToOutro", "Immediate Moon To Outro", "1.0.0")]
+    [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     public class Plugin : BaseUnityPlugin
     {
         public void Awake()
