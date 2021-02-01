@@ -50,23 +50,30 @@ namespace PoseHelper
 
         private void MakeRadarScannerNotBright() //https://stackoverflow.com/questions/55013068/changing-prefabs-fields-from-script-unity
         {
-            GameObject prefab = Resources.Load<GameObject>("Prefabs/NetworkedObjects/ChestScanner");
+            GameObject prefab = Resources.Load<GameObject>("prefabs/effects/ActivateRadarTowerEffect");
             prefab.GetComponent<ChestRevealer>().pulseEffectScale = 0f;
-
         }
 
         private void Hooks()
         {
             RoR2.CharacterBody.onBodyStartGlobal += CharacterBody_onBodyStartGlobal;
             On.RoR2.SceneDirector.Start += SceneDirector_Start;
-            On.RoR2.ChestRevealer.Init += ChestRevealer_Init;
+            On.RoR2.RoR2Application.Awake += RoR2Application_Awake;
         }
 
-        private void ChestRevealer_Init(On.RoR2.ChestRevealer.orig_Init orig)
+        private void RoR2Application_Awake(On.RoR2.RoR2Application.orig_Awake orig, RoR2Application self)
         {
-            orig();
-            orig.Target.SetFieldValue<GameObject>("pulseEffectPrefab", null);
-            Debug.Log("pulse effect prefab wiped");
+            orig(self);
+            if (!self.GetComponent<RadarScannerOverride>())
+            {
+                var component = self.gameObject.AddComponent<RadarScannerOverride>();
+                component.prefab = Resources.Load<GameObject>("prefabs/effects/ActivateRadarTowerEffect");
+                //component.prefab.transform.Find("PP").gameObject.SetActive(false);
+                // component.prefab.GetComponent<DestroyOnTimer>().transform.Find("");
+                component.prefab.transform.Find("PP").gameObject.SetActive(false);
+                component.prefab.transform.Find("Point Light").gameObject.SetActive(false);
+                component.prefab.GetComponent<DestroyOnTimer>().duration = 0f;
+            }
         }
 
         private void SceneDirector_Start(On.RoR2.SceneDirector.orig_Start orig, SceneDirector self)
@@ -92,6 +99,11 @@ namespace PoseHelper
                 if (!obj.masterObject.GetComponent<Commands.DesCloneCommandComponent>())
                     obj.masterObject.AddComponent<Commands.DesCloneCommandComponent>();
             }
+        }
+
+        public class RadarScannerOverride : MonoBehaviour
+        {
+            public GameObject prefab;
         }
     }
 }

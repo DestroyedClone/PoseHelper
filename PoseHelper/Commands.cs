@@ -111,6 +111,7 @@ namespace PoseHelper
                         }
                     } else
                     {
+                        args.senderMaster.preventGameOver = true;
                         hc.Suicide();
                         var stopwatch = 0f;
                         while (stopwatch <= 1.5f)
@@ -237,8 +238,21 @@ namespace PoseHelper
         {
             private void Start()
             {
-                var inventory = base.GetComponent<Inventory>();
+                var inventory = gameObject.GetComponent<Inventory>();
                 inventory.GiveItem(ItemIndex.InvadingDoppelganger);
+            }
+
+            float stopwatch = 0f;
+            private void FixedUpdate()
+            {
+                stopwatch += Time.deltaTime;
+                if (stopwatch > 1.5f)
+                {
+                    if (gameObject.GetComponent<Inventory>().GetItemCount(ItemIndex.InvadingDoppelganger) == 0)
+                        Debug.Log("failed");
+                    else Debug.Log("success");
+                    enabled = false;
+                }
             }
         }
 
