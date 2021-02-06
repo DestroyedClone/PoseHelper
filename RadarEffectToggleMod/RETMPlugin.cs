@@ -32,9 +32,9 @@ namespace RadarEffectToggleMod
             {
                 var component = self.gameObject.AddComponent<RadarEffectToggleModComponent>();
                 component.prefab = Resources.Load<GameObject>("prefabs/effects/ActivateRadarTowerEffect");
-                if (PostProcessing.Value) component.prefab.transform.Find("PP").gameObject.SetActive(false);
-                if (PointLight.Value) component.prefab.transform.Find("Point Light").gameObject.SetActive(false);
-                if (Shake.Value)
+                if (PostProcessing.Value || Kill.Value) component.prefab.transform.Find("PP").gameObject.SetActive(false);
+                if (PointLight.Value || Kill.Value) component.prefab.transform.Find("Point Light").gameObject.SetActive(false);
+                if (Shake.Value || Kill.Value)
                 {
                     foreach (var shakers in component.prefab.GetComponents<ShakeEmitter>())
                         shakers.enabled = false;
