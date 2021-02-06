@@ -11,6 +11,7 @@ namespace RadarEffectToggleMod
     {
         public static ConfigEntry<bool> PostProcessing { get; set; }
         public static ConfigEntry<bool> PointLight { get; set; }
+        public static ConfigEntry<bool> Shake { get; set; }
         public static ConfigEntry<bool> Kill { get; set; }
 
 
@@ -18,6 +19,7 @@ namespace RadarEffectToggleMod
         {
             PostProcessing = Config.Bind("Default", "Remove Post Processing", true, "Enable to remove the bright light that fades out on scan." );
             PointLight = Config.Bind("Default", "Remove Point Light", true, "Enable to remove the small light that's emitted at your location.");
+            Shake = Config.Bind("Default", "Remove Shaking", true, "Enable to remove the shaking upon scanning. More noticeable when you constantly scan.");
             Kill = Config.Bind("Default", "Disable Effect", true, "Enable to immediately remove the effect entirely. Doesn't affect the actual scan.");
 
 
@@ -32,7 +34,15 @@ namespace RadarEffectToggleMod
                 component.prefab = Resources.Load<GameObject>("prefabs/effects/ActivateRadarTowerEffect");
                 if (PostProcessing.Value) component.prefab.transform.Find("PP").gameObject.SetActive(false);
                 if (PointLight.Value) component.prefab.transform.Find("Point Light").gameObject.SetActive(false);
-                if (Kill.Value) component.prefab.GetComponent<DestroyOnTimer>().duration = 0f;
+                if (Shake.Value)
+                {
+                    foreach (var shakers in component.prefab.GetComponents<ShakeEmitter>())
+                        shakers.enabled = false;
+                }
+                if (Kill.Value)
+                {
+                    component.prefab.GetComponent<DestroyOnTimer>().duration = 0f;
+                }
             }
         }
         public class RadarEffectToggleModComponent : MonoBehaviour
