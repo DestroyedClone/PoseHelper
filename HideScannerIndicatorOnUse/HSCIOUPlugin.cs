@@ -9,18 +9,87 @@ namespace HideScannerIndicatorOnUse
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     public class HSCIOUPlugin : BaseUnityPlugin
     {
-        public static ConfigEntry<bool> ShrineHideIncomplete { get; set; }
         public static ConfigEntry<bool> TrishopHide { get; set; }
+        public static ConfigEntry<bool> ChanceShrineHideComplete { get; set; }
+        public static ConfigEntry<bool> HealShrineHideComplete { get; set; }
+        public static ConfigEntry<bool> BloodShrineHideComplete { get; set; }
         //public static ConfigEntry<bool> HideScrapper { get; set; } todo
         public void Awake()
         {
-            ShrineHideIncomplete = Config.Bind("Default", "Enable to remove indicator on shrines even with charges left", true, "Toggles the bright light that fades out on scan.");
-            TrishopHide = Config.Bind("Default", "Hide all items of a tri-shop terminal", true, "Toggles the small light that's emitted pretty much right where you are.");
-
-            GlobalEventManager.OnInteractionsGlobal += HideScannerIndicator;
+            var shrineCategory = "Shrines with Charges";
+            var shrineDesc = "Enable to only hide the indicator immediately if the shrine is out of charges.";
+            TrishopHide = Config.Bind("Default", "Triple Shop Terminal", true, "Hide all items of a tri-shop terminal");
+            ChanceShrineHideComplete = Config.Bind(shrineCategory, "Chance Shrine.", true, shrineDesc);
+            HealShrineHideComplete = Config.Bind(shrineCategory, "Shrine of the Woods.", true, shrineDesc);
+            BloodShrineHideComplete = Config.Bind(shrineCategory, "Blood Shrine.", true, shrineDesc);
+            var HideAll = !TrishopHide.Value && !ChanceShrineHideComplete.Value && !HealShrineHideComplete.Value && !BloodShrineHideComplete.Value;
+            if (HideAll)
+                GlobalEventManager.OnInteractionsGlobal += HideScannerIndicatorAny;
+            else
+            {
+                GlobalEventManager.OnInteractionsGlobal += HideScannerIndicatorOnlyComplete;
+                if (TrishopHide.Value)
+                    On.RoR2.MultiShopController.DisableAllTerminals += MultiShopController_DisableAllTerminals;
+                if (ChanceShrineHideComplete.Value)
+                    On.RoR2.ShrineChanceBehavior.AddShrineStack += ShrineChanceBehavior_AddShrineStack;
+                if (HealShrineHideComplete.Value)
+                    On.RoR2.ShrineHealingBehavior.AddShrineStack += ShrineHealingBehavior_AddShrineStack;
+                if (BloodShrineHideComplete.Value)
+                    On.RoR2.ShrineBloodBehavior.AddShrineStack += ShrineBloodBehavior_AddShrineStack;
+            }
         }
 
-        private void HideScannerIndicator(Interactor interactor, IInteractable interactable, GameObject gameObject)
+        private void HideScannerIndicatorOnlyComplete(Interactor interactor, IInteractable interactable, GameObject gameObject)
+        {
+            MultiShopController multiShopController = gameObject.GetComponent<MultiShopController>();
+            ShrineChanceBehavior shrineChanceBehavior = gameObject.GetComponent<ShrineChanceBehavior>();
+            ShrineHealingBehavior shrineHealingBehavior = gameObject.GetComponent<ShrineHealingBehavior>();
+            ShrineBloodBehavior shrineBloodBehavior = gameObject.GetComponent<ShrineBloodBehavior>();
+            if (!multiShopController || !shrineChanceBehavior || !shrineHealingBehavior || !shrineBloodBehavior)
+                RemoveIndicator(gameObject);
+        }
+
+        private void ShrineBloodBehavior_AddShrineStack(On.RoR2.ShrineBloodBehavior.orig_AddShrineStack orig, ShrineBloodBehavior self, Interactor interactor)
+        {
+            orig(self, interactor);
+            if (!self.symbolTransform.gameObject.activeSelf)
+            {
+                RemoveIndicator(self.symbolTransform.gameObject);
+            }
+        }
+
+        private void ShrineHealingBehavior_AddShrineStack(On.RoR2.ShrineHealingBehavior.orig_AddShrineStack orig, ShrineHealingBehavior self, Interactor activator)
+        {
+            orig(self, activator);
+            if (!self.symbolTransform.gameObject.activeSelf)
+            {
+                RemoveIndicator(self.symbolTransform.gameObject);
+            }
+        }
+
+        private void ShrineChanceBehavior_AddShrineStack(On.RoR2.ShrineChanceBehavior.orig_AddShrineStack orig, ShrineChanceBehavior self, Interactor activator)
+        {
+            orig(self, activator);
+            if (!self.symbolTransform.gameObject.activeSelf)
+            {
+                RemoveIndicator(self.symbolTransform.gameObject);
+            }
+        }
+
+        private void MultiShopController_DisableAllTerminals(On.RoR2.MultiShopController.orig_DisableAllTerminals orig, MultiShopController self, Interactor interactor)
+        {
+            orig(self, interactor);
+            foreach (GameObject gameObject in self.terminalGameObjects)
+            {
+                RemoveIndicator(gameObject);
+            }
+        }
+
+        private void HideScannerIndicatorAny(Interactor interactor, IInteractable interactable, GameObject gameObject)
+        {
+            RemoveIndicator(gameObject);
+        }
+        private void RemoveIndicator(GameObject gameObject)
         {
             if (gameObject)
             {
