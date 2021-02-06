@@ -9,27 +9,26 @@ namespace HideScannerIndicatorOnUse
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     public class HSCIOUPlugin : BaseUnityPlugin
     {
-        public static ConfigEntry<bool> TrishopHide { get; set; }
         public static ConfigEntry<bool> ChanceShrineHideComplete { get; set; }
         public static ConfigEntry<bool> HealShrineHideComplete { get; set; }
         public static ConfigEntry<bool> BloodShrineHideComplete { get; set; }
         //public static ConfigEntry<bool> HideScrapper { get; set; } todo
         public void Awake()
         {
-            var shrineCategory = "Shrines with Charges";
-            var shrineDesc = "Enable to only hide the indicator immediately if the shrine is out of charges.";
-            TrishopHide = Config.Bind("Default", "Triple Shop Terminal", true, "Hide all items of a tri-shop terminal");
-            ChanceShrineHideComplete = Config.Bind(shrineCategory, "Chance Shrine.", true, shrineDesc);
-            HealShrineHideComplete = Config.Bind(shrineCategory, "Shrine of the Woods.", true, shrineDesc);
-            BloodShrineHideComplete = Config.Bind(shrineCategory, "Blood Shrine.", true, shrineDesc);
-            var HideAll = !TrishopHide.Value && !ChanceShrineHideComplete.Value && !HealShrineHideComplete.Value && !BloodShrineHideComplete.Value;
+            var shrineCategory = "Shrines w/ Charges";
+            var shrineDesc = "Enable to only hide the indicator only if the shrine is out of charges.";
+            ChanceShrineHideComplete = Config.Bind(shrineCategory, "Chance Shrine", true, shrineDesc);
+            HealShrineHideComplete = Config.Bind(shrineCategory, "Shrine of the Woods", true, shrineDesc);
+            BloodShrineHideComplete = Config.Bind(shrineCategory, "Blood Shrine", true, shrineDesc);
+            var HideAll = !ChanceShrineHideComplete.Value && !HealShrineHideComplete.Value && !BloodShrineHideComplete.Value;
             if (HideAll)
+            {
                 GlobalEventManager.OnInteractionsGlobal += HideScannerIndicatorAny;
+                On.RoR2.MultiShopController.DisableAllTerminals += MultiShopController_DisableAllTerminals;
+            }
             else
             {
                 GlobalEventManager.OnInteractionsGlobal += HideScannerIndicatorOnlyComplete;
-                if (TrishopHide.Value)
-                    On.RoR2.MultiShopController.DisableAllTerminals += MultiShopController_DisableAllTerminals;
                 if (ChanceShrineHideComplete.Value)
                     On.RoR2.ShrineChanceBehavior.AddShrineStack += ShrineChanceBehavior_AddShrineStack;
                 if (HealShrineHideComplete.Value)
