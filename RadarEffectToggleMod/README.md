@@ -18,7 +18,7 @@ You need R2API and BepinEx.
 
 ## Changelog
 
-* 1.0.1
+* 1.1.0
 	* Clarified config text
 	* Added shake emitter
 	* Improved disabling the effect
