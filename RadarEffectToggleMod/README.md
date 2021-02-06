@@ -22,6 +22,7 @@ You need R2API and BepinEx.
 	* Clarified config text
 	* Added shake emitter
 	* Improved disabling the effect
+	* Removed network requirement
 * 1.0.0 - Release
 
 > Written with [StackEdit](https://stackedit.io/).

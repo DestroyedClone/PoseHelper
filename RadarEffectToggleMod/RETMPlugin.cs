@@ -1,12 +1,14 @@
 ﻿using BepInEx;
+using BepInEx.Configuration;
 using UnityEngine;
 using RoR2;
-using BepInEx.Configuration;
+using R2API.Utils;
 
 namespace RadarEffectToggleMod
 {
-    [BepInPlugin("com.DestroyedClone.RadarEffectToggle", "Radar Effect Toggle", "1.0.0")]
+    [BepInPlugin("com.DestroyedClone.RadarEffectToggle", "Radar Effect Toggle", "1.1.0")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
+    [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
     public class RETMPlugin : BaseUnityPlugin
     {
         public static ConfigEntry<bool> PostProcessing { get; set; }
