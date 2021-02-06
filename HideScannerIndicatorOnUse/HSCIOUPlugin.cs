@@ -21,10 +21,11 @@ namespace HideScannerIndicatorOnUse
             HealShrineHideComplete = Config.Bind(shrineCategory, "Shrine of the Woods", true, shrineDesc);
             BloodShrineHideComplete = Config.Bind(shrineCategory, "Blood Shrine", true, shrineDesc);
             var HideAll = !ChanceShrineHideComplete.Value && !HealShrineHideComplete.Value && !BloodShrineHideComplete.Value;
+
+            On.RoR2.MultiShopController.DisableAllTerminals += MultiShopController_DisableAllTerminals;
             if (HideAll)
             {
                 GlobalEventManager.OnInteractionsGlobal += HideScannerIndicatorAny;
-                On.RoR2.MultiShopController.DisableAllTerminals += MultiShopController_DisableAllTerminals;
             }
             else
             {
@@ -51,7 +52,7 @@ namespace HideScannerIndicatorOnUse
         private void ShrineBloodBehavior_AddShrineStack(On.RoR2.ShrineBloodBehavior.orig_AddShrineStack orig, ShrineBloodBehavior self, Interactor interactor)
         {
             orig(self, interactor);
-            if (!self.symbolTransform.gameObject.activeSelf)
+            if (self.purchaseCount >= self.maxPurchaseCount)
             {
                 RemoveIndicator(self.symbolTransform.gameObject);
             }
@@ -60,7 +61,7 @@ namespace HideScannerIndicatorOnUse
         private void ShrineHealingBehavior_AddShrineStack(On.RoR2.ShrineHealingBehavior.orig_AddShrineStack orig, ShrineHealingBehavior self, Interactor activator)
         {
             orig(self, activator);
-            if (!self.symbolTransform.gameObject.activeSelf)
+            if (self.purchaseCount >= self.maxPurchaseCount)
             {
                 RemoveIndicator(self.symbolTransform.gameObject);
             }
@@ -69,7 +70,7 @@ namespace HideScannerIndicatorOnUse
         private void ShrineChanceBehavior_AddShrineStack(On.RoR2.ShrineChanceBehavior.orig_AddShrineStack orig, ShrineChanceBehavior self, Interactor activator)
         {
             orig(self, activator);
-            if (!self.symbolTransform.gameObject.activeSelf)
+            if (self.successfulPurchaseCount >= self.maxPurchaseCount)
             {
                 RemoveIndicator(self.symbolTransform.gameObject);
             }
