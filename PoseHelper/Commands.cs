@@ -113,12 +113,7 @@ namespace PoseHelper
                     {
                         args.senderMaster.preventGameOver = true;
                         hc.Suicide();
-                        var stopwatch = 0f;
-                        while (stopwatch <= 1.5f)
-                        {
-                            stopwatch += Time.deltaTime;
-                        }
-                        args.senderMaster.Respawn(cb.footPosition, Quaternion.identity, false);
+                        args.senderMasterObject.GetComponent<DesCloneCommandComponent>().tryRespawn = true;
                     }
                 }
             }
@@ -259,6 +254,23 @@ namespace PoseHelper
         public class DesCloneCommandComponent : MonoBehaviour
         {
             public GameObject chosenObject;
+            public bool tryRespawn = false;
+            private float stopwatch = 0f;
+
+            void FixedUpdate()
+            {
+                if (tryRespawn)
+                {
+                    stopwatch += Time.deltaTime;
+                    if (stopwatch > 1f)
+                    {
+                        var charmaster = gameObject.GetComponent<CharacterMaster>();
+                        charmaster.Respawn(charmaster.GetBody().footPosition, Quaternion.identity, false);
+                        stopwatch = 0f;
+                        tryRespawn = false;
+                    }
+                }
+            }
         }
     }
 }
