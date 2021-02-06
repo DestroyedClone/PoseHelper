@@ -16,9 +16,9 @@ namespace RadarEffectToggleMod
 
         public void Awake()
         {
-            PostProcessing = Config.Bind("Default", "Post Processing", true, "Toggles the bright light that fades out on scan." );
-            PointLight = Config.Bind("Default", "Point Light", true, "Toggles the small light that's emitted pretty much right where you are.");
-            Kill = Config.Bind("Default", "Early Death", true, "Normally it dies after 4 seconds, if \"true\", it will now die after 0 seconds. Doesn't affect the actual scan.");
+            PostProcessing = Config.Bind("Default", "Remove Post Processing", true, "Enable to remove the bright light that fades out on scan." );
+            PointLight = Config.Bind("Default", "Remove Point Light", true, "Enable to remove the small light that's emitted at your location.");
+            Kill = Config.Bind("Default", "Disable Effect", true, "Enable to immediately remove the effect entirely. Doesn't affect the actual scan.");
 
 
             On.RoR2.RoR2Application.Awake += RoR2Application_Awake;
