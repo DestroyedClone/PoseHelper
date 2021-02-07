@@ -1,9 +1,10 @@
-﻿using BepInEx;
+﻿using RoR2;
 using UnityEngine;
-using RoR2;
+using BepInEx;
 using BepInEx.Configuration;
 using System.Security;
 using System.Security.Permissions;
+using R2API.Utils;
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -14,6 +15,7 @@ namespace HideScannerIndicatorOnUse
 {
     [BepInPlugin("com.DestroyedClone.HideScannerIndicatorOnUse", "Hide Scanner Indicator On Use", "1.0.0")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
+    [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
     public class HSCIOUPlugin : BaseUnityPlugin
     {
         public static ConfigEntry<bool> ChanceShrineHideComplete { get; set; }
@@ -23,7 +25,7 @@ namespace HideScannerIndicatorOnUse
         public void Awake()
         {
             var shrineCategory = "Shrines w/ Charges";
-            var shrineDesc = "Enable to only hide the indicator only if the shrine is out of charges.";
+            var shrineDesc = "Enable to only hide the indicator if the shrine is out of charges.";
             ChanceShrineHideComplete = Config.Bind(shrineCategory, "Chance Shrine", true, shrineDesc);
             HealShrineHideComplete = Config.Bind(shrineCategory, "Shrine of the Woods", true, shrineDesc);
             BloodShrineHideComplete = Config.Bind(shrineCategory, "Blood Shrine", true, shrineDesc);
