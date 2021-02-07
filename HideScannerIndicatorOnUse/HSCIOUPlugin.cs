@@ -1,7 +1,6 @@
 ﻿using RoR2;
 using UnityEngine;
 using BepInEx;
-using BepInEx.Configuration;
 using System.Security;
 using System.Security.Permissions;
 using R2API.Utils;
@@ -18,71 +17,11 @@ namespace HideScannerIndicatorOnUse
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
     public class HSCIOUPlugin : BaseUnityPlugin
     {
-        public static ConfigEntry<bool> ChanceShrineHideComplete { get; set; }
-        public static ConfigEntry<bool> HealShrineHideComplete { get; set; }
-        public static ConfigEntry<bool> BloodShrineHideComplete { get; set; }
-        //public static ConfigEntry<bool> HideScrapper { get; set; } todo
         public void Awake()
         {
-            var shrineCategory = "Shrines w/ Charges";
-            var shrineDesc = "Enable to only hide the indicator if the shrine is out of charges.";
-            ChanceShrineHideComplete = Config.Bind(shrineCategory, "Chance Shrine", true, shrineDesc);
-            HealShrineHideComplete = Config.Bind(shrineCategory, "Shrine of the Woods", true, shrineDesc);
-            BloodShrineHideComplete = Config.Bind(shrineCategory, "Blood Shrine", true, shrineDesc);
-            var HideAll = !ChanceShrineHideComplete.Value && !HealShrineHideComplete.Value && !BloodShrineHideComplete.Value;
 
             On.RoR2.MultiShopController.DisableAllTerminals += MultiShopController_DisableAllTerminals;
-            if (HideAll)
-            {
-                GlobalEventManager.OnInteractionsGlobal += HideScannerIndicatorAny;
-            }
-            else
-            {
-                GlobalEventManager.OnInteractionsGlobal += HideScannerIndicatorOnlyComplete;
-                if (ChanceShrineHideComplete.Value)
-                    On.RoR2.ShrineChanceBehavior.AddShrineStack += ShrineChanceBehavior_AddShrineStack;
-                if (HealShrineHideComplete.Value)
-                    On.RoR2.ShrineHealingBehavior.AddShrineStack += ShrineHealingBehavior_AddShrineStack;
-                if (BloodShrineHideComplete.Value)
-                    On.RoR2.ShrineBloodBehavior.AddShrineStack += ShrineBloodBehavior_AddShrineStack;
-            }
-        }
-
-        private void HideScannerIndicatorOnlyComplete(Interactor interactor, IInteractable interactable, GameObject gameObject)
-        {
-            MultiShopController multiShopController = gameObject.GetComponent<MultiShopController>();
-            ShrineChanceBehavior shrineChanceBehavior = gameObject.GetComponent<ShrineChanceBehavior>();
-            ShrineHealingBehavior shrineHealingBehavior = gameObject.GetComponent<ShrineHealingBehavior>();
-            ShrineBloodBehavior shrineBloodBehavior = gameObject.GetComponent<ShrineBloodBehavior>();
-            if (!multiShopController || !shrineChanceBehavior || !shrineHealingBehavior || !shrineBloodBehavior)
-                RemoveIndicator(gameObject);
-        }
-
-        private void ShrineBloodBehavior_AddShrineStack(On.RoR2.ShrineBloodBehavior.orig_AddShrineStack orig, ShrineBloodBehavior self, Interactor interactor)
-        {
-            orig(self, interactor);
-            if (self.purchaseCount >= self.maxPurchaseCount)
-            {
-                RemoveIndicator(self.symbolTransform.gameObject);
-            }
-        }
-
-        private void ShrineHealingBehavior_AddShrineStack(On.RoR2.ShrineHealingBehavior.orig_AddShrineStack orig, ShrineHealingBehavior self, Interactor activator)
-        {
-            orig(self, activator);
-            if (self.purchaseCount >= self.maxPurchaseCount)
-            {
-                RemoveIndicator(self.symbolTransform.gameObject);
-            }
-        }
-
-        private void ShrineChanceBehavior_AddShrineStack(On.RoR2.ShrineChanceBehavior.orig_AddShrineStack orig, ShrineChanceBehavior self, Interactor activator)
-        {
-            orig(self, activator);
-            if (self.successfulPurchaseCount >= self.maxPurchaseCount)
-            {
-                RemoveIndicator(self.symbolTransform.gameObject);
-            }
+            GlobalEventManager.OnInteractionsGlobal += HideScannerIndicatorAny;
         }
 
         private void MultiShopController_DisableAllTerminals(On.RoR2.MultiShopController.orig_DisableAllTerminals orig, MultiShopController self, Interactor interactor)
