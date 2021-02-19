@@ -9,7 +9,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoonToOutro", "MoonToOutro\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RadarEffectToggleMod", "RadarEffectToggleMod\RadarEffectToggleMod.csproj", "{AC71711D-E883-480F-8A2F-C544C04AC0AE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HideScannerIndicatorOnUse", "HideScannerIndicatorOnUse\HideScannerIndicatorOnUse.csproj", "{1F7955CB-E590-4FAE-99B5-334E256C811E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HideScannerIndicatorOnUse", "HideScannerIndicatorOnUse\HideScannerIndicatorOnUse.csproj", "{1F7955CB-E590-4FAE-99B5-334E256C811E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LeBuilder", "LeBuilder\LeBuilder.csproj", "{27764B04-3AA7-4AB4-BC08-2D9FA8304E21}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{1F7955CB-E590-4FAE-99B5-334E256C811E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1F7955CB-E590-4FAE-99B5-334E256C811E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1F7955CB-E590-4FAE-99B5-334E256C811E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{27764B04-3AA7-4AB4-BC08-2D9FA8304E21}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{27764B04-3AA7-4AB4-BC08-2D9FA8304E21}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{27764B04-3AA7-4AB4-BC08-2D9FA8304E21}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{27764B04-3AA7-4AB4-BC08-2D9FA8304E21}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
