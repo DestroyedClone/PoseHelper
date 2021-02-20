@@ -11,6 +11,13 @@ using R2API.Networking;
 using UnityEngine.Playables;
 using System;
 using static UnityEngine.ScriptableObject;
+using System.Security;
+using System.Security.Permissions;
+
+[module: UnverifiableCode]
+#pragma warning disable CS0618 // Type or member is obsolete
+[assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
+#pragma warning restore CS0618 // Type or member is obsolete
 
 namespace LeBuilder
 {
@@ -53,8 +60,33 @@ namespace LeBuilder
 
         private void Hooks()
         {
+            On.RoR2.UI.CharacterSelectController.OnNetworkUserLoadoutChanged += CharacterSelectController_OnNetworkUserLoadoutChanged;
         }
 
+
+        private static void CharacterSelectController_OnNetworkUserLoadoutChanged(On.RoR2.UI.CharacterSelectController.orig_OnNetworkUserLoadoutChanged orig, RoR2.UI.CharacterSelectController self, NetworkUser networkUser)
+        {
+            orig(self, networkUser);
+            var toolbotSurvivorIndex = SurvivorIndex.Toolbot;
+            //SurvivorCatalog.FindSurvivorIndex("HANDOverclocked");
+            //var toolbotIndex = SurvivorCatalog.GetBodyIndexFromSurvivorIndex(toolbotSurvivorIndex);
+            bool showTeaser = true;
+            foreach (var display in self.characterDisplayPads)
+            {
+                if (display.displaySurvivorIndex == toolbotSurvivorIndex)
+                {
+                    showTeaser = false;
+                    break;
+                }
+            }
+
+            Debug.Log("settingactive");
+            GameObject.Find("HANDTeaser")?.gameObject.SetActive(showTeaser);
+            //if (networkUser.bodyIndexPreference == toolbotIndex)
+            {
+
+            }
+        }
 
     }
 }

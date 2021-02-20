@@ -1,18 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
-	<PropertyGroup>
-		<TargetFramework>netstandard2.0</TargetFramework>
-	</PropertyGroup>
-
-	<ItemGroup>
-	  <Compile Remove="Pasts\**" />
-	  <EmbeddedResource Remove="Pasts\**" />
-	  <None Remove="Pasts\**" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Compile Remove="PastInfo.cs" />
-	</ItemGroup>
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
 
 	<ItemGroup>
 		<Reference Include="0Harmony">
@@ -103,5 +93,4 @@
 			<HintPath>..\PoseHelper\lib\UnityEngine.UI.dll</HintPath>
 		</Reference>
 	</ItemGroup>
-
 </Project>

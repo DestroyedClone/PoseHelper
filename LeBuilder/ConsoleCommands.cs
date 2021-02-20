@@ -15,49 +15,168 @@ namespace LeBuilder
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Empty Arg required")]
     public static class ConsoleCommands
     {
-        [ConCommand(commandName = "obj_build", flags = ConVarFlags.ExecuteOnServer, 
+
+        [ConCommand(commandName = "obj_enable", flags = ConVarFlags.ExecuteOnServer, helpText = "gives you the component to run the commands")]
+        private static void PlayMinecraft(ConCommandArgs args)
+        {
+            var bodyObject = args.senderBody.gameObject;
+            if (bodyObject)
+            {
+                var component = bodyObject.GetComponent<Minecraft>();
+                if (!component)
+                {
+                    bodyObject.AddComponent<Minecraft>();
+                    Debug.Log("Gave component!");
+                    return;
+                }
+            }
+        }
+
+        [ConCommand(commandName = "obj_build", flags = ConVarFlags.ExecuteOnServer,
             helpText = "obj_build {objectname} {modelName} {opt:materialname} {opt:collisionname}")]
-        private static void DeathStateClear(ConCommandArgs args)
+        private static void PlaceBlock(ConCommandArgs args)
         {
             var deathstate = args.senderBody.GetComponent<CharacterDeathBehavior>();
             if (deathstate) deathstate.deathState = new SerializableEntityStateType();
             args.senderMaster.preventGameOver = true;
         }
 
-        [ConCommand(commandName = "mult_hook", flags = ConVarFlags.ExecuteOnServer, helpText = "cc")]
-        private static void MULTCheap(ConCommandArgs args)
+        [ConCommand(commandName = "obj_del", flags = ConVarFlags.ExecuteOnServer,
+    helpText = "obj_del - deletes the currently selected object")]
+        private static void DestroyBlock(ConCommandArgs args)
         {
-            On.RoR2.UI.CharacterSelectController.OnNetworkUserLoadoutChanged += CharacterSelectController_OnNetworkUserLoadoutChanged;
-            Debug.Log("Added hook!");
-        }
-
-        private static void CharacterSelectController_OnNetworkUserLoadoutChanged(On.RoR2.UI.CharacterSelectController.orig_OnNetworkUserLoadoutChanged orig, RoR2.UI.CharacterSelectController self, NetworkUser networkUser)
-        {
-            orig(self, networkUser);
-            var toolbotSurvivorIndex = SurvivorIndex.Toolbot;
-            //var toolbotIndex = SurvivorCatalog.GetBodyIndexFromSurvivorIndex(toolbotSurvivorIndex);
-            bool showTeaser = true;
-            foreach (var display in self.characterDisplayPads)
+            var minecraft = args.senderBody.gameObject.GetComponent<Minecraft>();
+            if (minecraft)
             {
-                if (display.displaySurvivorIndex == toolbotSurvivorIndex)
+                if (minecraft.currentSelectedObject)
                 {
-                    showTeaser = false;
-                    break;
+                    UnityEngine.Object.DestroyImmediate(minecraft.currentSelectedObject.gameObject);
                 }
             }
+        }
 
-            self.gameObject.transform.parent.gameObject.transform.Find("HANDTeaser")?.gameObject.SetActive(showTeaser);
-            //if (networkUser.bodyIndexPreference == toolbotIndex)
+        [ConCommand(commandName = "obj_ping", flags = ConVarFlags.ExecuteOnServer,
+    helpText = "obj_ping - pings the selected object")]
+        private static void FuckingPings(ConCommandArgs args)
+        {
+            var minecraft = args.senderBody.gameObject.GetComponent<Minecraft>();
+            if (minecraft)
             {
+                if (minecraft.currentSelectedObject)
+                {
+                    GameObject gameObject = UnityEngine.Object.Instantiate<GameObject>(Resources.Load<GameObject>("Prefabs/PositionIndicators/PoiPositionIndicator"), minecraft.currentSelectedObject.transform.position, minecraft.currentSelectedObject.transform.rotation);
+                    PositionIndicator component = gameObject.GetComponent<PositionIndicator>();
+                    component.insideViewObject.GetComponent<SpriteRenderer>().color = Color.white;
+                    UnityEngine.Object.Destroy(component.insideViewObject.GetComponent<ObjectScaleCurve>());
+                    component.insideViewObject.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("textures/miscicons/texAttackIcon");
+                    component.outsideViewObject.transform.Find("Sprite").GetComponent<SpriteRenderer>().color = Color.white;
+                    component.outsideViewObject.transform.Find("Sprite").Find("Sprite").GetComponent<SpriteRenderer>().color = Color.white;
+                    component.targetTransform = minecraft.currentSelectedObject.transform;
+                    gameObject.AddComponent<ImpMarkerKiller>();
+                }
 
             }
         }
+
+        [ConCommand(commandName = "obj_sel", flags = ConVarFlags.ExecuteOnServer,
+helpText = "obj_sel - look to select the nearest object")]
+        private static void Scratchmyfuckingballs(ConCommandArgs args)
+        {
+            var minecraft = args.senderBody.gameObject.GetComponent<Minecraft>();
+            if (minecraft)
+            {
+                InputBankTest component = args.senderBody.gameObject.GetComponent<InputBankTest>();
+                if (component)
+                {
+                    if (Util.CharacterRaycast(args.senderBody.gameObject, new Ray(component.aimOrigin, component.aimDirection), out RaycastHit raycastHit, float.PositiveInfinity, LayerIndex.world.mask | LayerIndex.entityPrecise.mask, QueryTriggerInteraction.UseGlobal))
+                    {
+                        minecraft.currentSelectedObject = raycastHit.collider.gameObject;
+                    }
+                }
+            }
+        }
+
+        //original code by evaisa
+        public static void markGameObjects(HashSet<CharacterMaster> imps, Color impColor)
+        {
+            EnumerableExtensions.ForEachTry<CharacterMaster>(imps, delegate (CharacterMaster imp)
+            {
+                GameObject gameObject = UnityEngine.Object.Instantiate<GameObject>(Resources.Load<GameObject>("Prefabs/PositionIndicators/PoiPositionIndicator"), imp.GetBodyObject().transform.position, imp.GetBodyObject().transform.rotation);
+                PositionIndicator component = gameObject.GetComponent<PositionIndicator>();
+                component.insideViewObject.GetComponent<SpriteRenderer>().color = impColor;
+                UnityEngine.Object.Destroy(component.insideViewObject.GetComponent<ObjectScaleCurve>());
+                component.insideViewObject.transform.localScale = component.insideViewObject.transform.localScale / 2f;
+                component.insideViewObject.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("textures/miscicons/texAttackIcon");
+                component.outsideViewObject.transform.Find("Sprite").GetComponent<SpriteRenderer>().color = impColor;
+                component.outsideViewObject.transform.Find("Sprite").Find("Sprite").GetComponent<SpriteRenderer>().color = impColor;
+                component.targetTransform = imp.GetBodyObject().transform;
+                gameObject.AddComponent<ImpMarkerKiller>();
+            }, null);
+        }
+
+        public class ImpMarkerKiller : MonoBehaviour
+        {
+            float stopwatch = 0f;
+            // Token: 0x0600001F RID: 31 RVA: 0x000033F0 File Offset: 0x000015F0
+            public void Update()
+            {
+                stopwatch += Time.deltaTime;
+                if (stopwatch > 5f || !base.GetComponent<PositionIndicator>().targetTransform)
+                {
+                    UnityEngine.Object.DestroyImmediate(base.gameObject);
+                }
+            }
+        }
+
+        [ConCommand(commandName = "obj_teleport_relative", flags = ConVarFlags.ExecuteOnServer,
+    helpText = "obj_teleport_relative x y z")]
+        private static void RELATIVEBITCH(ConCommandArgs args)
+        {
+            var minecraft = args.senderBody.gameObject.GetComponent<Minecraft>();
+            if (minecraft)
+            {
+                if (minecraft.currentSelectedObject)
+                {
+                    minecraft.currentSelectedObject.transform.position += new Vector3(args.GetArgFloat(0), args.GetArgFloat(1), args.GetArgFloat(2));
+                }
+
+            }
+        }
+
+        [ConCommand(commandName = "obj_teleport_look", flags = ConVarFlags.ExecuteOnServer,
+helpText = "obj_teleport_look")]
+        private static void LOOKBITCH(ConCommandArgs args)
+        {
+            var minecraft = args.senderBody.gameObject.GetComponent<Minecraft>();
+            if (minecraft)
+            {
+                if (minecraft.currentSelectedObject)
+                {
+                    InputBankTest component = args.senderBody.gameObject.GetComponent<InputBankTest>();
+                    if (component)
+                    {
+                        if (Util.CharacterRaycast(args.senderBody.gameObject, new Ray(component.aimOrigin, component.aimDirection), out RaycastHit raycastHit, float.PositiveInfinity, LayerIndex.world.mask | LayerIndex.entityPrecise.mask, QueryTriggerInteraction.UseGlobal))
+                        {
+                            minecraft.currentSelectedObject.transform.position = raycastHit.transform.position;
+                        }
+                    }
+                }
+
+            }
+        }
+
 
         [ConCommand(commandName = "changelight", flags = ConVarFlags.ExecuteOnServer, helpText = "changelight {r} {g} {b} {a}")]
         private static void ChangeLight(ConCommandArgs args)
         {
-            var light = args.senderBody.gameObject.transform.parent.transform.Find("Directional Light").gameObject.GetComponent<Light>();
-            light.color = new Color32((byte)args.GetArgInt(0), (byte)args.GetArgInt(1), (byte)args.GetArgInt(2), (byte)args.GetArgInt(3));
+            GameObject.Find("Directional Light").gameObject.GetComponent<Light>().color = new Color32((byte)args.GetArgInt(0), (byte)args.GetArgInt(1), (byte)args.GetArgInt(2), (byte)args.GetArgInt(3));
+        }
+
+        [ConCommand(commandName = "printlight", flags = ConVarFlags.ExecuteOnServer, helpText = "changelight {r} {g} {b} {a}")]
+        private static void printlight(ConCommandArgs args)
+        {
+            var color = GameObject.Find("Directional Light").gameObject.GetComponent<Light>().color;
+            Debug.Log(color+" "+ color.r+" "+color.g + " " + color.b + " " +color.a);
         }
 
         [ConCommand(commandName = "past", flags = ConVarFlags.ExecuteOnServer,
@@ -83,6 +202,9 @@ namespace LeBuilder
         }
 
 
-
+        public class Minecraft : MonoBehaviour
+        {
+            public GameObject currentSelectedObject = null;
+        }
     }
 }
