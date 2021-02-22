@@ -166,19 +166,6 @@ helpText = "obj_teleport_look")]
         }
 
 
-        [ConCommand(commandName = "changelight", flags = ConVarFlags.ExecuteOnServer, helpText = "changelight {r} {g} {b} {a}")]
-        private static void ChangeLight(ConCommandArgs args)
-        {
-            GameObject.Find("Directional Light").gameObject.GetComponent<Light>().color = new Color32((byte)args.GetArgInt(0), (byte)args.GetArgInt(1), (byte)args.GetArgInt(2), (byte)args.GetArgInt(3));
-        }
-
-        [ConCommand(commandName = "printlight", flags = ConVarFlags.ExecuteOnServer, helpText = "changelight {r} {g} {b} {a}")]
-        private static void printlight(ConCommandArgs args)
-        {
-            var color = GameObject.Find("Directional Light").gameObject.GetComponent<Light>().color;
-            Debug.Log(color+" "+ color.r+" "+color.g + " " + color.b + " " +color.a);
-        }
-
         [ConCommand(commandName = "past", flags = ConVarFlags.ExecuteOnServer,
             helpText = "past {acrid/commando/engineer/captain}")]
         private static void SelectPast(ConCommandArgs args)

@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.30517.126
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PoseHelper", "PoseHelper\PoseHelper.csproj", "{954E785C-FF93-445A-A6F9-B2EBB57A941B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoonToOutro", "MoonToOutro\MoonToOutro.csproj", "{C7C3EF07-DD16-4062-A9BA-D8439F8B4B30}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MoonToOutro", "MoonToOutro\MoonToOutro.csproj", "{C7C3EF07-DD16-4062-A9BA-D8439F8B4B30}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RadarEffectToggleMod", "RadarEffectToggleMod\RadarEffectToggleMod.csproj", "{AC71711D-E883-480F-8A2F-C544C04AC0AE}"
 EndProject
@@ -13,7 +13,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HideScannerIndicatorOnUse",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LeBuilder", "LeBuilder\LeBuilder.csproj", "{27764B04-3AA7-4AB4-BC08-2D9FA8304E21}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LobbyAppearanceImprovements", "LobbyAppearanceImprovements\LobbyAppearanceImprovements.csproj", "{0BAF2028-C072-4DA9-9265-815C1B4D427D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LobbyAppearanceImprovements", "LobbyAppearanceImprovements\LobbyAppearanceImprovements.csproj", "{0BAF2028-C072-4DA9-9265-815C1B4D427D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Speedometer", "Speedometer\Speedometer.csproj", "{87ADA314-FB23-49E2-A97F-CC5EFE31F6DC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +47,10 @@ Global
 		{0BAF2028-C072-4DA9-9265-815C1B4D427D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0BAF2028-C072-4DA9-9265-815C1B4D427D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0BAF2028-C072-4DA9-9265-815C1B4D427D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{87ADA314-FB23-49E2-A97F-CC5EFE31F6DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{87ADA314-FB23-49E2-A97F-CC5EFE31F6DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{87ADA314-FB23-49E2-A97F-CC5EFE31F6DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{87ADA314-FB23-49E2-A97F-CC5EFE31F6DC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
