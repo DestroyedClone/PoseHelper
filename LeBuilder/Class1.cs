@@ -60,7 +60,6 @@ namespace LeBuilder
 
         private void Other()
         {
-            On.RoR2.UI.HUD.Awake += ShowUnusedHUDElements;
             On.RoR2.SceneDirector.Start += CoverUpArtifactHoles;
             On.RoR2.GlobalEventManager.OnCharacterHitGround += ExtinguishInWaterJump;
             On.RoR2.FootstepHandler.Footstep_string_GameObject += ExtinguishFootstep;
@@ -174,25 +173,6 @@ namespace LeBuilder
             blockMeshFilter.sharedMesh = refMeshFilter.sharedMesh;
             blockMeshFilter.mesh = refMeshFilter.sharedMesh;
             block1.transform.parent = holder.transform;
-        }
-
-        private void ShowUnusedHUDElements(On.RoR2.UI.HUD.orig_Awake orig, RoR2.UI.HUD self)
-        {
-            orig(self);
-            var mainUIArea = GameObject.Find("HUDSimple(Clone)").transform.Find("MainContainer").transform.Find("MainUIArea").transform;
-            var speedometer = mainUIArea.Find("UpperRightCluster").transform.Find("TimerRoot").transform.Find("SpeedometerPanel").gameObject;
-            speedometer.transform.parent = speedometer.transform.parent.transform.Find("RightInfoBar").transform;
-            speedometer.SetActive(true);
-
-            //mainUIArea.Find("UpperLeftCluster").transform.Find("InputStickVisualizer").gameObject.SetActive(true);
-            mainUIArea.Find("ScoreboardPanel").transform.Find("PP").gameObject.SetActive(false);
-        }
-
-        public bool UnlockableIsValid(string requiredUnlockable = "", string forbiddenUnlockable = "")
-        {
-            bool flag = string.IsNullOrEmpty(requiredUnlockable) || Run.instance.IsUnlockableUnlocked(requiredUnlockable);
-            bool flag2 = !string.IsNullOrEmpty(forbiddenUnlockable) && Run.instance.DoesEveryoneHaveThisUnlockableUnlocked(forbiddenUnlockable);
-            return flag && !flag2;
         }
 
         public class TrollPhysics : MonoBehaviour

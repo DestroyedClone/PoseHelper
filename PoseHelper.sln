@@ -17,6 +17,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LobbyAppearanceImprovements
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Speedometer", "Speedometer\Speedometer.csproj", "{87ADA314-FB23-49E2-A97F-CC5EFE31F6DC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExtinguishInWater", "ExtinguishInWater\ExtinguishInWater.csproj", "{8B61AB2D-F578-4695-9118-B41467EB3F36}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,10 @@ Global
 		{87ADA314-FB23-49E2-A97F-CC5EFE31F6DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{87ADA314-FB23-49E2-A97F-CC5EFE31F6DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{87ADA314-FB23-49E2-A97F-CC5EFE31F6DC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8B61AB2D-F578-4695-9118-B41467EB3F36}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B61AB2D-F578-4695-9118-B41467EB3F36}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B61AB2D-F578-4695-9118-B41467EB3F36}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B61AB2D-F578-4695-9118-B41467EB3F36}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

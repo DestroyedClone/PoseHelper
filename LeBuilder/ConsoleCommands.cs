@@ -165,6 +165,39 @@ helpText = "obj_teleport_look")]
             }
         }
 
+        [ConCommand(commandName = "give_buff", flags = ConVarFlags.ExecuteOnServer,
+helpText = "give_buff index amount")]
+        private static void FUCK(ConCommandArgs args)
+        {
+            for (int i = 0; i < args.GetArgInt(1); i++)
+            {
+                args.senderBody.AddBuff((BuffIndex)args.GetArgInt(0));
+            }
+        }
+
+        [ConCommand(commandName = "give_buff_timed", flags = ConVarFlags.ExecuteOnServer,
+helpText = "give_buff_timed index amount time")]
+        private static void FUCKsads(ConCommandArgs args)
+        {
+            for (int i = 0; i < args.GetArgInt(1); i++)
+            {
+                args.senderBody.AddTimedBuff((BuffIndex)args.GetArgInt(0), args.GetArgInt(2));
+            }
+        }
+
+        [ConCommand(commandName = "list_buff", flags = ConVarFlags.ExecuteOnServer,
+helpText = "list_buff")]
+        private static void FUCKLISTO(ConCommandArgs args)
+        {
+            BuffIndex buffIndexIterate = BuffIndex.AffixBlue;
+            BuffIndex buffCountIterate = (BuffIndex)BuffCatalog.buffCount;
+            while (buffIndexIterate < buffCountIterate)
+            {
+                Debug.Log(string.Format("[{0}] {1}", (int)buffIndexIterate, buffIndexIterate));
+                buffIndexIterate++;
+            }
+        }
+
 
         [ConCommand(commandName = "past", flags = ConVarFlags.ExecuteOnServer,
             helpText = "past {acrid/commando/engineer/captain}")]
