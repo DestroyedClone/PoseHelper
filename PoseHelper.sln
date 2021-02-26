@@ -17,7 +17,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LobbyAppearanceImprovements
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Speedometer", "Speedometer\Speedometer.csproj", "{87ADA314-FB23-49E2-A97F-CC5EFE31F6DC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExtinguishInWater", "ExtinguishInWater\ExtinguishInWater.csproj", "{8B61AB2D-F578-4695-9118-B41467EB3F36}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExtinguishInWater", "ExtinguishInWater\ExtinguishInWater.csproj", "{8B61AB2D-F578-4695-9118-B41467EB3F36}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GoombaStomp", "GoombaStomp\GoombaStomp.csproj", "{A2482DA9-42F0-4056-917F-402AE25E2524}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -57,6 +59,10 @@ Global
 		{8B61AB2D-F578-4695-9118-B41467EB3F36}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8B61AB2D-F578-4695-9118-B41467EB3F36}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8B61AB2D-F578-4695-9118-B41467EB3F36}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A2482DA9-42F0-4056-917F-402AE25E2524}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A2482DA9-42F0-4056-917F-402AE25E2524}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A2482DA9-42F0-4056-917F-402AE25E2524}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A2482DA9-42F0-4056-917F-402AE25E2524}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

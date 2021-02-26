@@ -32,50 +32,46 @@ namespace LobbyAppearanceImprovements
         {
             //default new Color32((byte)0.981, (byte)0.356, (byte)0.356, (byte)1.000)
             //250.155, 90.78, 90.78
-            DefaultColor = Config.Bind("Lights", "Hex Color", "white", "Change the default color of the light");
+            DefaultColor = Config.Bind("Lights", "Hex Color", "#fa5a5a", "Change the default color of the light");
             StopWave = Config.Bind("Lights", "Disable FlickerLight", true, "Makes the light not flicker anymore.");
             PostProcessing = Config.Bind("Overlay", "Disable Post Processing", true, "Disables the blurry post processing.");
-            HideFade = Config.Bind("Overlay", "Disable Post Processing", true, "There's a dark fade on the top and bottom, this disables it.");
-            MeshProps = Config.Bind("Background", "Hide MeshProps", true, "Hides all the meshprops, giving a unique look.");
+            HideFade = Config.Bind("Overlay", "Hide Fade", true, "There's a dark fade on the top and bottom, this disables it.");
+            MeshProps = Config.Bind("Background", "Hide MeshProps", false, "Hides all the meshprops, giving a unique look.");
             CommandHelper.AddToConsoleWhenReady();
 
             if (StopWave.Value || MeshProps.Value || PostProcessing.Value)
             {
-                On.RoR2.SceneDirector.Start += SceneDirector_Start;
+                On.RoR2.UI.CharacterSelectController.Awake += CharacterSelectController_Awake;
             }
 
         }
 
-        private void SceneDirector_Start(On.RoR2.SceneDirector.orig_Start orig, SceneDirector self)
+        private void CharacterSelectController_Awake(On.RoR2.UI.CharacterSelectController.orig_Awake orig, RoR2.UI.CharacterSelectController self)
         {
             orig(self);
-            if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "lobby")
-            {
-                TryParseHtmlString(DefaultColor.Value, out Color color);
+            if (TryParseHtmlString(DefaultColor.Value, out Color color))
                 Helpers.ChangeLobbyLightColor(color);
-                if (StopWave.Value)
-                {
-                    GameObject.Find("Directional Light").gameObject.GetComponent<FlickerLight>().enabled = false;
-                }
-                if (MeshProps.Value)
-                {
-                    GameObject.Find("HANDTeaser").SetActive(false);
-                    GameObject.Find("MeshProps").SetActive(false);
-                    GameObject.Find("HumanCrate1Mesh").SetActive(false);
-                    GameObject.Find("HumanCrate2Mesh").SetActive(false);
-                    GameObject.Find("HumanCanister1Mesh").SetActive(false);
-                }
-                if (PostProcessing.Value)
-                {
-                    GameObject.Find("PP").SetActive(false);
-                }
-                if (HideFade.Value)
-                {
-                    var ui = GameObject.Find("CharacterSelectUI").transform;
-                    ui.Find("BottomSideFade").gameObject.SetActive(false);
-                    ui.Find("TopSideFade").gameObject.SetActive(false);
-
-                }
+            if (StopWave.Value)
+            {
+                GameObject.Find("Directional Light").gameObject.GetComponent<FlickerLight>().enabled = false;
+            }
+            if (MeshProps.Value)
+            {
+                GameObject.Find("HANDTeaser").SetActive(false);
+                GameObject.Find("MeshProps").SetActive(false);
+                GameObject.Find("HumanCrate1Mesh").SetActive(false);
+                GameObject.Find("HumanCrate2Mesh").SetActive(false);
+                GameObject.Find("HumanCanister1Mesh").SetActive(false);
+            }
+            if (PostProcessing.Value)
+            {
+                GameObject.Find("PP").SetActive(false);
+            }
+            if (HideFade.Value)
+            {
+                var ui = GameObject.Find("CharacterSelectUI").transform;
+                ui.Find("BottomSideFade").gameObject.SetActive(false);
+                ui.Find("TopSideFade").gameObject.SetActive(false);
             }
         }
     }

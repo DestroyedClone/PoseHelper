@@ -13,6 +13,11 @@ using System;
 using static UnityEngine.ScriptableObject;
 using System.Security;
 using System.Security.Permissions;
+//cockwaffle
+using static RoR2.Chat;
+using System.Collections;
+using EntityStates;
+
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
@@ -52,30 +57,27 @@ namespace ExtinguishInWater
                 On.RoR2.FootstepHandler.Footstep_string_GameObject += ExtinguishFootstep;
                 On.RoR2.DotController.InflictDot += ExtinguishInflict;
             }
+
+
         }
 
         private void ExtinguishInflict(On.RoR2.DotController.orig_InflictDot orig, GameObject victimObject, GameObject attackerObject, DotController.DotIndex dotIndex, float duration, float damageMultiplier)
         {
             if (victimObject)
                 if (CheckForWater(victimObject.transform.position, false) || CheckForWater(victimObject.transform.position, true))
+                {
                     if (dotIndex == DotController.DotIndex.PercentBurn || dotIndex == DotController.DotIndex.Burn)
                     {
                         Chat.AddMessage("prevented underwater ignition");
                         duration = 0f;
                     }
+                }
+                else
+                {
+                    var component = victimObject.AddComponent<Extinguisher>();
+                    component.characterBody = victimObject.GetComponent<CharacterBody>();
+                }
             orig(victimObject, attackerObject, dotIndex, duration, damageMultiplier);
-        }
-
-        private void HealthComponent_TakeDamage(On.RoR2.HealthComponent.orig_TakeDamage orig, HealthComponent self, DamageInfo damageInfo)
-        {
-            orig(self, damageInfo);
-            bool igniteOnHit = (damageInfo.damageType & DamageType.IgniteOnHit) > DamageType.Generic;
-            bool percentIgniteOnHit = (damageInfo.damageType & DamageType.PercentIgniteOnHit) > DamageType.Generic;
-
-            if (igniteOnHit || percentIgniteOnHit)
-            {
-
-            }
         }
 
         private void ExtinguishFootstep(On.RoR2.FootstepHandler.orig_Footstep_string_GameObject orig, FootstepHandler self, string childName, GameObject footstepEffect)
@@ -97,6 +99,12 @@ namespace ExtinguishInWater
             }
         }
 
+        public static Vector3 GetHeadPosition(CharacterBody characterBody)
+        {
+            var dist = Vector3.Distance(characterBody.corePosition, characterBody.footPosition);
+            return characterBody.corePosition + Vector3.up * dist;
+        }
+
         private bool CheckForWater(Vector3 position, bool below = true)
         {
             if (Physics.Raycast(new Ray(position + Vector3.up * 1.5f, below ? Vector3.down : Vector3.up), out RaycastHit raycastHit, below ? 4f : 8f, LayerIndex.world.mask | LayerIndex.water.mask, QueryTriggerInteraction.Collide))
@@ -113,24 +121,27 @@ namespace ExtinguishInWater
             return false;
         }
 
-        private void Extinguish(CharacterBody characterBody)
+        private static bool AllowedToExtinguish(CharacterBody characterBody)
         {
             bool allowExtinguish = false;
             if (characterBody.isPlayerControlled)
                 allowExtinguish = AllowPlayers.Value;
             else
                 if (characterBody.teamComponent)
-                    if (characterBody.teamComponent.teamIndex == TeamIndex.Player)
-                        allowExtinguish = AllowAllies.Value;
-                    else
-                        allowExtinguish = AllowEnemies.Value;
-            if (!allowExtinguish) return;
+                if (characterBody.teamComponent.teamIndex == TeamIndex.Player)
+                    allowExtinguish = AllowAllies.Value;
+                else
+                    allowExtinguish = AllowEnemies.Value;
+            return allowExtinguish;
+        }
+
+        public static void Extinguish(CharacterBody characterBody)
+        {
+            if (!AllowedToExtinguish(characterBody)) return;
 
             if (characterBody.HasBuff(BuffIndex.OnFire))
             {
                 characterBody.ClearTimedBuffs(BuffIndex.OnFire);
-
-                Debug.Log(characterBody.GetUserName());
 
                 if (DotController.dotControllerLocator.TryGetValue(characterBody.gameObject.GetInstanceID(), out DotController dotController))
                 {
@@ -163,6 +174,95 @@ namespace ExtinguishInWater
             {
                 DotController.InflictDot(args.senderBody.gameObject, args.senderBody.gameObject, index, args.GetArgInt(1), 0.25f);
                 args.senderBody.AddTimedBuffAuthority(BuffIndex.OnFire, args.GetArgInt(1));
+            }
+        }
+
+            [ConCommand(commandName = "brother_kneel", flags = ConVarFlags.ExecuteOnServer,
+    helpText = "brother_kneel {string}")]
+        private static void BrotherKneel(ConCommandArgs args)
+        {
+            Debug.Log(args.GetArgInt(0));
+            var brother = GameObject.Find("BrotherBody (Clone)");
+            if (brother)
+            {
+                var component = brother.AddComponent<MithrixKneel>();
+                component.characterBody = brother.GetComponent<CharacterBody>();
+            }
+        }
+
+        public static void MithrixSay(string text)
+        {
+            Chat.SendBroadcastChat(new SimpleChatMessage{
+    baseToken = "<color=#c6d5ff><size=120%>Mithrix: {0}</color></size>",
+    paramTokens = new[] { text }
+            });
+        }
+
+        public class MithrixKneel : MonoBehaviour
+        {
+            public CharacterBody characterBody;
+            float stopwatch = 0f;
+
+            public void FixedUpdate()
+            {
+                stopwatch += Time.fixedDeltaTime;
+                if (stopwatch < 3f)
+                {
+                    characterBody.masterObject.SetActive(false);
+                    MithrixSay("Interstellar Desk Plant?");
+                } else if (stopwatch < 5f)
+                {
+                    MithrixSay("I...");
+                } else if (stopwatch < 6f)
+                {
+                    MithrixSay("I kneel.");
+                    PlayDeathAnimation();
+                }
+            }
+            void PlayDeathAnimation(float crossfadeDuration = 0.1f)
+            {
+                EntityStateMachine entityStateMachine = EntityStateMachine.FindByCustomName(base.gameObject, "Body");
+                if (entityStateMachine == null)
+                {
+                    return;
+                }
+                //entityStateMachine.SetState(EntityState.Instantiate(EntityStates.BrotherMonster.TrueDeathState));
+                //characterBody.SetBodyStateToPreferredInitialState
+                //this.outer.SetInterruptState(EntityState.Instantiate(new SerializableEntityStateType(typeof(Rest))), InterruptPriority.Any);
+                //base.PlayAnimation("FullBody Override", "TrueDeath");
+                //base.characterDirection.moveVector = base.characterDirection.forward;
+            }
+        }
+
+        public class Extinguisher : MonoBehaviour
+        {
+            public CharacterBody characterBody;
+
+            public void FixedUpdate()
+            {
+                if (CheckForWater(characterBody.corePosition))
+                {
+                    Debug.Log("Extinguished!");
+                    ExtinguishMain.Extinguish(characterBody);
+                    Destroy(this);
+                }
+            }
+
+            private bool CheckForWater(Vector3 position)
+            {
+                var halfBodyHeight = Vector3.Distance(characterBody.corePosition, characterBody.footPosition);
+                var castDistance = halfBodyHeight * 1.5f;
+                var layerMask = LayerIndex.world.mask | LayerIndex.water.mask;
+                if (Physics.Raycast(new Ray(position + Vector3.up * halfBodyHeight, Vector3.down), out RaycastHit raycastHit, castDistance, layerMask, QueryTriggerInteraction.Collide)
+                    || Physics.Raycast(new Ray(position + Vector3.down * halfBodyHeight, Vector3.up), out raycastHit, castDistance, layerMask, QueryTriggerInteraction.Collide))
+                {
+                    SurfaceDef objSurfDefDown = SurfaceDefProvider.GetObjectSurfaceDef(raycastHit.collider, raycastHit.point);
+                    if (objSurfDefDown && objSurfDefDown == waterSD)
+                    {
+                        return true;
+                    }
+                }
+                return false;
             }
         }
     }
