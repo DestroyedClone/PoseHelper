@@ -13,6 +13,8 @@ using System;
 using static UnityEngine.ScriptableObject;
 using System.Security;
 using System.Security.Permissions;
+using System.Collections;
+using System.Collections.Generic;
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -53,34 +55,21 @@ namespace PoseHelper
             _logger = Logger;
             CommandHelper.AddToConsoleWhenReady();
             Hooks();
-        }
-
-        private void MakeRadarScannerNotBright() //https://stackoverflow.com/questions/55013068/changing-prefabs-fields-from-script-unity
-        {
-            GameObject prefab = Resources.Load<GameObject>("prefabs/effects/ActivateRadarTowerEffect");
-            prefab.GetComponent<ChestRevealer>().pulseEffectScale = 0f;
+            CreateSkins();
+            FreeTheLockedMage();
         }
 
         private void Hooks()
         {
             RoR2.CharacterBody.onBodyStartGlobal += CharacterBody_onBodyStartGlobal;
             On.RoR2.SceneDirector.Start += SceneDirector_Start;
-            On.RoR2.RoR2Application.Awake += RoR2Application_Awake;
         }
 
-        private void RoR2Application_Awake(On.RoR2.RoR2Application.orig_Awake orig, RoR2Application self)
+        private void FreeTheLockedMage()
         {
-            orig(self);
-            if (!self.GetComponent<RadarScannerOverride>())
-            {
-                var component = self.gameObject.AddComponent<RadarScannerOverride>();
-                component.prefab = Resources.Load<GameObject>("prefabs/effects/ActivateRadarTowerEffect");
-                //component.prefab.transform.Find("PP").gameObject.SetActive(false);
-                // component.prefab.GetComponent<DestroyOnTimer>().transform.Find("");
-                component.prefab.transform.Find("PP").gameObject.SetActive(false);
-                component.prefab.transform.Find("Point Light").gameObject.SetActive(false);
-                component.prefab.GetComponent<DestroyOnTimer>().duration = 0f;
-            }
+            GameObject magePrefab = Resources.Load<GameObject>("prefabs/networkedobjects/LockedMage");
+            Destroy(magePrefab.GetComponent<GameObjectUnlockableFilter>());
+            magePrefab.GetComponent<EntityStateMachine>().mainStateType = new EntityStates.SerializableEntityStateType(typeof(ReleasingMage));
         }
 
         private void SceneDirector_Start(On.RoR2.SceneDirector.orig_Start orig, SceneDirector self)
@@ -89,7 +78,7 @@ namespace PoseHelper
             switch (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name)
             {
                 case "lobby":
-                    GameObject.Find("Directional Light").GetComponent<Light>().color = Color.white;
+                    //GameObject.Find("Directional Light").GetComponent<Light>().color = Color.white;
                     var localMaster = PlayerCharacterMasterController.instances[0].master;
                     if (localMaster)
                     {
@@ -108,9 +97,44 @@ namespace PoseHelper
             }
         }
 
-        public class RadarScannerOverride : MonoBehaviour
+        public static GameObject characterPrefab = Resources.Load<GameObject>("MageBody");
+        private static void CreateSkins()
         {
-            public GameObject prefab;
+            GameObject model = characterPrefab.GetComponentInChildren<ModelLocator>().modelTransform.gameObject;
+            CharacterModel characterModel = model.GetComponent<CharacterModel>();
+
+            ModelSkinController skinController = model.AddComponent<ModelSkinController>();
+            //ChildLocator childLocator = model.GetComponent<ChildLocator>();
+
+            SkinnedMeshRenderer mainRenderer = characterModel.mainSkinnedMeshRenderer;
+
+            CharacterModel.RendererInfo[] defaultRenderers = characterModel.baseRendererInfos;
+
+            List<SkinDef> skins = new List<SkinDef>();
+
+            //GameObject coatObject = childLocator.FindChild("Coat").gameObject;
+
+            #region SkeleSkin
+            SkinDef defaultSkin = Skins.CreateSkinDef("MAGE_BODY_ALTAR_SKELETON",
+                Resources.Load<Sprite>("textures/bufficons/texBuffDeathMarkIcon"),
+                defaultRenderers,
+                mainRenderer,
+                model);
+            /*
+            defaultSkin.gameObjectActivations = new SkinDef.GameObjectActivation[]
+            {
+                new SkinDef.GameObjectActivation
+                {
+                    gameObject = coatObject,
+                    shouldActivate = false
+                }
+            };*/
+
+            skins.Add(defaultSkin);
+            #endregion
+
+            skinController.skins = skins.ToArray();
         }
+
     }
 }

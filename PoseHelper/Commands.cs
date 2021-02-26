@@ -19,7 +19,7 @@ namespace PoseHelper
         private static void DeathStateClear(ConCommandArgs args)
         {
             var deathstate = args.senderBody.GetComponent<CharacterDeathBehavior>();
-            if (deathstate) deathstate.deathState = new SerializableEntityStateType();
+            if (deathstate) deathstate.deathState = new SerializableEntityStateType("");
             args.senderMaster.preventGameOver = true;
         }
 
@@ -76,7 +76,7 @@ namespace PoseHelper
                 }
             }
         }
-        [ConCommand(commandName = "animator_toggle", flags = ConVarFlags.ExecuteOnServer, helpText = "animator_speed [float]")]
+        [ConCommand(commandName = "animator_toggle", flags = ConVarFlags.ExecuteOnServer, helpText = "animator_toggle")]
         private static void AnimatorToggle(ConCommandArgs args)
         {
             var cb = args.senderBody;
@@ -109,12 +109,10 @@ namespace PoseHelper
                         {
                             UnityEngine.Object.DestroyImmediate(animator);
                         }
-                    } else
-                    {
-                        args.senderMaster.preventGameOver = true;
-                        hc.Suicide();
-                        args.senderMasterObject.GetComponent<DesCloneCommandComponent>().tryRespawn = true;
                     }
+                    args.senderMaster.preventGameOver = true;
+                    hc.Suicide();
+                    args.senderMasterObject.GetComponent<DesCloneCommandComponent>().tryRespawn = true;
                 }
             }
         }
@@ -125,14 +123,21 @@ namespace PoseHelper
             var beetles = UnityEngine.Object.FindObjectsOfType<UmbraBeetle>();
             if (beetles.Length == 0)
             {
-                GameObject body = BodyCatalog.FindBodyPrefab("BeetleBody");
-                GameObject gameObject = UnityEngine.Object.Instantiate<GameObject>(body, args.sender.master.GetBody().transform.position, Quaternion.identity);
-                gameObject.AddComponent<UmbraBeetle>();
-                NetworkServer.Spawn(gameObject);
+                GameObject masterPrefab = MasterCatalog.FindMasterPrefab("BeetleMaster");
+                GameObject bodyPrefab = masterPrefab.GetComponent<CharacterMaster>().bodyPrefab;
+
+                var bodyGameObject = UnityEngine.Object.Instantiate<GameObject>(masterPrefab, args.sender.master.GetBody().transform.position, Quaternion.identity);
+                var component = bodyGameObject.AddComponent<UmbraBeetle>();
+                component.characterBody = bodyGameObject.GetComponent<CharacterBody>();
+                CharacterMaster master = bodyGameObject.GetComponent<CharacterMaster>();
+                NetworkServer.Spawn(bodyGameObject);
+                master.SpawnBody(bodyPrefab, args.sender.master.GetBody().transform.position, Quaternion.identity);
+
                 Debug.Log("Spawned umbra beetle");
             } else
             {
-                UnityEngine.Object.DestroyImmediate(beetles[0].gameObject);
+                //UnityEngine.Object.DestroyImmediate(beetles[0].gameObject);
+                beetles[0].Suicide();
                 Debug.Log("Destroyed umbra beetle");
             }
         }
@@ -231,23 +236,16 @@ namespace PoseHelper
         [RequireComponent(typeof(Inventory))]
         public class UmbraBeetle : MonoBehaviour //ref'd from GivePickupsOnStart because it sucks
         {
+            public CharacterBody characterBody;
             private void Start()
             {
-                var inventory = gameObject.GetComponent<Inventory>();
-                inventory.GiveItem(ItemIndex.InvadingDoppelganger);
+                characterBody.inventory.GiveItem(ItemIndex.InvadingDoppelganger);
             }
 
-            float stopwatch = 0f;
-            private void FixedUpdate()
+            public void Suicide()
             {
-                stopwatch += Time.deltaTime;
-                if (stopwatch > 1.5f)
-                {
-                    if (gameObject.GetComponent<Inventory>().GetItemCount(ItemIndex.InvadingDoppelganger) == 0)
-                        Debug.Log("failed");
-                    else Debug.Log("success");
-                    enabled = false;
-                }
+                characterBody.healthComponent.Suicide();
+                Destroy(gameObject);
             }
         }
 

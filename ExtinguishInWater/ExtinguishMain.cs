@@ -167,7 +167,7 @@ namespace ExtinguishInWater
 
         [ConCommand(commandName = "burn_self", flags = ConVarFlags.ExecuteOnServer, 
             helpText = "burn_self {stacks} {duration}")]
-        private static void MyCommandName(ConCommandArgs args)
+        public static void MyCommandName(ConCommandArgs args)
         {
             DotController.DotIndex index = (DotController.DotIndex)Array.FindIndex(DotController.dotDefs, (dotDef) => dotDef.associatedBuff == BuffIndex.OnFire);
             for (int y = 0; y < args.GetArgInt(0); y++)
@@ -179,7 +179,7 @@ namespace ExtinguishInWater
 
             [ConCommand(commandName = "brother_kneel", flags = ConVarFlags.ExecuteOnServer,
     helpText = "brother_kneel {string}")]
-        private static void BrotherKneel(ConCommandArgs args)
+        public static void BrotherKneel(ConCommandArgs args)
         {
             Debug.Log(args.GetArgInt(0));
             var brother = GameObject.Find("BrotherBody (Clone)");
@@ -219,7 +219,7 @@ namespace ExtinguishInWater
                     PlayDeathAnimation();
                 }
             }
-            void PlayDeathAnimation(float crossfadeDuration = 0.1f)
+            void PlayDeathAnimation()
             {
                 EntityStateMachine entityStateMachine = EntityStateMachine.FindByCustomName(base.gameObject, "Body");
                 if (entityStateMachine == null)
@@ -228,7 +228,7 @@ namespace ExtinguishInWater
                 }
                 //entityStateMachine.SetState(EntityState.Instantiate(EntityStates.BrotherMonster.TrueDeathState));
                 //characterBody.SetBodyStateToPreferredInitialState
-                //this.outer.SetInterruptState(EntityState.Instantiate(new SerializableEntityStateType(typeof(Rest))), InterruptPriority.Any);
+                entityStateMachine.SetInterruptState(EntityState.Instantiate(new SerializableEntityStateType(typeof(EntityStates.BrotherMonster.TrueDeathState))), InterruptPriority.Death);
                 //base.PlayAnimation("FullBody Override", "TrueDeath");
                 //base.characterDirection.moveVector = base.characterDirection.forward;
             }
