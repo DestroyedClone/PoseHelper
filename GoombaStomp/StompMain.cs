@@ -37,8 +37,8 @@ namespace GoombaStomp
     public class StompMain : BaseUnityPlugin
     {
         public const string ModVer = "1.0.0";
-        public const string ModName = "LobbyAppearanceImprovements";
-        public const string ModGuid = "com.DestroyedClone.LobbyAppearanceImprovements";
+        public const string ModName = "GoomaStompArtifact";
+        public const string ModGuid = "com.DestroyedClone.GoomaStompArtifact";
 
         void Awake()
         {
@@ -128,7 +128,7 @@ namespace GoombaStomp
                     if (Math.Abs(hitGroundInfo.velocity.y) >= minFallSpeed)
                     {
                         Chat.AddMessage("Speed: " + Math.Abs(hitGroundInfo.velocity.y) + "/" + minFallSpeed);
-                        var bodySearch = new BullseyeSearch() //let's just get the nearest player
+                        var bodySearch = new BullseyeSearch() //let's just get the nearest enemy
                         {
                             viewer = self.body,
                             sortMode = BullseyeSearch.SortMode.Distance,
@@ -142,17 +142,17 @@ namespace GoombaStomp
                         // We very likely landed on an enemy.
                         if (nearestBody.Count > 0)
                         {
+                            Chat.AddMessage("hit count high enough");
                             var firstBody = nearestBody.FirstOrDefault();
                             var distance = Vector3.Distance(hitGroundInfo.position, Helpers.GetHeadPosition(firstBody.healthComponent.body));
                             if (distance <= maxDistance)
                             {
-                                var goombaDamageInfo = new DamageInfo()
+                                firstBody.healthComponent.TakeDamage(new DamageInfo()
                                 {
                                     attacker = self.body.gameObject,
                                     damage = goombaDamage,
                                     inflictor = goombaGameObject
-                                };
-                                firstBody.healthComponent.TakeDamage(goombaDamageInfo);
+                                });
                                 if ((self.body.bodyFlags & CharacterBody.BodyFlags.IgnoreFallDamage) == CharacterBody.BodyFlags.None)
                                 {
                                     self.body.bodyFlags |= CharacterBody.BodyFlags.IgnoreFallDamage;

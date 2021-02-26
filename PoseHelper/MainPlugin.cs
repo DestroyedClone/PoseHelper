@@ -15,6 +15,9 @@ using System.Security;
 using System.Security.Permissions;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using UnityEngine.Rendering;
+using RoR2.CharacterAI;
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -29,6 +32,7 @@ namespace PoseHelper
        nameof(ItemAPI),
        nameof(BuffAPI),
        nameof(LanguageAPI),
+       nameof(LoadoutAPI),
        nameof(ResourcesAPI),
        nameof(PlayerAPI),
        nameof(PrefabAPI),
@@ -55,21 +59,65 @@ namespace PoseHelper
             _logger = Logger;
             CommandHelper.AddToConsoleWhenReady();
             Hooks();
-            CreateSkins();
             FreeTheLockedMage();
+
+            //On.RoR2.BodyCatalog.Init += BodyCatalog_Init;
+
+        }
+
+        private void BodyCatalog_Init(On.RoR2.BodyCatalog.orig_Init orig)
+        {
+            orig();
         }
 
         private void Hooks()
         {
             RoR2.CharacterBody.onBodyStartGlobal += CharacterBody_onBodyStartGlobal;
-            On.RoR2.SceneDirector.Start += SceneDirector_Start;
+            //On.RoR2.SceneDirector.Start += SceneDirector_Start;
+            EntityStates.LockedMage.UnlockingMage.onOpened += UnlockingMage_onOpened;
+        }
+
+        private void UnlockingMage_onOpened(Interactor obj)
+        {
+            GameObject mageMasterPrefab = MasterCatalog.FindMasterPrefab("MageMonsterMaster");
+            //GameObject mageBodyPrefab = mageMasterPrefab.GetComponent<CharacterMaster>().bodyPrefab;
+
+            GameObject mageBodyGameObject = UnityEngine.Object.Instantiate(mageMasterPrefab, gameObject.transform.position, Quaternion.identity);
+            CharacterMaster mageCharacterMaster = mageBodyGameObject.GetComponent<CharacterMaster>();
+            AIOwnership mageAIOwnership = mageBodyGameObject.GetComponent<AIOwnership>();
+
+            CharacterMaster playerMaster = obj.gameObject.GetComponent<CharacterBody>().master;
+            BaseAI mageBaseAI = gameObject.GetComponent<BaseAI>();
+            if (mageCharacterMaster)
+            {
+                mageCharacterMaster.inventory.GiveItem(ItemIndex.BoostDamage, 10);
+                mageCharacterMaster.inventory.GiveItem(ItemIndex.BoostHp, 10);
+                GameObject bodyObject = playerMaster.GetBodyObject();
+                if (bodyObject)
+                {
+                    Deployable component4 = mageBodyGameObject.GetComponent<Deployable>();
+                    if (!component4) component4 = mageBodyGameObject.AddComponent<Deployable>();
+                    playerMaster.AddDeployable(component4, DeployableSlot.ParentAlly);
+                }
+            }
+            if (mageAIOwnership)
+            {
+                mageAIOwnership.ownerMaster = obj.gameObject.GetComponent<CharacterBody>().master;
+            }
+            if (mageBaseAI)
+            {
+                mageBaseAI.leader.gameObject = base.gameObject;
+            }
+
+            NetworkServer.Spawn(mageBodyGameObject);
+            mageCharacterMaster.SpawnBody(mageBodyGameObject, gameObject.transform.position, Quaternion.identity);
         }
 
         private void FreeTheLockedMage()
         {
             GameObject magePrefab = Resources.Load<GameObject>("prefabs/networkedobjects/LockedMage");
-            Destroy(magePrefab.GetComponent<GameObjectUnlockableFilter>());
-            magePrefab.GetComponent<EntityStateMachine>().mainStateType = new EntityStates.SerializableEntityStateType(typeof(ReleasingMage));
+            magePrefab.GetComponent<GameObjectUnlockableFilter>().forbiddenUnlockable = null;
+            //magePrefab.GetComponent<EntityStateMachine>().mainStateType = new EntityStates.SerializableEntityStateType(typeof(ReleasingMage));
         }
 
         private void SceneDirector_Start(On.RoR2.SceneDirector.orig_Start orig, SceneDirector self)
@@ -82,7 +130,7 @@ namespace PoseHelper
                     var localMaster = PlayerCharacterMasterController.instances[0].master;
                     if (localMaster)
                     {
-                        localMaster.GetBody().characterMotor.Motor.SetPositionAndRotation(new Vector3(0.12f, 0.91f, 7.76f), Quaternion.identity, true);
+                        localMaster.GetBody()?.characterMotor.Motor.SetPositionAndRotation(new Vector3(0.12f, 0.91f, 7.76f), Quaternion.identity, true);
                     }
                     break;
             }
@@ -97,44 +145,6 @@ namespace PoseHelper
             }
         }
 
-        public static GameObject characterPrefab = Resources.Load<GameObject>("MageBody");
-        private static void CreateSkins()
-        {
-            GameObject model = characterPrefab.GetComponentInChildren<ModelLocator>().modelTransform.gameObject;
-            CharacterModel characterModel = model.GetComponent<CharacterModel>();
-
-            ModelSkinController skinController = model.AddComponent<ModelSkinController>();
-            //ChildLocator childLocator = model.GetComponent<ChildLocator>();
-
-            SkinnedMeshRenderer mainRenderer = characterModel.mainSkinnedMeshRenderer;
-
-            CharacterModel.RendererInfo[] defaultRenderers = characterModel.baseRendererInfos;
-
-            List<SkinDef> skins = new List<SkinDef>();
-
-            //GameObject coatObject = childLocator.FindChild("Coat").gameObject;
-
-            #region SkeleSkin
-            SkinDef defaultSkin = Skins.CreateSkinDef("MAGE_BODY_ALTAR_SKELETON",
-                Resources.Load<Sprite>("textures/bufficons/texBuffDeathMarkIcon"),
-                defaultRenderers,
-                mainRenderer,
-                model);
-            /*
-            defaultSkin.gameObjectActivations = new SkinDef.GameObjectActivation[]
-            {
-                new SkinDef.GameObjectActivation
-                {
-                    gameObject = coatObject,
-                    shouldActivate = false
-                }
-            };*/
-
-            skins.Add(defaultSkin);
-            #endregion
-
-            skinController.skins = skins.ToArray();
-        }
 
     }
 }

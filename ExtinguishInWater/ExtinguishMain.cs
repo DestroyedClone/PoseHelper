@@ -181,12 +181,12 @@ namespace ExtinguishInWater
     helpText = "brother_kneel {string}")]
         public static void BrotherKneel(ConCommandArgs args)
         {
-            Debug.Log(args.GetArgInt(0));
-            var brother = GameObject.Find("BrotherBody (Clone)");
+            var brother = GameObject.Find("BrotherHurtBody(Clone)");
             if (brother)
             {
                 var component = brother.AddComponent<MithrixKneel>();
                 component.characterBody = brother.GetComponent<CharacterBody>();
+                component.question = args.GetArgString(0);
             }
         }
 
@@ -201,22 +201,41 @@ namespace ExtinguishInWater
         public class MithrixKneel : MonoBehaviour
         {
             public CharacterBody characterBody;
+            public string question;
             float stopwatch = 0f;
+            bool firstLine = false;
+            bool secondLine = false;
+            bool thirdLine = false;
+
 
             public void FixedUpdate()
             {
                 stopwatch += Time.fixedDeltaTime;
                 if (stopwatch < 3f)
                 {
+                    if (question == "") question = "Interstellar Desk Plant";
                     characterBody.masterObject.SetActive(false);
-                    MithrixSay("Interstellar Desk Plant?");
+
+                    if (!firstLine)
+                    {
+                        MithrixSay(question + "?");
+                        firstLine = true;
+                    }
                 } else if (stopwatch < 5f)
                 {
-                    MithrixSay("I...");
+                    if (!secondLine)
+                    {
+                        MithrixSay("I...");
+                        secondLine = true;
+                    }
                 } else if (stopwatch < 6f)
                 {
-                    MithrixSay("I kneel.");
-                    PlayDeathAnimation();
+                    if (!thirdLine)
+                    {
+                        MithrixSay("I kneel.");
+                        PlayDeathAnimation();
+                        thirdLine = true;
+                    }
                 }
             }
             void PlayDeathAnimation()
@@ -230,7 +249,8 @@ namespace ExtinguishInWater
                 //characterBody.SetBodyStateToPreferredInitialState
                 entityStateMachine.SetInterruptState(EntityState.Instantiate(new SerializableEntityStateType(typeof(EntityStates.BrotherMonster.TrueDeathState))), InterruptPriority.Death);
                 //base.PlayAnimation("FullBody Override", "TrueDeath");
-                //base.characterDirection.moveVector = base.characterDirection.forward;
+                characterBody.moveSpeed = 0f;
+                characterBody.characterDirection.moveVector = characterBody.characterDirection.forward;
             }
         }
 
