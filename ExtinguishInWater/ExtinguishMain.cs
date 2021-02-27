@@ -13,10 +13,6 @@ using System;
 using static UnityEngine.ScriptableObject;
 using System.Security;
 using System.Security.Permissions;
-//cockwaffle
-using static RoR2.Chat;
-using System.Collections;
-using EntityStates;
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -174,83 +170,6 @@ namespace ExtinguishInWater
             {
                 DotController.InflictDot(args.senderBody.gameObject, args.senderBody.gameObject, index, args.GetArgInt(1), 0.25f);
                 args.senderBody.AddTimedBuffAuthority(BuffIndex.OnFire, args.GetArgInt(1));
-            }
-        }
-
-            [ConCommand(commandName = "brother_kneel", flags = ConVarFlags.ExecuteOnServer,
-    helpText = "brother_kneel {string}")]
-        public static void BrotherKneel(ConCommandArgs args)
-        {
-            var brother = GameObject.Find("BrotherHurtBody(Clone)");
-            if (brother)
-            {
-                var component = brother.AddComponent<MithrixKneel>();
-                component.characterBody = brother.GetComponent<CharacterBody>();
-                component.question = args.GetArgString(0);
-            }
-        }
-
-        public static void MithrixSay(string text)
-        {
-            Chat.SendBroadcastChat(new SimpleChatMessage{
-    baseToken = "<color=#c6d5ff><size=120%>Mithrix: {0}</color></size>",
-    paramTokens = new[] { text }
-            });
-        }
-
-        public class MithrixKneel : MonoBehaviour
-        {
-            public CharacterBody characterBody;
-            public string question;
-            float stopwatch = 0f;
-            bool firstLine = false;
-            bool secondLine = false;
-            bool thirdLine = false;
-
-
-            public void FixedUpdate()
-            {
-                stopwatch += Time.fixedDeltaTime;
-                if (stopwatch < 3f)
-                {
-                    if (question == "") question = "Interstellar Desk Plant";
-                    characterBody.masterObject.SetActive(false);
-
-                    if (!firstLine)
-                    {
-                        MithrixSay(question + "?");
-                        firstLine = true;
-                    }
-                } else if (stopwatch < 5f)
-                {
-                    if (!secondLine)
-                    {
-                        MithrixSay("I...");
-                        secondLine = true;
-                    }
-                } else if (stopwatch < 6f)
-                {
-                    if (!thirdLine)
-                    {
-                        MithrixSay("I kneel.");
-                        PlayDeathAnimation();
-                        thirdLine = true;
-                    }
-                }
-            }
-            void PlayDeathAnimation()
-            {
-                EntityStateMachine entityStateMachine = EntityStateMachine.FindByCustomName(base.gameObject, "Body");
-                if (entityStateMachine == null)
-                {
-                    return;
-                }
-                //entityStateMachine.SetState(EntityState.Instantiate(EntityStates.BrotherMonster.TrueDeathState));
-                //characterBody.SetBodyStateToPreferredInitialState
-                entityStateMachine.SetInterruptState(EntityState.Instantiate(new SerializableEntityStateType(typeof(EntityStates.BrotherMonster.TrueDeathState))), InterruptPriority.Death);
-                //base.PlayAnimation("FullBody Override", "TrueDeath");
-                characterBody.moveSpeed = 0f;
-                characterBody.characterDirection.moveVector = characterBody.characterDirection.forward;
             }
         }
 

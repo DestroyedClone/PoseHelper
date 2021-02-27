@@ -19,7 +19,7 @@ namespace PoseHelper
         private static void DeathStateClear(ConCommandArgs args)
         {
             var deathstate = args.senderBody.GetComponent<CharacterDeathBehavior>();
-            if (deathstate) deathstate.deathState = new SerializableEntityStateType("");
+            if (deathstate) deathstate.deathState = new SerializableEntityStateType();
             args.senderMaster.preventGameOver = true;
         }
 
@@ -86,8 +86,8 @@ namespace PoseHelper
                 var animator = GetModelAnimator(cb);
                 if (animator)
                 {
-                    if (animator.enabled) animator.SetBool("enabled", false);
-                    else animator.SetBool("enabled", true);
+                    if (animator.enabled) animator.enabled = false;
+                    else animator.enabled = true;
                     Debug.Log("Animator.enabled = "+ animator.enabled);
                 }
             }
@@ -128,8 +128,8 @@ namespace PoseHelper
 
                 var bodyGameObject = UnityEngine.Object.Instantiate<GameObject>(masterPrefab, args.sender.master.GetBody().transform.position, Quaternion.identity);
                 var component = bodyGameObject.AddComponent<UmbraBeetle>();
-                component.characterBody = bodyGameObject.GetComponent<CharacterBody>();
                 CharacterMaster master = bodyGameObject.GetComponent<CharacterMaster>();
+                component.characterBody = master.GetBody();
                 NetworkServer.Spawn(bodyGameObject);
                 master.SpawnBody(bodyPrefab, args.sender.master.GetBody().transform.position, Quaternion.identity);
 

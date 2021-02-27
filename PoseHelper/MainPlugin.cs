@@ -73,7 +73,7 @@ namespace PoseHelper
         private void Hooks()
         {
             RoR2.CharacterBody.onBodyStartGlobal += CharacterBody_onBodyStartGlobal;
-            //On.RoR2.SceneDirector.Start += SceneDirector_Start;
+            On.RoR2.SceneDirector.Start += SceneDirector_Start;
             EntityStates.LockedMage.UnlockingMage.onOpened += UnlockingMage_onOpened;
         }
 
@@ -125,13 +125,18 @@ namespace PoseHelper
             orig(self);
             switch (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name)
             {
-                case "lobby":
+                case "shithead":
                     //GameObject.Find("Directional Light").GetComponent<Light>().color = Color.white;
                     var localMaster = PlayerCharacterMasterController.instances[0].master;
                     if (localMaster)
                     {
                         localMaster.GetBody()?.characterMotor.Motor.SetPositionAndRotation(new Vector3(0.12f, 0.91f, 7.76f), Quaternion.identity, true);
                     }
+                    break;
+                case "bazaar":
+                    var lockedMage = GameObject.Find("LockedMage").gameObject;
+                    lockedMage.GetComponent<GameObjectUnlockableFilter>().enabled = false;
+                    lockedMage.SetActive(true);
                     break;
             }
         }
@@ -145,6 +150,13 @@ namespace PoseHelper
             }
         }
 
-
+        public class MageLocker : MonoBehaviour
+        {
+            GameObject magePrefab = Resources.Load<GameObject>("prefabs/networkedobjects/LockedMage");
+            void Awake()
+            {
+                magePrefab.GetComponent<GameObjectUnlockableFilter>().forbiddenUnlockable = null;
+            }
+        }
     }
 }
