@@ -16,11 +16,6 @@ namespace MithrixMeme
         {
             base.OnEnter();
             base.PlayCrossfade("FullBody Override", "FistSlam", "FistSlam.playbackRate", baseDuration, 0.1f);
-            ReturnStolenItemsOnGettingHit component = base.GetComponent<ReturnStolenItemsOnGettingHit>();
-            if (component && component.itemStealController)
-            {
-                EntityState.Destroy(component.itemStealController.gameObject);
-            }
         }
 
         public override void FixedUpdate()
@@ -35,7 +30,17 @@ namespace MithrixMeme
                 }
                 hasKnelt = true;
                 base.GetModelAnimator().speed = 0f;
+                ReturnStolenItemsOnGettingHit component = base.GetComponent<ReturnStolenItemsOnGettingHit>();
+                if (component && component.itemStealController)
+                {
+                    EntityState.Destroy(component.itemStealController.gameObject);
+                }
             }
 		}
-	}
+
+        public override InterruptPriority GetMinimumInterruptPriority()
+        {
+            return InterruptPriority.Death;
+        }
+    }
 }

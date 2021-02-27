@@ -1,23 +1,12 @@
 ﻿using BepInEx;
 using R2API.Utils;
 using R2API;
-using UnityEngine.Networking;
 using RoR2;
-using System.Reflection;
 using BepInEx.Configuration;
 using UnityEngine;
-using Path = System.IO.Path;
 using R2API.Networking;
-using UnityEngine.Playables;
-using System;
-using static UnityEngine.ScriptableObject;
 using System.Security;
 using System.Security.Permissions;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using UnityEngine.Rendering;
-using RoR2.CharacterAI;
 using static RoR2.Chat;
 using EntityStates;
 
@@ -31,20 +20,10 @@ namespace MithrixMeme
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.EveryoneNeedSameModVersion)]
     [R2APISubmoduleDependency(
-   nameof(ItemAPI),
-   nameof(BuffAPI),
    nameof(LanguageAPI),
-   nameof(LoadoutAPI),
    nameof(ResourcesAPI),
-   nameof(PlayerAPI),
-   nameof(PrefabAPI),
-   nameof(SoundAPI),
-   nameof(OrbAPI),
    nameof(NetworkingAPI),
    nameof(EffectAPI),
-   nameof(EliteAPI),
-   nameof(LoadoutAPI),
-   nameof(SurvivorAPI)
    )]
     [BepInPlugin(ModGuid, ModName, ModVer)]
     public class MithrixMemePlugin : BaseUnityPlugin
@@ -112,8 +91,10 @@ namespace MithrixMeme
                 gameObject.GetComponent<SpeechBubbleController>().enabled = false;
                 gameObject.GetComponent<CharacterDirection>().enabled = false;
                 gameObject.GetComponent<CharacterDeathBehavior>().deathState = new SerializableEntityStateType(typeof(NoAnimDeathState));
-                gameObject.GetComponent<SetStateOnHurt>().enabled = false;
-                characterBody.bodyFlags |= CharacterBody.BodyFlags.ImmuneToExecutes
+                var setState = gameObject.GetComponent<SetStateOnHurt>();
+                setState.canBeFrozen = false;
+                setState.canBeHitStunned = false;
+                setState.canBeStunned = false;
 
                 var genericSkills = gameObject.GetComponents<GenericSkill>();
                 foreach (var generic in genericSkills)
