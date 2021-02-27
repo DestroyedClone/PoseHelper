@@ -198,9 +198,12 @@ namespace LobbyAppearanceImprovements
                 GameObject displayPrefab = survivorDef.displayPrefab;
                 var gameObject = UnityEngine.Object.Instantiate<GameObject>(displayPrefab, position, rotation, parent);
 
-                if (bodyPrefabName == "Croco")
+                switch (bodyPrefabName)
                 {
-                    gameObject.transform.Find("mdlCroco").transform.Find("Spawn").transform.Find("FloorMesh").gameObject.SetActive(false);
+                    case "Croco":
+                        gameObject.transform.Find("mdlCroco").transform.Find("Spawn").transform.Find("FloorMesh").gameObject.SetActive(false);
+                        break;
+
                 }
                 return gameObject;
             }
