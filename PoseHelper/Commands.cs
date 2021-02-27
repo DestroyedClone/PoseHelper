@@ -129,6 +129,7 @@ namespace PoseHelper
                 var bodyGameObject = UnityEngine.Object.Instantiate<GameObject>(masterPrefab, args.sender.master.GetBody().transform.position, Quaternion.identity);
                 var component = bodyGameObject.AddComponent<UmbraBeetle>();
                 CharacterMaster master = bodyGameObject.GetComponent<CharacterMaster>();
+                master.inventory.GiveItem(ItemIndex.InvadingDoppelganger);
                 component.characterBody = master.GetBody();
                 NetworkServer.Spawn(bodyGameObject);
                 master.SpawnBody(bodyPrefab, args.sender.master.GetBody().transform.position, Quaternion.identity);
@@ -237,10 +238,6 @@ namespace PoseHelper
         public class UmbraBeetle : MonoBehaviour //ref'd from GivePickupsOnStart because it sucks
         {
             public CharacterBody characterBody;
-            private void Start()
-            {
-                characterBody.inventory.GiveItem(ItemIndex.InvadingDoppelganger);
-            }
 
             public void Suicide()
             {

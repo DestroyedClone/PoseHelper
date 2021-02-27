@@ -14,6 +14,8 @@ using static UnityEngine.ScriptableObject;
 using System.Security;
 using System.Security.Permissions;
 
+using static ExtinguishInWater.StaticMethods;
+
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
@@ -53,18 +55,16 @@ namespace ExtinguishInWater
                 On.RoR2.FootstepHandler.Footstep_string_GameObject += ExtinguishFootstep;
                 On.RoR2.DotController.InflictDot += ExtinguishInflict;
             }
-
-
         }
 
         private void ExtinguishInflict(On.RoR2.DotController.orig_InflictDot orig, GameObject victimObject, GameObject attackerObject, DotController.DotIndex dotIndex, float duration, float damageMultiplier)
         {
             if (victimObject)
-                if (CheckForWater(victimObject.transform.position, false) || CheckForWater(victimObject.transform.position, true))
+                if (CheckForWater(victimObject.transform.position))
                 {
                     if (dotIndex == DotController.DotIndex.PercentBurn || dotIndex == DotController.DotIndex.Burn)
                     {
-                        Chat.AddMessage("prevented underwater ignition");
+                        //Chat.AddMessage("prevented underwater ignition");
                         duration = 0f;
                     }
                 }
@@ -101,7 +101,8 @@ namespace ExtinguishInWater
             return characterBody.corePosition + Vector3.up * dist;
         }
 
-        private bool CheckForWater(Vector3 position, bool below = true)
+
+        private bool CheckForWaterOld(Vector3 position, bool below = true)
         {
             if (Physics.Raycast(new Ray(position + Vector3.up * 1.5f, below ? Vector3.down : Vector3.up), out RaycastHit raycastHit, below ? 4f : 8f, LayerIndex.world.mask | LayerIndex.water.mask, QueryTriggerInteraction.Collide))
             {
@@ -117,49 +118,6 @@ namespace ExtinguishInWater
             return false;
         }
 
-        private static bool AllowedToExtinguish(CharacterBody characterBody)
-        {
-            bool allowExtinguish = false;
-            if (characterBody.isPlayerControlled)
-                allowExtinguish = AllowPlayers.Value;
-            else
-                if (characterBody.teamComponent)
-                if (characterBody.teamComponent.teamIndex == TeamIndex.Player)
-                    allowExtinguish = AllowAllies.Value;
-                else
-                    allowExtinguish = AllowEnemies.Value;
-            return allowExtinguish;
-        }
-
-        public static void Extinguish(CharacterBody characterBody)
-        {
-            if (!AllowedToExtinguish(characterBody)) return;
-
-            if (characterBody.HasBuff(BuffIndex.OnFire))
-            {
-                characterBody.ClearTimedBuffs(BuffIndex.OnFire);
-
-                if (DotController.dotControllerLocator.TryGetValue(characterBody.gameObject.GetInstanceID(), out DotController dotController))
-                {
-                    //var burnEffectController = dotController.burnEffectController;
-                    var dotStacks = dotController.dotStackList;
-
-                    int i = 0;
-                    int count = dotStacks.Count;
-                    while (i < count)
-                    {
-                        if (dotStacks[i].dotIndex == DotController.DotIndex.Burn
-                            || dotStacks[i].dotIndex == DotController.DotIndex.Helfire
-                            || dotStacks[i].dotIndex == DotController.DotIndex.PercentBurn)
-                        {
-                            dotStacks[i].damage = 0f;
-                            dotStacks[i].timer = 0f;
-                        }
-                        i++;
-                    }
-                }
-            }
-        }
 
         [ConCommand(commandName = "burn_self", flags = ConVarFlags.ExecuteOnServer, 
             helpText = "burn_self {stacks} {duration}")]
@@ -169,7 +127,7 @@ namespace ExtinguishInWater
             for (int y = 0; y < args.GetArgInt(0); y++)
             {
                 DotController.InflictDot(args.senderBody.gameObject, args.senderBody.gameObject, index, args.GetArgInt(1), 0.25f);
-                args.senderBody.AddTimedBuffAuthority(BuffIndex.OnFire, args.GetArgInt(1));
+                //args.senderBody.AddTimedBuffAuthority(BuffIndex.OnFire, args.GetArgInt(1));
             }
         }
 
@@ -181,28 +139,11 @@ namespace ExtinguishInWater
             {
                 if (CheckForWater(characterBody.corePosition))
                 {
-                    Debug.Log("Extinguished!");
-                    ExtinguishMain.Extinguish(characterBody);
+                    Extinguish(characterBody);
                     Destroy(this);
                 }
             }
 
-            private bool CheckForWater(Vector3 position)
-            {
-                var halfBodyHeight = Vector3.Distance(characterBody.corePosition, characterBody.footPosition);
-                var castDistance = halfBodyHeight * 1.5f;
-                var layerMask = LayerIndex.world.mask | LayerIndex.water.mask;
-                if (Physics.Raycast(new Ray(position + Vector3.up * halfBodyHeight, Vector3.down), out RaycastHit raycastHit, castDistance, layerMask, QueryTriggerInteraction.Collide)
-                    || Physics.Raycast(new Ray(position + Vector3.down * halfBodyHeight, Vector3.up), out raycastHit, castDistance, layerMask, QueryTriggerInteraction.Collide))
-                {
-                    SurfaceDef objSurfDefDown = SurfaceDefProvider.GetObjectSurfaceDef(raycastHit.collider, raycastHit.point);
-                    if (objSurfDefDown && objSurfDefDown == waterSD)
-                    {
-                        return true;
-                    }
-                }
-                return false;
-            }
         }
     }
 }

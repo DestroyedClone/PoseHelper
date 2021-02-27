@@ -77,13 +77,29 @@ namespace PoseHelper
             EntityStates.LockedMage.UnlockingMage.onOpened += UnlockingMage_onOpened;
         }
 
+        private void UnlockingMage_onOpenedsss(Interactor obj)
+        {
+            CharacterMaster characterMaster = new MasterSummon
+            {
+                masterPrefab = MasterCatalog.FindMasterPrefab("MageMonsterMaster"),
+                position = obj.gameObject.transform.position,
+                rotation = Quaternion.identity,
+                summonerBodyObject = null,
+                ignoreTeamMemberLimit = false,
+                teamIndexOverride = new TeamIndex?(TeamIndex.Player)
+            }.Perform();
+        }
+
+
         private void UnlockingMage_onOpened(Interactor obj)
         {
             GameObject mageMasterPrefab = MasterCatalog.FindMasterPrefab("MageMonsterMaster");
-            //GameObject mageBodyPrefab = mageMasterPrefab.GetComponent<CharacterMaster>().bodyPrefab;
+            GameObject mageBodyPrefab = mageMasterPrefab.GetComponent<CharacterMaster>().bodyPrefab;
 
-            GameObject mageBodyGameObject = UnityEngine.Object.Instantiate(mageMasterPrefab, gameObject.transform.position, Quaternion.identity);
+            GameObject mageMasterGameObject = UnityEngine.Object.Instantiate(mageMasterPrefab, gameObject.transform.position, Quaternion.identity);
+            GameObject mageBodyGameObject = UnityEngine.Object.Instantiate(mageBodyPrefab, gameObject.transform.position, Quaternion.identity);
             CharacterMaster mageCharacterMaster = mageBodyGameObject.GetComponent<CharacterMaster>();
+            mageCharacterMaster.bodyPrefab = mageBodyGameObject;
             AIOwnership mageAIOwnership = mageBodyGameObject.GetComponent<AIOwnership>();
 
             CharacterMaster playerMaster = obj.gameObject.GetComponent<CharacterBody>().master;
@@ -115,8 +131,8 @@ namespace PoseHelper
 
         private void FreeTheLockedMage()
         {
-            GameObject magePrefab = Resources.Load<GameObject>("prefabs/networkedobjects/LockedMage");
-            magePrefab.GetComponent<GameObjectUnlockableFilter>().forbiddenUnlockable = null;
+            //GameObject magePrefab = Resources.Load<GameObject>("prefabs/networkedobjects/LockedMage");
+            //magePrefab.GetComponent<GameObjectUnlockableFilter>().forbiddenUnlockable = null;
             //magePrefab.GetComponent<EntityStateMachine>().mainStateType = new EntityStates.SerializableEntityStateType(typeof(ReleasingMage));
         }
 
@@ -152,10 +168,10 @@ namespace PoseHelper
 
         public class MageLocker : MonoBehaviour
         {
-            GameObject magePrefab = Resources.Load<GameObject>("prefabs/networkedobjects/LockedMage");
+            //GameObject magePrefab = Resources.Load<GameObject>("prefabs/networkedobjects/LockedMage");
             void Awake()
             {
-                magePrefab.GetComponent<GameObjectUnlockableFilter>().forbiddenUnlockable = null;
+                //magePrefab.GetComponent<GameObjectUnlockableFilter>().forbiddenUnlockable = null;
             }
         }
     }

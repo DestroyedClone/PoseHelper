@@ -23,7 +23,7 @@ namespace MithrixMeme
    nameof(LanguageAPI),
    nameof(ResourcesAPI),
    nameof(NetworkingAPI),
-   nameof(EffectAPI),
+   nameof(EffectAPI)
    )]
     [BepInPlugin(ModGuid, ModName, ModVer)]
     public class MithrixMemePlugin : BaseUnityPlugin
