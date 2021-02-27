@@ -135,7 +135,7 @@ namespace LobbyAppearanceImprovements
                     CreateDisplay("Wyatt", new Vector3(-3.92f, 0.1f, 9.62f), new Vector3(0f, 138f, 0f), characterHolder.transform);
                     //star storm
                     CreateDisplay("Executioner", new Vector3(1.19f, 0f, 19.74f), new Vector3(0f, 192f, 0f), characterHolder.transform);
-                    //chirr
+                    //chirr here
 
 
                 }
@@ -227,24 +227,6 @@ namespace LobbyAppearanceImprovements
             //public List<GameObject> backgroundCharacters = new List<GameObject>(0);
             public Dictionary<SurvivorIndex, GameObject> survivorDisplays = new Dictionary<SurvivorIndex, GameObject>();
         }
-
-        public class BackgroundDisplay : MonoBehaviour
-        {
-            public Vector3 rotation;
-            private bool kill = false;
-
-            public void Awake()
-            {
-                if (!kill)
-                {
-                    kill = true;
-                    //var transform = gameObject.transform;
-                    //transform.rotation = Quaternion.Euler(rotation);
-                }
-            }
-
-            //fruits.Add("apple","macintosh");
-        }
     }
 
     public static class Commands
@@ -283,7 +265,6 @@ namespace LobbyAppearanceImprovements
                 GameObject displayPrefab = survivorDef.displayPrefab;
                 var gameObject = UnityEngine.Object.Instantiate<GameObject>(displayPrefab, position, Quaternion.Euler(rotation), parent);
                 Debug.Log("attempting to add component");
-                //var component = gameObject.AddComponent<MainPlugin.BackgroundDisplay>();
                 Debug.Log("component");
                 switch (bodyPrefabName)
                 {
