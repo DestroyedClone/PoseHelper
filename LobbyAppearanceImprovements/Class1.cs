@@ -82,6 +82,9 @@ namespace LobbyAppearanceImprovements
         private void CharacterSelectController_Awake(On.RoR2.UI.CharacterSelectController.orig_Awake orig, RoR2.UI.CharacterSelectController self)
         {
             orig(self);
+            var dirtycomp = self.gameObject.AddComponent<DirtyCam>();
+            dirtycomp.cameraRig = self.GetComponent<CameraRigController>();
+
             if (TryParseHtmlString(DefaultColor.Value, out Color color))
                 Helpers.ChangeLobbyLightColor(color);
             if (StopWave.Value)
@@ -103,25 +106,38 @@ namespace LobbyAppearanceImprovements
                     var characterHolder = new GameObject("HOLDER: Characters");
 
 
-                    CreateDisplay("Commando", new Vector3(2.65f, 0.01f, 6.00f), new Quaternion(0, 0.9063078f, 0, 0), characterHolder.transform);
-                    CreateDisplay("Huntress", new Vector3(4.8f, 1.43f, 15.36f), new Quaternion(0, 0.8788171f, 0, 0), characterHolder.transform);
-                    CreateDisplay("Toolbot", new Vector3(-0.21f, 0.15f, 20.84f), new Quaternion(0, 0.999947f, 0, 0), characterHolder.transform);
-                    CreateDisplay("Engi", new Vector3(-2.58f, -0.01f, 19f), new Quaternion(0, 0.9925462f, 0, 0), characterHolder.transform);
-                    CreateDisplay("Mage", new Vector3(3.35f, 0.21f, 14.73f), new Quaternion(0, 0.9990482f, 0, 0), characterHolder.transform);
-                    CreateDisplay("Merc", new Vector3(-1.32f, 3.65f, 22.28f), new Quaternion(0, 0.9993908f, 0, 0), characterHolder.transform);
-                    CreateDisplay("Treebot", new Vector3(-6.51f, -0.11f, 22.93f), new Quaternion(0, 0.9816272f, 0, 0), characterHolder.transform);
-                    CreateDisplay("Loader", new Vector3(5.04f, 0, 14.26f), new Quaternion(0, 212f/360f, 0, 0), characterHolder.transform);
-                    CreateDisplay("Croco", new Vector3(4.83f, 3.59f, 23.58f), new Quaternion(0, 0.9571933f, 0, 0), characterHolder.transform);
-                    CreateDisplay("Captain", new Vector3(2.21f, 0.01f, 19.40f), new Quaternion(0, 0.9743701f, 0, 0), characterHolder.transform);
+                    CreateDisplay("Commando", new Vector3(2.65f, 0.01f, 6.00f), new Vector3(0f, 240f,0f), characterHolder.transform);
+                    CreateDisplay("Huntress", new Vector3(4.8f, 1.43f, 15.36f), new Vector3(0f, 200f, 0f), characterHolder.transform);
+                    CreateDisplay("Toolbot", new Vector3(-0.21f, 0.15f, 20.84f), new Vector3(0f, 170f, 0f), characterHolder.transform);
+                    CreateDisplay("Engi", new Vector3(-2.58f, -0.01f, 19f), new Vector3(0f, 150f, 0f), characterHolder.transform);
+                    CreateDisplay("Mage", new Vector3(3.35f, 0.21f, 14.73f), new Vector3(0f, 220f, 0f), characterHolder.transform);
+                    CreateDisplay("Merc", new Vector3(-1.32f, 3.65f, 22.28f), new Vector3(0f, 180f, 0f), characterHolder.transform);
+                    CreateDisplay("Treebot", new Vector3(-6.51f, -0.11f, 22.93f), new Vector3(0f, 140f, 0f), characterHolder.transform);
+                    CreateDisplay("Loader", new Vector3(5.04f, 0, 14.26f), new Vector3(0f, 220f, 0f), characterHolder.transform);
+                    CreateDisplay("Croco", new Vector3(5f, 3.59f, 22f), new Vector3(0f, 210f, 0f), characterHolder.transform);
+                    CreateDisplay("Captain", new Vector3(2.21f, 0.01f, 19.40f), new Vector3(0f, 190f, 0f), characterHolder.transform);
                     //modded
-                    CreateDisplay("SniperClassic", new Vector3(-5f, 0f, 22f), new Quaternion(0, -0.9911869f, 0, 0), characterHolder.transform);
-                    CreateDisplay("Enforcer", new Vector3(3.2f, 0f, 18.74f), new Quaternion(0, 0.9974989f, 0, 0), characterHolder.transform);
-                    CreateDisplay("NemesisEnforcer", new Vector3(4.1f, 2.28f, 20.71f), new Quaternion(0, 0.9774526f, 0, 0), characterHolder.transform);
-                    CreateDisplay("Bandit", new Vector3(-3.17f, -0.06f, 5.85f), new Quaternion(0, 0.8698728f, 0, 0), characterHolder.transform); //todo
-                    CreateDisplay("Miner", new Vector3(-2.82f, 0.04f, 6.69f), new Quaternion(0, 0.8698728f, 0, 0), characterHolder.transform);
-                    CreateDisplay("RobPaladin", new Vector3(-4f, 0.01f, 22f), new Quaternion(0, 0.05399338f, 0, 0), characterHolder.transform);
-                    CreateDisplay("CHEF", new Vector3(1.63f, 3.74f, 23.2f), new Quaternion(0, 0.867048f, 0, 0), characterHolder.transform);
-                    CreateDisplay("Henry", new Vector3(-3.55f, 1.35f, 7.39f), new Quaternion(0, -0.9444403f, 0, 0), characterHolder.transform);
+                    CreateDisplay("SniperClassic", new Vector3(-5f, 0f, 22f), new Vector3(0f, 180f, 0f), characterHolder.transform);
+                    //enforcer
+                    CreateDisplay("Enforcer", new Vector3(3.2f, 0f, 18.74f), new Vector3(0f, 220f, 0f), characterHolder.transform);
+                    CreateDisplay("NemesisEnforcer", new Vector3(3f, 2.28f, 21f), new Vector3(0f, 200f, 0f), characterHolder.transform);
+                    //banditreloaded
+                    CreateDisplay("BanditReloaded", new Vector3(-3.5f, -0.06f, 5.85f), new Vector3(0f, 154f, 0f), characterHolder.transform);
+                    //miner
+                    CreateDisplay("Miner", new Vector3(-3.3f, 0.04f, 6.69f), new Vector3(0f, 140f, 0f), characterHolder.transform);
+                    //Paladin
+                    CreateDisplay("RobPaladin", new Vector3(-4f, 0.01f, 22f), new Vector3(0f, 160f, 0f), characterHolder.transform);
+                    //CHEF
+                    CreateDisplay("CHEF", new Vector3(1.63f, 3.4f, 23.2f), new Vector3(0f, 270f, 0f), characterHolder.transform);
+                    //henrymod
+                    CreateDisplay("RobHenry", new Vector3(-4.5f, 1.22f, 8.81f), new Vector3(0f, 128f, 0f), characterHolder.transform);
+                    //cloudburst
+                    CreateDisplay("Wyatt", new Vector3(-3.92f, 0.1f, 9.62f), new Vector3(0f, 138f, 0f), characterHolder.transform);
+                    //star storm
+                    CreateDisplay("Executioner", new Vector3(1.19f, 0f, 19.74f), new Vector3(0f, 192f, 0f), characterHolder.transform);
+                    //chirr
+
+
                 }
             }
             if (PostProcessing.Value)
@@ -160,21 +176,74 @@ namespace LobbyAppearanceImprovements
             {
                 var selectedCharacters = new List<SurvivorIndex>();
                 var component = self.gameObject.GetComponent<BackgroundCharacterDisplayToggler>();
+
+                // Re-enable everything
+                foreach (var backgroundCharacters in component.survivorDisplays)
+                {
+                    backgroundCharacters.Value.SetActive(true);
+                }
+
+
                 foreach (var currentDisplays in self.characterDisplayPads)
                 {
+                    var index = currentDisplays.displaySurvivorIndex;
                     selectedCharacters.Add(currentDisplays.displaySurvivorIndex);
                 }
-                foreach (var display in component.backgroundCharacters)
+                //component.HANDTeaser.SetActive(showTeaser);
+            }
+        }
+
+        public class DirtyCam : MonoBehaviour
+        {
+            public CameraRigController cameraRig;
+            public float fov = 60f;
+            public float pitch = 0f;
+            public float yaw = 0f;
+            public bool reset = false;
+
+            public void Awake()
+            {
+                fov = 60f;
+                pitch = 0f;
+                yaw = 0f;
+                reset = false;
+            }
+
+            public void FixedUpdate()
+            {
+                if (reset)
                 {
-                    // iterate here through the cached list to update whats hidden and whats not with the section below
+                    Awake();
+                    return;
                 }
-                component.HANDTeaser.SetActive(showTeaser);
+                cameraRig.baseFov = fov;
+                cameraRig.pitch = pitch;
+                cameraRig.yaw = yaw;
             }
         }
 
         public class BackgroundCharacterDisplayToggler: MonoBehaviour
         {
-            public List<GameObject> backgroundCharacters = new List<GameObject>(0);
+            //public List<GameObject> backgroundCharacters = new List<GameObject>(0);
+            public Dictionary<SurvivorIndex, GameObject> survivorDisplays = new Dictionary<SurvivorIndex, GameObject>();
+        }
+
+        public class BackgroundDisplay : MonoBehaviour
+        {
+            public Vector3 rotation;
+            private bool kill = false;
+
+            public void Awake()
+            {
+                if (!kill)
+                {
+                    kill = true;
+                    //var transform = gameObject.transform;
+                    //transform.rotation = Quaternion.Euler(rotation);
+                }
+            }
+
+            //fruits.Add("apple","macintosh");
         }
     }
 
@@ -195,21 +264,34 @@ namespace LobbyAppearanceImprovements
         {
             GameObject.Find("Directional Light").gameObject.GetComponent<Light>().color = color;
         }
-        public static GameObject CreateDisplay(string bodyPrefabName, Vector3 position, Quaternion rotation, Transform parent = null)
+        public static GameObject CreateDisplay(string bodyPrefabName, Vector3 position, Vector3 rotation, Transform parent = null)
         {
-            var bodyPrefab = BodyCatalog.FindBodyPrefab(bodyPrefabName+"Body");
+            Debug.Log(bodyPrefabName);
+            switch (bodyPrefabName)
+            {
+                case "CHEF":
+                    break;
+                default:
+                    bodyPrefabName += "Body";
+                    break;
+            }
+            var bodyPrefab = BodyCatalog.FindBodyPrefab(bodyPrefabName);
+
             if (bodyPrefab)
             {
                 SurvivorDef survivorDef = SurvivorCatalog.FindSurvivorDefFromBody(bodyPrefab);
                 GameObject displayPrefab = survivorDef.displayPrefab;
-                var gameObject = UnityEngine.Object.Instantiate<GameObject>(displayPrefab, position, rotation, parent);
-
+                var gameObject = UnityEngine.Object.Instantiate<GameObject>(displayPrefab, position, Quaternion.Euler(rotation), parent);
+                Debug.Log("attempting to add component");
+                //var component = gameObject.AddComponent<MainPlugin.BackgroundDisplay>();
+                Debug.Log("component");
                 switch (bodyPrefabName)
                 {
                     case "Croco":
-                        gameObject.transform.Find("mdlCroco").transform.Find("Spawn").transform.Find("FloorMesh").gameObject.SetActive(false);
+                        gameObject.transform.Find("mdlCroco")?.transform.Find("Spawn")?.transform.Find("FloorMesh")?.gameObject.SetActive(false);
                         break;
-
+                    case "RobEnforcer":
+                        break;
                 }
                 return gameObject;
             }
