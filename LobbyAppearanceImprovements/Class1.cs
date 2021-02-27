@@ -49,18 +49,24 @@ namespace LobbyAppearanceImprovements
 
         //scaling
         public static ConfigEntry<float> CharacterPadScale { get; set; }
+        public static ConfigEntry<float> UIScale { get; set; }
 
         public void Awake()
         {
             //default new Color32((byte)0.981, (byte)0.356, (byte)0.356, (byte)1.000)
             //250.155, 90.78, 90.78
+            // Lights
             DefaultColor = Config.Bind("Lights", "Hex Color", "#fa5a5a", "Change the default color of the light");
             StopWave = Config.Bind("Lights", "Disable FlickerLight", true, "Makes the light not flicker anymore.");
-            PostProcessing = Config.Bind("Overlay", "Disable Post Processing", true, "Disables the blurry post processing.");
-            HideFade = Config.Bind("Overlay", "Hide Fade", true, "There's a dark fade on the top and bottom, this disables it.");
+
+            //UI
+            PostProcessing = Config.Bind("UI", "Disable Post Processing", true, "Disables the blurry post processing.");
+            HideFade = Config.Bind("UI", "Hide Fade", true, "There's a dark fade on the top and bottom, this disables it.");
+            UIScale = Config.Bind("UI", "UI Scale", 0.5f, "Resizes the UIs on the left and right."); //def 1f
+
+            //BG
             MeshProps = Config.Bind("Background", "Hide MeshProps", false, "Hides all the meshprops, giving a unique look.");
             SurvivorsInLobby = Config.Bind("Background", "Survivors In Lobby", true, "Shows survivors in the lobby");
-
             CharacterPadScale = Config.Bind("Background", "Character Display Scale", 0.5f, "Resizes character displays. "); //def 1f
             CommandHelper.AddToConsoleWhenReady();
 
@@ -132,12 +138,12 @@ namespace LobbyAppearanceImprovements
             {
                 GameObject.Find("CharacterPadAlignments").transform.localScale *= CharacterPadScale.Value;
             }
-            if (true)
+            if (UIScale.Value != 1f)
             {
                 var ui = GameObject.Find("CharacterSelectUI").transform.Find("SafeArea").transform;
-                ui.Find("LeftHandPanel (Layer: Main)").transform.localScale *= 0.5f;
+                ui.Find("LeftHandPanel (Layer: Main)").transform.localScale *= UIScale.Value;
                 var rtSide = ui.Find("RightHandPanel");
-                rtSide.localScale *= 0.5f;
+                rtSide.localScale *= UIScale.Value;
                 //rtSide.position = new Vector3(80, 30, 90);
             }
         }
