@@ -24,6 +24,7 @@ using RoR2.Skills;
 using System.Runtime.CompilerServices;
 using RoR2.Projectile;
 using static UnityEngine.Animator;
+using LeTai.Asset.TranslucentImage;
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -40,41 +41,47 @@ namespace LobbyAppearanceImprovements
         public const string ModVer = "1.0.0";
         public const string ModName = "LobbyAppearanceImprovements";
         public const string ModGuid = "com.DestroyedClone.LobbyAppearanceImprovements";
-        public static ConfigEntry<string> DefaultColor { get; set; }
-        public static ConfigEntry<bool> StopWave { get; set; }
+        //Lights
+        public static ConfigEntry<string> Light_Color { get; set; }
+        public static ConfigEntry<bool> Light_Flicker_Disable { get; set; }
+        public static ConfigEntry<float> Light_Intensity { get; set; }
+
+        //UI
         public static ConfigEntry<bool> PostProcessing { get; set; }
         public static ConfigEntry<bool> HideFade { get; set; }
-        public static ConfigEntry<bool> MeshProps { get; set; }
-        public static ConfigEntry<bool> SurvivorsInLobby { get; set; }
-
-        //scaling
-        public static ConfigEntry<float> CharacterPadScale { get; set; }
+        public static ConfigEntry<int> BlurValue { get; set; }
         public static ConfigEntry<float> UIScale { get; set; }
+
+        //BG
+        public static ConfigEntry<float> CharacterPadScale { get; set; }
+        public static ConfigEntry<bool> MeshProps { get; set; }
+        public static ConfigEntry<bool> PhysicsProps { get; set; }
+        public static ConfigEntry<bool> SurvivorsInLobby { get; set; }
         public static ConfigEntry<int> SelectViewMode { get; set; }
 
         public Dictionary<string, float[]> textCameraSettings = new Dictionary<string, float[]>
         {
             {"Commando", new float[]{ 20, 2, 24 } },
             {"Huntress", new float[]{ 9, -3, 18 } },
-            {"Toolbot", new float[]{ 9, 0, 0 } },
+            {"Toolbot", new float[]{ 10, -1, -1 } },
             {"Engi", new float[]{ 6, 1, -7.5f } },
             {"Mage", new float[]{ 8, -1, 13 } },
             {"Merc", new float[]{ 5, -8.5f, -3 } },
-            {"Treebot", new float[]{ 6, 0.7f, 15.5f } },
+            {"Treebot", new float[]{ 6, 0.7f, -15.5f } },
             {"Loader", new float[]{ 11, 0, 20 } },
             {"Croco", new float[]{ 8, -8.5f, 13 } },
             {"Captain", new float[]{ 8, 0, 7 } },
-            {"SniperClassic", new float[]{ 6, 0.5f, 12.5f } },
+            {"SniperClassic", new float[]{ 6, 0.5f, -12.5f } },
             {"Enforcer", new float[]{ 11, -1, 10 } },
             {"NemesisEnforcer", new float[]{ 10, -7.5f, 8 } },
             {"BanditReloaded", new float[]{ 20, 1, -30 } },
-            {"HANDOverclocked", new float[]{ 0, 0, 0 } }, //todo
+            {"HANDOverclocked", new float[]{ 8, -2, -4 } },
             {"Miner", new float[]{ 17, 1, -26 } },
             {"RobPaladin", new float[]{ 9, -1, -10 } },
             {"CHEF", new float[]{ 5, -8.5f, 3 } },
             {"RobHenry", new float[]{ 12, -7, -27 } },
-            {"Wyatt", new float[]{ 0, 0, 0 } }, //todo
-            {"Executioner", new float[]{ 0, 0, 0 } }, //todo
+            {"Wyatt", new float[]{ 12, -2, -22 } },
+            {"Executioner", new float[]{ 10, -1, 5 } },
         };
 
         public Dictionary<SurvivorIndex, float[]> characterCameraSettings = new Dictionary<SurvivorIndex, float[]>();
@@ -86,16 +93,20 @@ namespace LobbyAppearanceImprovements
             //default new Color32((byte)0.981, (byte)0.356, (byte)0.356, (byte)1.000)
             //250.155, 90.78, 90.78
             // Lights
-            DefaultColor = Config.Bind("Lights", "Hex Color", "#fa5a5a", "Change the default color of the light");
-            StopWave = Config.Bind("Lights", "Disable FlickerLight", true, "Makes the light not flicker anymore.");
+            Light_Color = Config.Bind("Lights", "Hex Color", "#fa5a5a", "Change the default color of the light");
+            Light_Flicker_Disable = Config.Bind("Lights", "Disable FlickerLight", true, "Makes the light not flicker anymore.");
+            Light_Intensity = Config.Bind("Lights", "Intensity", 1f, "Change the intensity of the light.");
 
             //UI
             PostProcessing = Config.Bind("UI", "Disable Post Processing", true, "Disables the blurry post processing.");
             HideFade = Config.Bind("UI", "Hide Fade", true, "There's a dark fade on the top and bottom, this disables it.");
+            BlurValue = Config.Bind("UI", "Adjust Blur", 255, "Adjusts the blur behind the UI elements on the left and right." +
+                "\n0:fully transparent - 255:default");
             UIScale = Config.Bind("UI", "UI Scale", 1f, "Resizes the UIs on the left and right."); //def 1f
 
             //BG
-            MeshProps = Config.Bind("Background", "Hide MeshProps", false, "Hides all the meshprops, giving a unique look.");
+            MeshProps = Config.Bind("Background", "Hide MeshProps", false, "Hides all the background meshprops.");
+            PhysicsProps = Config.Bind("Background", "Hide Physics Props", false, "Hides only the physics props like the Chair.");
             SurvivorsInLobby = Config.Bind("Background", "Survivors In Lobby", true, "Shows survivors in the lobby");
             CharacterPadScale = Config.Bind("Background", "Character Display Scale", 1f, "Resizes character displays. "); //def 1f
 
@@ -106,10 +117,7 @@ namespace LobbyAppearanceImprovements
 
             CommandHelper.AddToConsoleWhenReady();
 
-            if (StopWave.Value || MeshProps.Value || PostProcessing.Value)
-            {
-                On.RoR2.UI.CharacterSelectController.Awake += CharacterSelectController_Awake;
-            }
+            On.RoR2.UI.CharacterSelectController.Awake += CharacterSelectController_Awake;
 
             switch (SelectViewMode.Value)
             {
@@ -169,13 +177,24 @@ namespace LobbyAppearanceImprovements
             orig(self);
             var dirtycomp = self.gameObject.AddComponent<DirtyCam>();
             dirtycomp.cameraRig = GameObject.Find("Main Camera").gameObject.GetComponent<CameraRigController>();
+            var tweenController = self.gameObject.AddComponent<CameraTweenController>();
+            tweenController.cameraRig = GameObject.Find("Main Camera").gameObject.GetComponent<CameraRigController>();
 
-            if (TryParseHtmlString(DefaultColor.Value, out Color color))
+            var directionalLight = GameObject.Find("Directional Light");
+            var ui = GameObject.Find("CharacterSelectUI").transform.Find("SafeArea").transform;
+            var ui_left = ui.Find("LeftHandPanel (Layer: Main)");
+            var ui_right = ui.Find("RightHandPanel");
+
+            //Light
+            if (TryParseHtmlString(Light_Color.Value, out Color color))
                 Helpers.ChangeLobbyLightColor(color);
-            if (StopWave.Value)
+            directionalLight.gameObject.GetComponent<Light>().intensity = Light_Intensity.Value;
+            if (Light_Flicker_Disable.Value)
             {
-                GameObject.Find("Directional Light").gameObject.GetComponent<FlickerLight>().enabled = false;
+                directionalLight.gameObject.GetComponent<FlickerLight>().enabled = false;
             }
+
+
             if (MeshProps.Value)
             {
                 GameObject.Find("HANDTeaser").SetActive(false);
@@ -185,53 +204,65 @@ namespace LobbyAppearanceImprovements
                 GameObject.Find("HumanCanister1Mesh").SetActive(false);
             } else
             {
-                if (SurvivorsInLobby.Value)
+                if (PhysicsProps.Value)
                 {
-                    var component = self.gameObject.AddComponent<BackgroundCharacterDisplayToggler>();
-                    var characterHolder = new GameObject("HOLDER: Characters");
-                    var dict = component.survivorDisplays;
+                    var thing = GameObject.Find("MeshProps").transform;
+                    foreach (string text in new string[] { })
+                    {
 
-                    CreateDisplayMaster("Commando", new Vector3(2.65f, 0.01f, 6.00f), new Vector3(0f, 240f,0f), characterHolder.transform, dict);
-                    CreateDisplayMaster("Huntress", new Vector3(4.8f, 1.43f, 15.36f), new Vector3(0f, 200f, 0f), characterHolder.transform, dict);
-                    CreateDisplayMaster("Toolbot", new Vector3(-0.21f, 0.15f, 20.84f), new Vector3(0f, 170f, 0f), characterHolder.transform, dict);
-                    CreateDisplayMaster("Engi", new Vector3(-2.58f, -0.01f, 19f), new Vector3(0f, 150f, 0f), characterHolder.transform, dict);
-                    CreateDisplayMaster("Mage", new Vector3(3.35f, 0.21f, 14.73f), new Vector3(0f, 220f, 0f), characterHolder.transform, dict);
-                    CreateDisplayMaster("Merc", new Vector3(-1.32f, 3.65f, 22.28f), new Vector3(0f, 180f, 0f), characterHolder.transform, dict);
-                    CreateDisplayMaster("Treebot", new Vector3(-6.51f, -0.11f, 22.93f), new Vector3(0f, 140f, 0f), characterHolder.transform, dict);
-                    CreateDisplayMaster("Loader", new Vector3(5.04f, 0, 14.26f), new Vector3(0f, 220f, 0f), characterHolder.transform, dict);
-                    CreateDisplayMaster("Croco", new Vector3(5f, 3.59f, 22f), new Vector3(0f, 210f, 0f), characterHolder.transform, dict);
-                    CreateDisplayMaster("Captain", new Vector3(2.21f, 0.01f, 19.40f), new Vector3(0f, 190f, 0f), characterHolder.transform, dict);
-                    //modded
-                    CreateDisplayMaster("SniperClassic", new Vector3(-5f, 0f, 22f), new Vector3(0f, 180f, 0f), characterHolder.transform, dict);
-                    //enforcer
-                    CreateDisplayMaster("Enforcer", new Vector3(3.2f, 0f, 18.74f), new Vector3(0f, 220f, 0f), characterHolder.transform, dict);
-                    CreateDisplayMaster("NemesisEnforcer", new Vector3(3f, 2.28f, 21f), new Vector3(0f, 200f, 0f), characterHolder.transform, dict);
-                    //banditreloaded
-                    CreateDisplayMaster("BanditReloaded", new Vector3(-3.5f, -0.06f, 5.85f), new Vector3(0f, 154f, 0f), characterHolder.transform, dict);
-                    //HAND
-                    CreateDisplayMaster("HANDOverclocked", new Vector3(-1.57f, -0.038f, 20.48f), new Vector3(0f, 154f, 0f), characterHolder.transform, dict);
-                    //miner
-                    CreateDisplayMaster("Miner", new Vector3(-3.3f, 0.04f, 6.69f), new Vector3(0f, 140f, 0f), characterHolder.transform, dict);
-                    //Paladin
-                    CreateDisplayMaster("RobPaladin", new Vector3(-4f, 0.01f, 22f), new Vector3(0f, 160f, 0f), characterHolder.transform, dict);
-                    //CHEF
-                    CreateDisplayMaster("CHEF", new Vector3(1.63f, 3.4f, 23.2f), new Vector3(0f, 270f, 0f), characterHolder.transform, dict);
-                    //henrymod
-                    CreateDisplayMaster("RobHenry", new Vector3(-4.5f, 1.22f, 8.81f), new Vector3(0f, 128f, 0f), characterHolder.transform, dict);
-                    //cloudburst
-                    CreateDisplayMaster("Wyatt", new Vector3(-3.92f, 0.1f, 9.62f), new Vector3(0f, 138f, 0f), characterHolder.transform, dict);
-                    //star storm
-                    CreateDisplayMaster("Executioner", new Vector3(1.19f, 0f, 19.74f), new Vector3(0f, 192f, 0f), characterHolder.transform, dict);
-                    //chirr here
+                    }
                 }
             }
+            if (SurvivorsInLobby.Value)
+            {
+                var component = self.gameObject.AddComponent<BackgroundCharacterDisplayToggler>();
+                var characterHolder = new GameObject("HOLDER: Characters");
+                var dict = component.survivorDisplays;
+                if (SelectViewMode.Value > 1)
+                {
+                    GameObject.Find("CharacterPadAlignments").SetActive(false);
+                }
+
+                CreateDisplayMaster("Commando", new Vector3(2.65f, 0.01f, 6.00f), new Vector3(0f, 240f, 0f), characterHolder.transform, dict);
+                CreateDisplayMaster("Huntress", new Vector3(4.8f, 1.43f, 15.36f), new Vector3(0f, 200f, 0f), characterHolder.transform, dict);
+                CreateDisplayMaster("Toolbot", new Vector3(-0.21f, 0.15f, 20.84f), new Vector3(0f, 170f, 0f), characterHolder.transform, dict);
+                CreateDisplayMaster("Engi", new Vector3(-2.58f, -0.01f, 19f), new Vector3(0f, 150f, 0f), characterHolder.transform, dict);
+                CreateDisplayMaster("Mage", new Vector3(3.35f, 0.21f, 14.73f), new Vector3(0f, 220f, 0f), characterHolder.transform, dict);
+                CreateDisplayMaster("Merc", new Vector3(-1.32f, 3.65f, 22.28f), new Vector3(0f, 180f, 0f), characterHolder.transform, dict);
+                CreateDisplayMaster("Treebot", new Vector3(-6.51f, -0.11f, 22.93f), new Vector3(0f, 140f, 0f), characterHolder.transform, dict);
+                CreateDisplayMaster("Loader", new Vector3(5.04f, 0, 14.26f), new Vector3(0f, 220f, 0f), characterHolder.transform, dict);
+                CreateDisplayMaster("Croco", new Vector3(5f, 3.59f, 22f), new Vector3(0f, 210f, 0f), characterHolder.transform, dict);
+                CreateDisplayMaster("Captain", new Vector3(2.21f, 0.01f, 19.40f), new Vector3(0f, 190f, 0f), characterHolder.transform, dict);
+                //modded
+                CreateDisplayMaster("SniperClassic", new Vector3(-5f, 0f, 22f), new Vector3(0f, 180f, 0f), characterHolder.transform, dict);
+                //enforcer
+                CreateDisplayMaster("Enforcer", new Vector3(3.2f, 0f, 18.74f), new Vector3(0f, 220f, 0f), characterHolder.transform, dict);
+                CreateDisplayMaster("NemesisEnforcer", new Vector3(3f, 2.28f, 21f), new Vector3(0f, 200f, 0f), characterHolder.transform, dict);
+                //banditreloaded
+                CreateDisplayMaster("BanditReloaded", new Vector3(-3.5f, -0.06f, 5.85f), new Vector3(0f, 154f, 0f), characterHolder.transform, dict);
+                //HAND
+                CreateDisplayMaster("HANDOverclocked", new Vector3(-1.57f, -0.038f, 20.48f), new Vector3(0f, 154f, 0f), characterHolder.transform, dict);
+                //miner
+                CreateDisplayMaster("Miner", new Vector3(-3.3f, 0.04f, 6.69f), new Vector3(0f, 140f, 0f), characterHolder.transform, dict);
+                //Paladin
+                CreateDisplayMaster("RobPaladin", new Vector3(-4f, 0.01f, 22f), new Vector3(0f, 160f, 0f), characterHolder.transform, dict);
+                //CHEF
+                CreateDisplayMaster("CHEF", new Vector3(1.63f, 3.4f, 23.2f), new Vector3(0f, 270f, 0f), characterHolder.transform, dict);
+                //henrymod
+                CreateDisplayMaster("RobHenry", new Vector3(-4.5f, 1.22f, 8.81f), new Vector3(0f, 128f, 0f), characterHolder.transform, dict);
+                //cloudburst
+                CreateDisplayMaster("Wyatt", new Vector3(-3.92f, 0.1f, 9.62f), new Vector3(0f, 138f, 0f), characterHolder.transform, dict);
+                //star storm
+                CreateDisplayMaster("Executioner", new Vector3(1.19f, 0f, 19.74f), new Vector3(0f, 192f, 0f), characterHolder.transform, dict);
+                //chirr here
+            }
+            
             if (PostProcessing.Value)
             {
                 GameObject.Find("PP").SetActive(false);
             }
             if (HideFade.Value)
             {
-                var ui = GameObject.Find("CharacterSelectUI").transform;
                 ui.Find("BottomSideFade").gameObject.SetActive(false);
                 ui.Find("TopSideFade").gameObject.SetActive(false);
             }
@@ -241,11 +272,16 @@ namespace LobbyAppearanceImprovements
             }
             if (UIScale.Value != 1f)
             {
-                var ui = GameObject.Find("CharacterSelectUI").transform.Find("SafeArea").transform;
-                ui.Find("LeftHandPanel (Layer: Main)").transform.localScale *= UIScale.Value;
-                var rtSide = ui.Find("RightHandPanel");
-                rtSide.localScale *= UIScale.Value;
+                ui_left.transform.localScale *= UIScale.Value;
+                ui_right.localScale *= UIScale.Value;
                 //rtSide.position = new Vector3(80, 30, 90);
+            }
+            if (BlurValue.Value != (int)BlurValue.DefaultValue)
+            {
+                var leftBlurColor = ui_left.Find("BlurPanel").GetComponent<TranslucentImage>().color;
+                leftBlurColor.a = Mathf.Clamp(BlurValue.Value, 0f, 255f);
+                var rightBlurColor = ui_right.Find("RuleVerticalLayout").Find("BlurPanel").GetComponent<TranslucentImage>().color;
+                rightBlurColor.a = Mathf.Clamp(BlurValue.Value, 0f, 255f);
             }
         }
 
@@ -317,13 +353,46 @@ namespace LobbyAppearanceImprovements
         public class CameraTweenController : MonoBehaviour
         {
             public CameraRigController cameraRig;
-            public float stopwatch = 0f;
-            public float incrementValue = 0.05f;
-            public float slerpValue = 0f;
+            float incrementValue = 0.05f;
+            float slerpValue = 0f;
+            PitchYawPair targetPitchYaw = new PitchYawPair();
+            PitchYawPair oldPitchYaw = new PitchYawPair();
+            bool OnNewCycle = false;
+            public PitchYawPair testing = new PitchYawPair();
+            public bool testbool = false;
 
             public void Update()
             {
+                if (testbool)
+                {
+                    targetPitchYaw = testing;
+                    testbool = false;
+                }
 
+                if (!OnNewCycle)
+                {
+                    oldPitchYaw = new PitchYawPair(cameraRig.pitch, cameraRig.yaw);
+                    OnNewCycle = true;
+                }
+
+                if (slerpValue < 1f)
+                {
+                    slerpValue += incrementValue;
+                    //var currentPitchYaw = new PitchYawPair(cameraRig.pitch, cameraRig.yaw);
+                    var resultingPitchYaw = PitchYawPair.Lerp(oldPitchYaw, targetPitchYaw, slerpValue);
+                    cameraRig.SetPitchYaw(resultingPitchYaw);
+                }
+            }
+
+            public void SetPitchYawPair(float pitch, float yaw)
+            {
+                SetPitchYawPair(new PitchYawPair(pitch, yaw));
+            }
+            public void SetPitchYawPair(PitchYawPair pitchYawPair)
+            {
+                slerpValue = 0f;
+                OnNewCycle = false;
+                targetPitchYaw = pitchYawPair;
             }
         }
         public void CreateDisplayMaster(string bodyPrefabName, Vector3 position, Vector3 rotation, Transform parent = null, Dictionary<SurvivorIndex, GameObject> keyValuePairs = null)
