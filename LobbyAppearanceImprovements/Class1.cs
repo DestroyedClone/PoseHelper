@@ -203,38 +203,10 @@ namespace LobbyAppearanceImprovements
                     GameObject.Find("CharacterPadAlignments").SetActive(false);
                 }
 
-                CreateDisplayMaster("Commando", new Vector3(2.65f, 0.01f, 6.00f), new Vector3(0f, 240f, 0f), characterHolder.transform, dict);
-                CreateDisplayMaster("Huntress", new Vector3(4.8f, 1.43f, 15.36f), new Vector3(0f, 200f, 0f), characterHolder.transform, dict);
-                CreateDisplayMaster("Toolbot", new Vector3(-0.21f, 0.15f, 20.84f), new Vector3(0f, 170f, 0f), characterHolder.transform, dict);
-                CreateDisplayMaster("Engi", new Vector3(-2.58f, -0.01f, 19f), new Vector3(0f, 150f, 0f), characterHolder.transform, dict);
-                CreateDisplayMaster("Mage", new Vector3(3.35f, 0.21f, 14.73f), new Vector3(0f, 220f, 0f), characterHolder.transform, dict);
-                CreateDisplayMaster("Merc", new Vector3(-1.32f, 3.65f, 22.28f), new Vector3(0f, 180f, 0f), characterHolder.transform, dict);
-                CreateDisplayMaster("Treebot", new Vector3(-6.51f, -0.11f, 22.93f), new Vector3(0f, 140f, 0f), characterHolder.transform, dict);
-                CreateDisplayMaster("Loader", new Vector3(5.04f, 0, 14.26f), new Vector3(0f, 220f, 0f), characterHolder.transform, dict);
-                CreateDisplayMaster("Croco", new Vector3(5f, 3.59f, 22f), new Vector3(0f, 210f, 0f), characterHolder.transform, dict);
-                CreateDisplayMaster("Captain", new Vector3(2.21f, 0.01f, 19.40f), new Vector3(0f, 190f, 0f), characterHolder.transform, dict);
-                //modded
-                CreateDisplayMaster("SniperClassic", new Vector3(-5f, 0f, 22f), new Vector3(0f, 180f, 0f), characterHolder.transform, dict);
-                //enforcer
-                CreateDisplayMaster("Enforcer", new Vector3(3.2f, 0f, 18.74f), new Vector3(0f, 220f, 0f), characterHolder.transform, dict);
-                CreateDisplayMaster("NemesisEnforcer", new Vector3(3f, 2.28f, 21f), new Vector3(0f, 200f, 0f), characterHolder.transform, dict);
-                //banditreloaded
-                CreateDisplayMaster("BanditReloaded", new Vector3(-3.5f, -0.06f, 5.85f), new Vector3(0f, 154f, 0f), characterHolder.transform, dict);
-                //HAND
-                CreateDisplayMaster("HANDOverclocked", new Vector3(-1.57f, -0.038f, 20.48f), new Vector3(0f, 154f, 0f), characterHolder.transform, dict);
-                //miner
-                CreateDisplayMaster("Miner", new Vector3(-3.3f, 0.04f, 6.69f), new Vector3(0f, 140f, 0f), characterHolder.transform, dict);
-                //Paladin
-                CreateDisplayMaster("RobPaladin", new Vector3(-4f, 0.01f, 22f), new Vector3(0f, 160f, 0f), characterHolder.transform, dict);
-                //CHEF
-                CreateDisplayMaster("CHEF", new Vector3(1.63f, 3.4f, 23.2f), new Vector3(0f, 270f, 0f), characterHolder.transform, dict);
-                //henrymod
-                CreateDisplayMaster("RobHenry", new Vector3(-4.5f, 1.22f, 8.81f), new Vector3(0f, 128f, 0f), characterHolder.transform, dict);
-                //cloudburst
-                CreateDisplayMaster("Wyatt", new Vector3(-3.92f, 0.1f, 9.62f), new Vector3(0f, 138f, 0f), characterHolder.transform, dict);
-                //star storm
-                CreateDisplayMaster("Executioner", new Vector3(1.19f, 0f, 19.74f), new Vector3(0f, 192f, 0f), characterHolder.transform, dict);
-                //chirr here
+                foreach (var setting in StaticValues.characterDisplaySettings)
+                {
+                    CreateDisplayMaster(setting.Key, setting.Value[0], setting.Value[1], characterHolder.transform, dict);
+                }
             }
             
             if (PostProcessing.Value)
