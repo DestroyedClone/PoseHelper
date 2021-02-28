@@ -62,8 +62,6 @@ namespace LobbyAppearanceImprovements
 
         public Dictionary<SurvivorIndex, float[]> characterCameraSettings = new Dictionary<SurvivorIndex, float[]>();
 
-        bool hasSetupCameraValues = false;
-
         public void Awake()
         {
             //default new Color32((byte)0.981, (byte)0.356, (byte)0.356, (byte)1.000)
@@ -153,8 +151,8 @@ namespace LobbyAppearanceImprovements
         private void CharacterSelectController_Awake(On.RoR2.UI.CharacterSelectController.orig_Awake orig, RoR2.UI.CharacterSelectController self)
         {
             orig(self);
-            var dirtycomp = self.gameObject.AddComponent<DirtyCam>();
-            dirtycomp.cameraRig = GameObject.Find("Main Camera").gameObject.GetComponent<CameraRigController>();
+            //var dirtycomp = self.gameObject.AddComponent<DirtyCam>();
+            //dirtycomp.cameraRig = GameObject.Find("Main Camera").gameObject.GetComponent<CameraRigController>();
             //var tweenController = self.gameObject.AddComponent<CameraTweenController>();
             //tweenController.cameraRig = GameObject.Find("Main Camera").gameObject.GetComponent<CameraRigController>();
 
@@ -198,14 +196,14 @@ namespace LobbyAppearanceImprovements
                 var component = self.gameObject.AddComponent<BackgroundCharacterDisplayToggler>();
                 var characterHolder = new GameObject("HOLDER: Characters");
                 var dict = component.survivorDisplays;
-                if (SelectViewMode.Value > 1)
-                {
-                    GameObject.Find("CharacterPadAlignments").SetActive(false);
-                }
 
                 foreach (var setting in StaticValues.characterDisplaySettings)
                 {
                     CreateDisplayMaster(setting.Key, setting.Value[0], setting.Value[1], characterHolder.transform, dict);
+                }
+                if (SelectViewMode.Value > 1)
+                {
+                    GameObject.Find("CharacterPadAlignments").SetActive(false);
                 }
             }
             
@@ -220,7 +218,8 @@ namespace LobbyAppearanceImprovements
             }
             if (CharacterPadScale.Value != 1f)
             {
-                GameObject.Find("CharacterPadAlignments").transform.localScale *= CharacterPadScale.Value;
+                if (SelectViewMode.Value <= 1) //if mode 2 is selected, then this will NRE
+                    GameObject.Find("CharacterPadAlignments").transform.localScale *= CharacterPadScale.Value;
             }
             if (UIScale.Value != 1f)
             {
@@ -267,7 +266,6 @@ namespace LobbyAppearanceImprovements
                     objectToToggle.SetActive(false);
                     //selectedCharacters.Add(currentDisplays.displaySurvivorIndex);
                 }
-                //component.HANDTeaser.SetActive(showTeaser);
             }
         }
 
@@ -303,7 +301,6 @@ namespace LobbyAppearanceImprovements
 
         public class BackgroundCharacterDisplayToggler: MonoBehaviour
         {
-            //public List<GameObject> backgroundCharacters = new List<GameObject>(0);
             public Dictionary<SurvivorIndex, GameObject> survivorDisplays = new Dictionary<SurvivorIndex, GameObject>();
         }
         public class CameraTweenController : MonoBehaviour
@@ -356,12 +353,11 @@ namespace LobbyAppearanceImprovements
                     keyValuePairs.Add(survivorDef.survivorIndex, display);
                 }
 
-                if (!hasSetupCameraValues)
+                SurvivorIndex survivorIndex = survivorDef.survivorIndex;
+                if (!characterCameraSettings.ContainsKey(survivorIndex))
                 {
-                    SurvivorIndex survivorIndex = survivorDef.survivorIndex;
                     StaticValues.textCameraSettings.TryGetValue(bodyPrefabName, out float[] cameraSetting);
-                    if (!characterCameraSettings.ContainsKey(survivorIndex))
-                        characterCameraSettings.Add(survivorIndex, cameraSetting);
+                    characterCameraSettings.Add(survivorIndex, cameraSetting);
                 }
 
             }
