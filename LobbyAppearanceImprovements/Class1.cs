@@ -56,6 +56,7 @@ namespace LobbyAppearanceImprovements
         public static ConfigEntry<float> CharacterPadScale { get; set; }
         public static ConfigEntry<bool> MeshProps { get; set; }
         public static ConfigEntry<bool> PhysicsProps { get; set; }
+        public static ConfigEntry<bool> DisableShaking { get; set; }
         public static ConfigEntry<bool> SurvivorsInLobby { get; set; }
         public static ConfigEntry<int> SelectViewMode { get; set; }
 
@@ -107,7 +108,9 @@ namespace LobbyAppearanceImprovements
             //BG
             MeshProps = Config.Bind("Background", "Hide MeshProps", false, "Hides all the background meshprops.");
             PhysicsProps = Config.Bind("Background", "Hide Physics Props", false, "Hides only the physics props like the Chair.");
-            SurvivorsInLobby = Config.Bind("Background", "Survivors In Lobby", true, "Shows survivors in the lobby");
+            DisableShaking = Config.Bind("Background", "Disable Shaking", false, "Disables the random shaking that rattles the ship.");
+            SurvivorsInLobby = Config.Bind("Background", "Survivors In Lobby", true, "Shows survivors in the lobby." +
+                "\nThese background survivors don't reflect the loadouts in the lobby.");
             CharacterPadScale = Config.Bind("Background", "Character Display Scale", 1f, "Resizes character displays. "); //def 1f
 
             //other
@@ -177,11 +180,12 @@ namespace LobbyAppearanceImprovements
             orig(self);
             var dirtycomp = self.gameObject.AddComponent<DirtyCam>();
             dirtycomp.cameraRig = GameObject.Find("Main Camera").gameObject.GetComponent<CameraRigController>();
-            var tweenController = self.gameObject.AddComponent<CameraTweenController>();
-            tweenController.cameraRig = GameObject.Find("Main Camera").gameObject.GetComponent<CameraRigController>();
+            //var tweenController = self.gameObject.AddComponent<CameraTweenController>();
+            //tweenController.cameraRig = GameObject.Find("Main Camera").gameObject.GetComponent<CameraRigController>();
 
             var directionalLight = GameObject.Find("Directional Light");
-            var ui = GameObject.Find("CharacterSelectUI").transform.Find("SafeArea").transform;
+            var ui_origin = GameObject.Find("CharacterSelectUI").transform;
+            var ui = ui_origin.Find("SafeArea").transform;
             var ui_left = ui.Find("LeftHandPanel (Layer: Main)");
             var ui_right = ui.Find("RightHandPanel");
 
@@ -207,9 +211,10 @@ namespace LobbyAppearanceImprovements
                 if (PhysicsProps.Value)
                 {
                     var thing = GameObject.Find("MeshProps").transform;
-                    foreach (string text in new string[] { })
+                    foreach (string text in new string[] { "PropAnchor", "ExtinguisherMesh", "FolderMesh", "LaptopMesh (1)", "ChairPropAnchor", "ChairMesh",
+                    "ChairWeight","PropAnchor (1)","ExtinguisherMesh (1)","ExtinguisherMesh (2)", "FolderMesh (1)", "LaptopMesh (2)"})
                     {
-
+                        thing.Find(text)?.gameObject.SetActive(false);
                     }
                 }
             }
@@ -263,8 +268,8 @@ namespace LobbyAppearanceImprovements
             }
             if (HideFade.Value)
             {
-                ui.Find("BottomSideFade").gameObject.SetActive(false);
-                ui.Find("TopSideFade").gameObject.SetActive(false);
+                ui_origin.Find("BottomSideFade").gameObject.SetActive(false);
+                ui_origin.Find("TopSideFade").gameObject.SetActive(false);
             }
             if (CharacterPadScale.Value != 1f)
             {
@@ -282,6 +287,10 @@ namespace LobbyAppearanceImprovements
                 leftBlurColor.a = Mathf.Clamp(BlurValue.Value, 0f, 255f);
                 var rightBlurColor = ui_right.Find("RuleVerticalLayout").Find("BlurPanel").GetComponent<TranslucentImage>().color;
                 rightBlurColor.a = Mathf.Clamp(BlurValue.Value, 0f, 255f);
+            }
+            if (DisableShaking.Value)
+            {
+                GameObject.Find("PreGameController").transform.Find("PreGameShake").gameObject.SetActive(false);
             }
         }
 
@@ -357,41 +366,34 @@ namespace LobbyAppearanceImprovements
             float slerpValue = 0f;
             PitchYawPair targetPitchYaw = new PitchYawPair();
             PitchYawPair oldPitchYaw = new PitchYawPair();
-            bool OnNewCycle = false;
+            bool DisableToStartNewTween = false;
             public PitchYawPair testing = new PitchYawPair();
-            public bool testbool = false;
+            public bool accept = false;
 
             public void Update()
             {
-                if (testbool)
+                if (accept)
                 {
-                    targetPitchYaw = testing;
-                    testbool = false;
-                }
+                    if (!DisableToStartNewTween)
+                    {
+                        oldPitchYaw = new PitchYawPair(cameraRig.pitch, cameraRig.yaw);
+                        SetPitchYawPair(testing);
+                        DisableToStartNewTween = true;
+                    }
 
-                if (!OnNewCycle)
-                {
-                    oldPitchYaw = new PitchYawPair(cameraRig.pitch, cameraRig.yaw);
-                    OnNewCycle = true;
+                    if (slerpValue < 1f)
+                    {
+                        slerpValue += incrementValue;
+                        //var currentPitchYaw = new PitchYawPair(cameraRig.pitch, cameraRig.yaw);
+                        var resultingPitchYaw = PitchYawPair.Lerp(oldPitchYaw, targetPitchYaw, slerpValue);
+                        cameraRig.SetPitchYaw(resultingPitchYaw);
+                    }
                 }
-
-                if (slerpValue < 1f)
-                {
-                    slerpValue += incrementValue;
-                    //var currentPitchYaw = new PitchYawPair(cameraRig.pitch, cameraRig.yaw);
-                    var resultingPitchYaw = PitchYawPair.Lerp(oldPitchYaw, targetPitchYaw, slerpValue);
-                    cameraRig.SetPitchYaw(resultingPitchYaw);
-                }
-            }
-
-            public void SetPitchYawPair(float pitch, float yaw)
-            {
-                SetPitchYawPair(new PitchYawPair(pitch, yaw));
             }
             public void SetPitchYawPair(PitchYawPair pitchYawPair)
             {
                 slerpValue = 0f;
-                OnNewCycle = false;
+                DisableToStartNewTween = false;
                 targetPitchYaw = pitchYawPair;
             }
         }
@@ -400,15 +402,19 @@ namespace LobbyAppearanceImprovements
             var bodyPrefab = GetBodyPrefab(bodyPrefabName);
             if (bodyPrefab)
             {
-                var display = CreateDisplay(bodyPrefabName, position, rotation, parent);
                 SurvivorDef survivorDef = SurvivorCatalog.FindSurvivorDefFromBody(bodyPrefab);
-                keyValuePairs.Add(survivorDef.survivorIndex, display);
+                if (!keyValuePairs.ContainsKey(survivorDef.survivorIndex))
+                {
+                    var display = CreateDisplay(bodyPrefabName, position, rotation, parent);
+                    keyValuePairs.Add(survivorDef.survivorIndex, display);
+                }
 
                 if (!hasSetupCameraValues)
                 {
                     SurvivorIndex survivorIndex = survivorDef.survivorIndex;
                     textCameraSettings.TryGetValue(bodyPrefabName, out float[] cameraSetting);
-                    characterCameraSettings.Add(survivorIndex, cameraSetting);
+                    if (!characterCameraSettings.ContainsKey(survivorIndex))
+                        characterCameraSettings.Add(survivorIndex, cameraSetting);
                 }
 
             }
