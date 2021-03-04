@@ -30,6 +30,9 @@ namespace LobbyAppearanceImprovements
 {
     public static class StaticValues
     {
+        // You may ask, why not combine the two?
+        // That is because, my code sucks ass.
+
         public static Dictionary<string, float[]> textCameraSettings = new Dictionary<string, float[]>
         {
             {"Commando", new float[]{ 20, 2, 24 } },
@@ -82,5 +85,12 @@ namespace LobbyAppearanceImprovements
             { "Wyatt", new [] {new Vector3(-3.92f, 0.1f, 9.62f), new Vector3(0f, 138f, 0f) } },
             { "Executioner", new [] {new Vector3(1.19f, 0f, 19.74f), new Vector3(0f, 192f, 0f) } },
         };
+
+        public enum LobbyViewType
+        {
+            Default,
+            Hide,
+            Zoom
+        }
     }
 }

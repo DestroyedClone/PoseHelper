@@ -59,6 +59,10 @@ namespace LobbyAppearanceImprovements
         public static ConfigEntry<bool> DisableShaking { get; set; }
         public static ConfigEntry<bool> SurvivorsInLobby { get; set; }
         public static ConfigEntry<int> SelectViewMode { get; set; }
+        public static StaticValues.LobbyViewType LobbyViewType;
+
+        //Other
+        public static ConfigEntry<bool> DevMode { get; set; }
 
         public Dictionary<SurvivorIndex, float[]> characterCameraSettings = new Dictionary<SurvivorIndex, float[]>();
 
@@ -87,9 +91,11 @@ namespace LobbyAppearanceImprovements
             CharacterPadScale = Config.Bind("Background", "Character Display Scale", 1f, "Resizes character displays. "); //def 1f
 
             //other
-            SelectViewMode = Config.Bind("Other", "Select View Mode (Requires SurvivorsInLobby)", 0, "0 = None" +
+            SelectViewMode = Config.Bind("Other", "Select View Mode (Requires SurvivorsInLobby set to true)", 0, "0 = None" +
                 "\n1 = Disappear on selection" +
                 "\n2 = Zoom on selection"); //def 1f
+            LobbyViewType = (StaticValues.LobbyViewType)SelectViewMode.Value;
+            DevMode = Config.Bind("Other", "Enable Dev Stuff", false, "Really only needed if you wanted to fine-tune settings or for the readme.");
 
             CommandHelper.AddToConsoleWhenReady();
 
@@ -107,24 +113,6 @@ namespace LobbyAppearanceImprovements
                     break;
             }
 
-            /*foreach (var entry in textCameraSettings) //move to survivor catalog setup?
-            {
-                var bodyPrefab = GetBodyPrefab(entry.Key);
-                if (bodyPrefab)
-                {
-                    SurvivorDef survivorDef = SurvivorCatalog.FindSurvivorDefFromBody(bodyPrefab);
-                    SurvivorIndex survivorIndex = survivorDef.survivorIndex;
-                    textCameraSettings.TryGetValue(entry.Key, out float[] cameraSetting);
-                    characterCameraSettings.Add(survivorIndex, cameraSetting);
-                } else
-                {
-                }
-            }
-            foreach (var entry in characterCameraSettings)
-            {
-                Debug.Log(entry.Key + " : " + entry.Value);
-            }
-            Debug.Log(characterCameraSettings);*/
         }
 
         private void ZoomOnSelected(On.RoR2.UI.CharacterSelectController.orig_SelectSurvivor orig, RoR2.UI.CharacterSelectController self, SurvivorIndex survivor)
@@ -258,7 +246,7 @@ namespace LobbyAppearanceImprovements
                 {
                     backgroundCharacters.Value.SetActive(true);
                 }
-
+                // Now we can disable
                 foreach (var currentDisplays in self.characterDisplayPads)
                 {
                     var index = currentDisplays.displaySurvivorIndex;
@@ -269,77 +257,9 @@ namespace LobbyAppearanceImprovements
             }
         }
 
-        public class DirtyCam : MonoBehaviour
-        {
-            public CameraRigController cameraRig;
-            public float fov = 60f;
-            public float pitch = 0f;
-            public float yaw = 0f;
-            public bool reset = false;
-
-            public void Awake()
-            {
-                fov = 60f;
-                pitch = 0f;
-                yaw = 0f;
-                reset = false;
-                enabled = false;
-            }
-
-            public void FixedUpdate()
-            {
-                if (reset)
-                {
-                    Awake();
-                    return;
-                }
-                cameraRig.baseFov = fov;
-                cameraRig.pitch = pitch;
-                cameraRig.yaw = yaw;
-            }
-        }
-
         public class BackgroundCharacterDisplayToggler: MonoBehaviour
         {
             public Dictionary<SurvivorIndex, GameObject> survivorDisplays = new Dictionary<SurvivorIndex, GameObject>();
-        }
-        public class CameraTweenController : MonoBehaviour
-        {
-            public CameraRigController cameraRig;
-            float incrementValue = 0.05f;
-            float slerpValue = 0f;
-            PitchYawPair targetPitchYaw = new PitchYawPair();
-            PitchYawPair oldPitchYaw = new PitchYawPair();
-            bool DisableToStartNewTween = false;
-            public PitchYawPair testing = new PitchYawPair();
-            public bool accept = false;
-
-            public void Update()
-            {
-                if (accept)
-                {
-                    if (!DisableToStartNewTween)
-                    {
-                        oldPitchYaw = new PitchYawPair(cameraRig.pitch, cameraRig.yaw);
-                        SetPitchYawPair(testing);
-                        DisableToStartNewTween = true;
-                    }
-
-                    if (slerpValue < 1f)
-                    {
-                        slerpValue += incrementValue;
-                        //var currentPitchYaw = new PitchYawPair(cameraRig.pitch, cameraRig.yaw);
-                        var resultingPitchYaw = PitchYawPair.Lerp(oldPitchYaw, targetPitchYaw, slerpValue);
-                        cameraRig.SetPitchYaw(resultingPitchYaw);
-                    }
-                }
-            }
-            public void SetPitchYawPair(PitchYawPair pitchYawPair)
-            {
-                slerpValue = 0f;
-                DisableToStartNewTween = false;
-                targetPitchYaw = pitchYawPair;
-            }
         }
         public void CreateDisplayMaster(string bodyPrefabName, Vector3 position, Vector3 rotation, Transform parent = null, Dictionary<SurvivorIndex, GameObject> keyValuePairs = null)
         {
