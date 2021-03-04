@@ -1,30 +1,13 @@
 ﻿using BepInEx;
+using BepInEx.Configuration;
+using LeTai.Asset.TranslucentImage;
 using R2API.Utils;
 using RoR2;
-using BepInEx.Configuration;
-using UnityEngine;
+using System.Collections.Generic;
 using System.Security;
 using System.Security.Permissions;
+using UnityEngine;
 using static UnityEngine.ColorUtility;
-using static LobbyAppearanceImprovements.Helpers;
-using System.Collections;
-using System.Collections.ObjectModel;
-using R2API;
-using UnityEngine.Networking;
-using System.Reflection;
-using Path = System.IO.Path;
-using R2API.Networking;
-using UnityEngine.Playables;
-using System;
-using static UnityEngine.ScriptableObject;
-using System.Linq;
-using System.Collections.Generic;
-using EntityStates;
-using RoR2.Skills;
-using System.Runtime.CompilerServices;
-using RoR2.Projectile;
-using static UnityEngine.Animator;
-using LeTai.Asset.TranslucentImage;
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -82,6 +65,8 @@ namespace LobbyAppearanceImprovements
                     On.RoR2.UI.CharacterSelectController.SelectSurvivor += ZoomOnSelected;
                     break;
             }
+            if (DisableShaking.Value)
+                On.RoR2.PreGameShakeController.Awake += PreGameShakeController_Awake;
         }
 
         public void SetupConfig()
@@ -114,6 +99,11 @@ namespace LobbyAppearanceImprovements
                 "\n2 = Zoom on selection"); //def 1f
             LobbyViewType = (StaticValues.LobbyViewType)SelectViewMode.Value;
         }
+        private void PreGameShakeController_Awake(On.RoR2.PreGameShakeController.orig_Awake orig, PreGameShakeController self)
+        {
+            orig(self);
+            self.gameObject.SetActive(false);
+        }
 
         private void ZoomOnSelected(On.RoR2.UI.CharacterSelectController.orig_SelectSurvivor orig, RoR2.UI.CharacterSelectController self, SurvivorIndex survivor)
         {
@@ -144,9 +134,9 @@ namespace LobbyAppearanceImprovements
 
             var directionalLight = GameObject.Find("Directional Light");
             var ui_origin = GameObject.Find("CharacterSelectUI").transform;
-            var ui = ui_origin.Find("SafeArea").transform;
-            var ui_left = ui.Find("LeftHandPanel (Layer: Main)");
-            var ui_right = ui.Find("RightHandPanel");
+            var SafeArea = ui_origin.Find("SafeArea").transform;
+            var ui_left = SafeArea.Find("LeftHandPanel (Layer: Main)");
+            var ui_right = SafeArea.Find("RightHandPanel");
 
             //Light
             if (TryParseHtmlString(Light_Color.Value, out Color color))
@@ -209,20 +199,30 @@ namespace LobbyAppearanceImprovements
             }
             if (UIScale.Value != 1f)
             {
-                ui_left.transform.localScale *= UIScale.Value;
+                ui_left.localScale *= UIScale.Value;
                 ui_right.localScale *= UIScale.Value;
                 //rtSide.position = new Vector3(80, 30, 90);
             }
-            if (BlurValue.Value != (int)BlurValue.DefaultValue)
+            if (BlurValue.Value != 255f) // default value doesnt cast well
             {
                 var leftBlurColor = ui_left.Find("BlurPanel").GetComponent<TranslucentImage>().color;
                 leftBlurColor.a = Mathf.Clamp(BlurValue.Value, 0f, 255f);
                 var rightBlurColor = ui_right.Find("RuleVerticalLayout").Find("BlurPanel").GetComponent<TranslucentImage>().color;
                 rightBlurColor.a = Mathf.Clamp(BlurValue.Value, 0f, 255f);
             }
-            if (DisableShaking.Value)
+            if (true == false)
             {
-                GameObject.Find("PreGameController").transform.Find("PreGameShake").gameObject.SetActive(false);
+                var SurvivorChoiceGrid = ui_left.Find("SurvivorChoiceGrid, Panel");
+               // ui_left.GetComponent<UnityEngine.UI.VerticalLayoutGroup>().enabled = false;
+                var KingEnderBrine = SurvivorChoiceGrid.Find("SurvivorChoiseGridContainer");
+                if (KingEnderBrine)
+                {
+                    KingEnderBrine.GetComponent<UnityEngine.UI.HorizontalLayoutGroup>().enabled = false;
+                    KingEnderBrine.transform.position = new Vector3(-70, 55, 100);
+                } else
+                {
+
+                }
             }
         }
 
@@ -261,28 +261,41 @@ namespace LobbyAppearanceImprovements
         }
         public void CreateDisplayMaster(string bodyPrefabName, Vector3 position, Vector3 rotation, Transform parent = null, Dictionary<SurvivorIndex, GameObject> keyValuePairs = null)
         {
+            Debug.Log("Attempting to get body prefab from "+bodyPrefabName);
             var bodyPrefab = GetBodyPrefab(bodyPrefabName);
             if (bodyPrefab)
             {
+                Debug.Log("Getting survivor def");
                 SurvivorDef survivorDef = SurvivorCatalog.FindSurvivorDefFromBody(bodyPrefab);
-                SurvivorIndex survivorIndex = survivorDef.survivorIndex;
-
-                if (survivorIndex > 0) //invalid values are -1
+                if (survivorDef != null)
                 {
-                    if (!keyValuePairs.ContainsKey(survivorDef.survivorIndex))
+                    Debug.Log("SurvivorDef wasn't null");
+                    Debug.Log("Getting survivor index");
+                    SurvivorIndex survivorIndex = survivorDef.survivorIndex;
+                    Debug.Log("Attempting " + bodyPrefab + "for index " + survivorIndex);
+                    if (survivorIndex >= 0) //invalid values are -1
                     {
-                        var display = CreateDisplay(bodyPrefabName, position, rotation, parent);
-                        keyValuePairs.Add(survivorDef.survivorIndex, display);
+                        Debug.Log("Works!");
+                        if (!keyValuePairs.ContainsKey(survivorDef.survivorIndex))
+                        {
+                            var display = CreateDisplay(bodyPrefabName, position, rotation, parent);
+                            keyValuePairs.Add(survivorDef.survivorIndex, display);
+                        }
+                        if (!characterCameraSettings.ContainsKey(survivorIndex))
+                        {
+                            StaticValues.textCameraSettings.TryGetValue(bodyPrefabName, out float[] cameraSetting);
+                            characterCameraSettings.Add(survivorIndex, cameraSetting);
+                        }
                     }
-                    if (!characterCameraSettings.ContainsKey(survivorIndex))
+                    else
                     {
-                        StaticValues.textCameraSettings.TryGetValue(bodyPrefabName, out float[] cameraSetting);
-                        characterCameraSettings.Add(survivorIndex, cameraSetting);
+                        Debug.Log("Doesnt!");
                     }
                 } else
                 {
-                    Debug.Log("Refused to load b/c doesnt exist: "+ bodyPrefab);
+                    Debug.Log("SurvivorDef was null");
                 }
+
             }
         }
         public static GameObject GetBodyPrefab(string bodyPrefabName)
@@ -296,6 +309,7 @@ namespace LobbyAppearanceImprovements
                     break;
             }
             var bodyPrefab = BodyCatalog.FindBodyPrefab(bodyPrefabName);
+            if (!bodyPrefab) return null;
             return bodyPrefab;
         }
 

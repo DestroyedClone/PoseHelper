@@ -81,7 +81,7 @@ namespace LobbyAppearanceImprovements
         public class CameraTweenController : MonoBehaviour
         {
             public CameraRigController cameraRig;
-            float incrementValue = 0.05f;
+            readonly float incrementValue = 0.05f;
             float slerpValue = 0f;
             PitchYawPair targetPitchYaw = new PitchYawPair();
             PitchYawPair oldPitchYaw = new PitchYawPair();
