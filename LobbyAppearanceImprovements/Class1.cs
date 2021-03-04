@@ -61,12 +61,30 @@ namespace LobbyAppearanceImprovements
         public static ConfigEntry<int> SelectViewMode { get; set; }
         public static StaticValues.LobbyViewType LobbyViewType;
 
-        //Other
-        public static ConfigEntry<bool> DevMode { get; set; }
-
         public Dictionary<SurvivorIndex, float[]> characterCameraSettings = new Dictionary<SurvivorIndex, float[]>();
 
         public void Awake()
+        {
+            SetupConfig();
+
+            CommandHelper.AddToConsoleWhenReady();
+
+            On.RoR2.UI.CharacterSelectController.Awake += CharacterSelectController_Awake;
+
+            switch (LobbyViewType)
+            {
+                case StaticValues.LobbyViewType.Default:
+                    break;
+                case StaticValues.LobbyViewType.Hide:
+                    On.RoR2.UI.CharacterSelectController.OnNetworkUserLoadoutChanged += HideOnSelected;
+                    break;
+                case StaticValues.LobbyViewType.Zoom:
+                    On.RoR2.UI.CharacterSelectController.SelectSurvivor += ZoomOnSelected;
+                    break;
+            }
+        }
+
+        public void SetupConfig()
         {
             //default new Color32((byte)0.981, (byte)0.356, (byte)0.356, (byte)1.000)
             //250.155, 90.78, 90.78
@@ -95,23 +113,6 @@ namespace LobbyAppearanceImprovements
                 "\n1 = Disappear on selection" +
                 "\n2 = Zoom on selection"); //def 1f
             LobbyViewType = (StaticValues.LobbyViewType)SelectViewMode.Value;
-            DevMode = Config.Bind("Other", "Enable Dev Stuff", false, "Really only needed if you wanted to fine-tune settings or for the readme.");
-
-            CommandHelper.AddToConsoleWhenReady();
-
-            On.RoR2.UI.CharacterSelectController.Awake += CharacterSelectController_Awake;
-
-            switch (LobbyViewType)
-            {
-                case StaticValues.LobbyViewType.Default:
-                    break;
-                case StaticValues.LobbyViewType.Hide:
-                    On.RoR2.UI.CharacterSelectController.OnNetworkUserLoadoutChanged += HideOnSelected;
-                    break;
-                case StaticValues.LobbyViewType.Zoom:
-                    On.RoR2.UI.CharacterSelectController.SelectSurvivor += ZoomOnSelected;
-                    break;
-            }
         }
 
         private void ZoomOnSelected(On.RoR2.UI.CharacterSelectController.orig_SelectSurvivor orig, RoR2.UI.CharacterSelectController self, SurvivorIndex survivor)
@@ -140,8 +141,6 @@ namespace LobbyAppearanceImprovements
             orig(self);
             //var dirtycomp = self.gameObject.AddComponent<DirtyCam>();
             //dirtycomp.cameraRig = GameObject.Find("Main Camera").gameObject.GetComponent<CameraRigController>();
-            //var tweenController = self.gameObject.AddComponent<CameraTweenController>();
-            //tweenController.cameraRig = GameObject.Find("Main Camera").gameObject.GetComponent<CameraRigController>();
 
             var directionalLight = GameObject.Find("Directional Light");
             var ui_origin = GameObject.Find("CharacterSelectUI").transform;
@@ -317,16 +316,6 @@ namespace LobbyAppearanceImprovements
         }
     }
 
-    public static class Commands
-    {
-
-        [ConCommand(commandName = "changelight", flags = ConVarFlags.ExecuteOnServer, helpText = "changelight {r} {g} {b} {a} | only works in the lobby")]
-        public static void ChangeLight(ConCommandArgs args)
-        {
-            if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "lobby")
-                Helpers.ChangeLobbyLightColor(new Color32((byte)args.GetArgInt(0), (byte)args.GetArgInt(1), (byte)args.GetArgInt(2), (byte)args.GetArgInt(3)));
-        }
-    }
 
     public static class Helpers
     {
