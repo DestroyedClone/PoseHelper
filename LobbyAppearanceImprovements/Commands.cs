@@ -24,9 +24,12 @@ namespace LobbyAppearanceImprovements
         {
             public NetworkUser sender;
             bool hasTeleported = false;
-            public GameObject MainCamera;
-            public GameObject CharacterSelectUI;
-            public GameObject CharacterPadAlignments;
+            private GameObject MainCamera;
+            public bool enableMainCamera = false;
+            private GameObject CharacterSelectUI;
+            public bool enableCharacterSelectUI = false;
+            private GameObject CharacterPadAlignments;
+            public bool enableCharacterPadAlignments = false;
             bool PrintCurrentPosition = false;
 
             public void FixedUpdate()
@@ -47,14 +50,17 @@ namespace LobbyAppearanceImprovements
                     {
                         MainCamera = GameObject.Find("Main Camera").gameObject;
                     }
+                    MainCamera.SetActive(enableMainCamera);
                     if (!CharacterSelectUI)
                     {
                         CharacterSelectUI = GameObject.Find("CharacterSelectUI").gameObject;
                     }
+                    MainCamera.SetActive(enableCharacterSelectUI);
                     if (!CharacterPadAlignments)
                     {
                         CharacterPadAlignments = GameObject.Find("CharacterPadAlignments").gameObject;
                     }
+                    CharacterPadAlignments.SetActive(enableCharacterPadAlignments);
 
                     // Pseudo-Commands
                     if (PrintCurrentPosition)
