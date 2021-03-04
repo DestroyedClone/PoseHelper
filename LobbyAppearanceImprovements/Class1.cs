@@ -265,19 +265,24 @@ namespace LobbyAppearanceImprovements
             if (bodyPrefab)
             {
                 SurvivorDef survivorDef = SurvivorCatalog.FindSurvivorDefFromBody(bodyPrefab);
-                if (!keyValuePairs.ContainsKey(survivorDef.survivorIndex))
-                {
-                    var display = CreateDisplay(bodyPrefabName, position, rotation, parent);
-                    keyValuePairs.Add(survivorDef.survivorIndex, display);
-                }
-
                 SurvivorIndex survivorIndex = survivorDef.survivorIndex;
-                if (!characterCameraSettings.ContainsKey(survivorIndex))
-                {
-                    StaticValues.textCameraSettings.TryGetValue(bodyPrefabName, out float[] cameraSetting);
-                    characterCameraSettings.Add(survivorIndex, cameraSetting);
-                }
 
+                if (survivorIndex > 0) //invalid values are -1
+                {
+                    if (!keyValuePairs.ContainsKey(survivorDef.survivorIndex))
+                    {
+                        var display = CreateDisplay(bodyPrefabName, position, rotation, parent);
+                        keyValuePairs.Add(survivorDef.survivorIndex, display);
+                    }
+                    if (!characterCameraSettings.ContainsKey(survivorIndex))
+                    {
+                        StaticValues.textCameraSettings.TryGetValue(bodyPrefabName, out float[] cameraSetting);
+                        characterCameraSettings.Add(survivorIndex, cameraSetting);
+                    }
+                } else
+                {
+                    Debug.Log("Refused to load b/c doesnt exist: "+ bodyPrefab);
+                }
             }
         }
         public static GameObject GetBodyPrefab(string bodyPrefabName)
