@@ -101,18 +101,17 @@ namespace LobbyAppearanceImprovements
 
             On.RoR2.UI.CharacterSelectController.Awake += CharacterSelectController_Awake;
 
-            switch (SelectViewMode.Value)
+            switch (LobbyViewType)
             {
-                case 0: //no effect
+                case StaticValues.LobbyViewType.Default:
                     break;
-                case 1: //disappear
+                case StaticValues.LobbyViewType.Hide:
                     On.RoR2.UI.CharacterSelectController.OnNetworkUserLoadoutChanged += HideOnSelected;
                     break;
-                default: //zoom
+                case StaticValues.LobbyViewType.Zoom:
                     On.RoR2.UI.CharacterSelectController.SelectSurvivor += ZoomOnSelected;
                     break;
             }
-
         }
 
         private void ZoomOnSelected(On.RoR2.UI.CharacterSelectController.orig_SelectSurvivor orig, RoR2.UI.CharacterSelectController self, SurvivorIndex survivor)
@@ -189,7 +188,7 @@ namespace LobbyAppearanceImprovements
                 {
                     CreateDisplayMaster(setting.Key, setting.Value[0], setting.Value[1], characterHolder.transform, dict);
                 }
-                if (SelectViewMode.Value > 1)
+                if (LobbyViewType == StaticValues.LobbyViewType.Zoom)
                 {
                     GameObject.Find("CharacterPadAlignments").SetActive(false);
                 }
@@ -206,7 +205,7 @@ namespace LobbyAppearanceImprovements
             }
             if (CharacterPadScale.Value != 1f)
             {
-                if (SelectViewMode.Value <= 1) //if mode 2 is selected, then this will NRE
+                if (LobbyViewType != StaticValues.LobbyViewType.Zoom) //if Zoom is selected, then this will NRE
                     GameObject.Find("CharacterPadAlignments").transform.localScale *= CharacterPadScale.Value;
             }
             if (UIScale.Value != 1f)
