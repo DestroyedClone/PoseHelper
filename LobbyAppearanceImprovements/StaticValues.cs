@@ -55,6 +55,7 @@ namespace LobbyAppearanceImprovements
             {"CHEF", new float[]{ 5, -8.5f, 3 } },
             {"RobHenry", new float[]{ 12, -7, -27 } },
             {"Wyatt", new float[]{ 12, -2, -22 } },
+            {"Custodian", new float[]{ 12, -2, -22 } },
             {"Executioner", new float[]{ 10, -1, 5 } },
         };
 
@@ -83,6 +84,7 @@ namespace LobbyAppearanceImprovements
             { "CHEF", new [] {new Vector3(1.63f, 3.4f, 23.2f), new Vector3(0f, 270f, 0f) } },
             { "RobHenry", new [] {new Vector3(-4.5f, 1.22f, 8.81f), new Vector3(0f, 128f, 0f) } },
             { "Wyatt", new [] {new Vector3(-3.92f, 0.1f, 9.62f), new Vector3(0f, 138f, 0f) } },
+            { "Custodian", new [] {new Vector3(-3.92f, 0.1f, 9.62f), new Vector3(0f, 138f, 0f) } },
             { "Executioner", new [] {new Vector3(1.19f, 0f, 19.74f), new Vector3(0f, 192f, 0f) } },
         };
 
