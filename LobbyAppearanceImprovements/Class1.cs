@@ -150,7 +150,7 @@ namespace LobbyAppearanceImprovements
 
             if (MeshProps.Value)
             {
-                GameObject.Find("HANDTeaser").SetActive(false);
+                GameObject.Find("HANDTeaser")?.SetActive(false);
                 GameObject.Find("MeshProps").SetActive(false);
                 GameObject.Find("HumanCrate1Mesh").SetActive(false);
                 GameObject.Find("HumanCrate2Mesh").SetActive(false);
@@ -203,27 +203,27 @@ namespace LobbyAppearanceImprovements
                 ui_right.localScale *= UIScale.Value;
                 //rtSide.position = new Vector3(80, 30, 90);
             }
-            if (BlurValue.Value != 255f) // default value doesnt cast well
+            if (BlurValue.Value != 255) // default value doesnt cast well
             {
                 var leftBlurColor = ui_left.Find("BlurPanel").GetComponent<TranslucentImage>().color;
                 leftBlurColor.a = Mathf.Clamp(BlurValue.Value, 0f, 255f);
                 var rightBlurColor = ui_right.Find("RuleVerticalLayout").Find("BlurPanel").GetComponent<TranslucentImage>().color;
                 rightBlurColor.a = Mathf.Clamp(BlurValue.Value, 0f, 255f);
             }
-            if (true == false)
-            {
-                var SurvivorChoiceGrid = ui_left.Find("SurvivorChoiceGrid, Panel");
+            //if (true == false)
+            //{
+                //var SurvivorChoiceGrid = ui_left.Find("SurvivorChoiceGrid, Panel");
                // ui_left.GetComponent<UnityEngine.UI.VerticalLayoutGroup>().enabled = false;
-                var KingEnderBrine = SurvivorChoiceGrid.Find("SurvivorChoiseGridContainer");
-                if (KingEnderBrine)
-                {
-                    KingEnderBrine.GetComponent<UnityEngine.UI.HorizontalLayoutGroup>().enabled = false;
-                    KingEnderBrine.transform.position = new Vector3(-70, 55, 100);
-                } else
-                {
+                //var KingEnderBrine = SurvivorChoiceGrid.Find("SurvivorChoiseGridContainer");
+                //if (KingEnderBrine)
+                //{
+                    //KingEnderBrine.GetComponent<UnityEngine.UI.HorizontalLayoutGroup>().enabled = false;
+                    //KingEnderBrine.transform.position = new Vector3(-70, 55, 100);
+                //} else
+                //{
 
-                }
-            }
+                //}
+            //}
         }
 
         private void HideOnSelected(On.RoR2.UI.CharacterSelectController.orig_OnNetworkUserLoadoutChanged orig, RoR2.UI.CharacterSelectController self, NetworkUser networkUser)
