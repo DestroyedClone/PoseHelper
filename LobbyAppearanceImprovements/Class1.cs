@@ -81,7 +81,7 @@ namespace LobbyAppearanceImprovements
             //UI
             PostProcessing = Config.Bind("UI", "Disable Post Processing", true, "Disables the blurry post processing.");
             HideFade = Config.Bind("UI", "Hide Fade", true, "There's a dark fade on the top and bottom, this disables it.");
-            BlurValue = Config.Bind("UI", "Adjust Blur", 255, "Adjusts the blur behind the UI elements on the left and right." +
+            BlurValue = Config.Bind("UI", "Adjust Blur (Not Implemented)", 255, "Adjusts the blur behind the UI elements on the left and right." +
                 "\n0:fully transparent - 255:default");
             UIScale = Config.Bind("UI", "UI Scale", 1f, "Resizes the UIs on the left and right."); //def 1f
 

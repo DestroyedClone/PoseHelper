@@ -21,7 +21,7 @@ Or look up "HEX Color Picker".
 | ![5x](https://i.imgur.com/gk8r70g.png) | ![10x](https://i.imgur.com/6DsFwWc.png) | ![50x](https://i.imgur.com/j0yBdN9.png) | ![100x](https://i.imgur.com/av0slmz.png) |
 
 ## UI Blur, Fade, Scale
-|0 Blur| Fade |
+|0 Blur (not implemented)| Fade |
 |--|--|
 | ![Blur](https://i.imgur.com/TYYebOe.png) | ![Fade](https://i.imgur.com/jFGlDe7.png) 
 | 75% Scale | 50% Scale |
@@ -42,5 +42,6 @@ Currently has support for:
 |--|--|--|
 | [![](http://img.youtube.com/vi/wZpqhxURF8M/0.jpg)](http://www.youtube.com/watch?v=wZpqhxURF8M "Hiding Preview") | [![](http://img.youtube.com/vi/ouO3I-IcsGI/0.jpg)](http://www.youtube.com/watch?v=ouO3I-IcsGI "Zooming Preview") | [![](http://img.youtube.com/vi/A2Mr9WboFMg/0.jpg)](http://www.youtube.com/watch?v=A2Mr9WboFMg "Zooming Preview with Post Processing") |
 
-
+# Credits
+Rico - Icon
 > Written with [StackEdit](https://stackedit.io/).
