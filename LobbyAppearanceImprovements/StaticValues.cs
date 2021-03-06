@@ -44,7 +44,7 @@ namespace LobbyAppearanceImprovements
             {"Treebot", new float[]{ 6, 0.7f, -15.5f } },
             {"Loader", new float[]{ 11, -2, 20 } },
             {"Croco", new float[]{ 8, -8.5f, 13 } },
-            {"Captain", new float[]{ 8, -1, 7 } },
+            {"Captain", new float[]{ 9, -1, 6 } },
             {"SniperClassic", new float[]{ 6, 0.5f, -12.5f } },
             {"Enforcer", new float[]{ 11, -1, 10 } },
             {"NemesisEnforcer", new float[]{ 10, -7.5f, 8 } },
@@ -56,7 +56,8 @@ namespace LobbyAppearanceImprovements
             {"RobHenry", new float[]{ 12, -7, -27 } },
             {"Wyatt", new float[]{ 12, -2, -22 } },
             {"Custodian", new float[]{ 12, -2, -22 } },
-            {"Executioner", new float[]{ 10, -1, 5 } },
+            {"Executioner", new float[]{ 8, -0.25f, 3.75f } },
+            {"Nemmando", new float[]{ 20, 1, 30 } },
         };
 
         // BodyName + Position + Rotation
@@ -85,7 +86,8 @@ namespace LobbyAppearanceImprovements
             { "RobHenry", new [] {new Vector3(-4.5f, 1.22f, 8.81f), new Vector3(0f, 128f, 0f) } },
             { "Wyatt", new [] {new Vector3(-3.92f, 0.1f, 9.62f), new Vector3(0f, 138f, 0f) } },
             { "Custodian", new [] {new Vector3(-3.92f, 0.1f, 9.62f), new Vector3(0f, 138f, 0f) } },
-            { "Executioner", new [] {new Vector3(1.19f, 0f, 19.74f), new Vector3(0f, 192f, 0f) } },
+            { "Executioner", new [] {new Vector3(1.19f, 0.01f, 19.74f), new Vector3(0f, 192f, 0f) } },
+            { "Nemmando", new [] {new Vector3(3.37f, 0.1f, 5.68f), new Vector3(0f, 214f, 0f) } },
         };
 
         public enum LobbyViewType

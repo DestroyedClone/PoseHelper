@@ -129,8 +129,8 @@ namespace LobbyAppearanceImprovements
         private void CharacterSelectController_Awake(On.RoR2.UI.CharacterSelectController.orig_Awake orig, RoR2.UI.CharacterSelectController self)
         {
             orig(self);
-            //var dirtycomp = self.gameObject.AddComponent<DirtyCam>();
-            //dirtycomp.cameraRig = GameObject.Find("Main Camera").gameObject.GetComponent<CameraRigController>();
+            var dirtycomp = self.gameObject.AddComponent<Testing.DirtyCam>();
+            dirtycomp.cameraRig = GameObject.Find("Main Camera").gameObject.GetComponent<CameraRigController>();
 
             var directionalLight = GameObject.Find("Directional Light");
             var ui_origin = GameObject.Find("CharacterSelectUI").transform;
@@ -261,21 +261,21 @@ namespace LobbyAppearanceImprovements
         }
         public void CreateDisplayMaster(string bodyPrefabName, Vector3 position, Vector3 rotation, Transform parent = null, Dictionary<SurvivorIndex, GameObject> keyValuePairs = null)
         {
-            Debug.Log("Attempting to get body prefab from "+bodyPrefabName);
+            //Debug.Log("Attempting to get body prefab from "+bodyPrefabName);
             var bodyPrefab = GetBodyPrefab(bodyPrefabName);
             if (bodyPrefab)
             {
-                Debug.Log("Getting survivor def");
+                //Debug.Log("Getting survivor def");
                 SurvivorDef survivorDef = SurvivorCatalog.FindSurvivorDefFromBody(bodyPrefab);
                 if (survivorDef != null)
                 {
-                    Debug.Log("SurvivorDef wasn't null");
-                    Debug.Log("Getting survivor index");
+                    //Debug.Log("SurvivorDef wasn't null");
+                    //Debug.Log("Getting survivor index");
                     SurvivorIndex survivorIndex = survivorDef.survivorIndex;
-                    Debug.Log("Attempting " + bodyPrefab + "for index " + survivorIndex);
+                    //Debug.Log("Attempting " + bodyPrefab + "for index " + survivorIndex);
                     if (survivorIndex >= 0) //invalid values are -1
                     {
-                        Debug.Log("Works!");
+                        //Debug.Log("Works!");
                         if (!keyValuePairs.ContainsKey(survivorDef.survivorIndex))
                         {
                             var display = CreateDisplay(bodyPrefabName, position, rotation, parent);
@@ -289,11 +289,11 @@ namespace LobbyAppearanceImprovements
                     }
                     else
                     {
-                        Debug.Log("Doesnt!");
+                        //Debug.Log("Doesnt!");
                     }
                 } else
                 {
-                    Debug.Log("SurvivorDef was null");
+                    //Debug.Log("SurvivorDef was null");
                 }
 
             }
