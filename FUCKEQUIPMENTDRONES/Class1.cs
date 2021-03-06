@@ -24,16 +24,21 @@ namespace FUCKEQUIPMENTDRONES
         {
             On.RoR2.PurchaseInteraction.GetInteractability += PreventEquipmentFromAllowance;
 
-            BannedIDS = Config.Bind("Default", "Banned Equipment IDS", "AffixRed,AffixBlue,AffixWhite,AffixPoison,Jetpack,Meteor", "Enter the IDs of the equipment you want to ban from equipment drones." +
-                "\nSeparated by commas (AffixRed,Meteor,Fruit)");
+            BannedIDS = Config.Bind("Default", "Banned Equipment IDS", "AffixRed,AffixBlue,AffixYellow,AffixGold,AffixWhite,AffixPoison,Jetpack,GoldGat,Gateway,QuestVolatileBattery,Recycle,DeathProjectile", "Enter the IDs of the equipment you want to ban from equipment drones." +
+                "\nSeparated by commas (ex: AffixRed,Meteor,Fruit)");
 
+            On.RoR2.EquipmentCatalog.Init += CacheBannedIDS;
+        }
+
+        private void CacheBannedIDS(On.RoR2.EquipmentCatalog.orig_Init orig)
+        {
+            orig();
             var testStringArray = BannedIDS.Value.Split(',');
             if (testStringArray.Length > 0)
             {
                 foreach (string stringToTest in testStringArray)
                 {
                     if (EquipmentCatalog.FindEquipmentIndex(stringToTest) == EquipmentIndex.None) { continue; }
-
                     bannedEquipmentIndices.Add(EquipmentCatalog.FindEquipmentIndex(stringToTest));
                 }
             }
