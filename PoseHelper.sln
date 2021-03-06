@@ -23,7 +23,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GoombaStomp", "GoombaStomp\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MithrixMeme", "MithrixMeme\MithrixMeme.csproj", "{2EC0D1C4-75C5-45E4-98DA-9B58FE3A8ED7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FUCKEQUIPMENTDRONES", "FUCKEQUIPMENTDRONES\FUCKEQUIPMENTDRONES.csproj", "{2EE93A82-1292-456D-815C-51F576945BE4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FUCKEQUIPMENTDRONES", "FUCKEQUIPMENTDRONES\FUCKEQUIPMENTDRONES.csproj", "{2EE93A82-1292-456D-815C-51F576945BE4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BetterEquipmentDroneUse", "AutoUseEquipmentDrones\BetterEquipmentDroneUse.csproj", "{F4A137F5-1C93-4D52-B6A9-5D63FC79A234}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -75,6 +77,10 @@ Global
 		{2EE93A82-1292-456D-815C-51F576945BE4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2EE93A82-1292-456D-815C-51F576945BE4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2EE93A82-1292-456D-815C-51F576945BE4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F4A137F5-1C93-4D52-B6A9-5D63FC79A234}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F4A137F5-1C93-4D52-B6A9-5D63FC79A234}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F4A137F5-1C93-4D52-B6A9-5D63FC79A234}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F4A137F5-1C93-4D52-B6A9-5D63FC79A234}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
