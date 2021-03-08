@@ -83,17 +83,17 @@ namespace LobbyAppearanceImprovements
         private void UpdateCharacterPreview(On.RoR2.UI.CharacterSelectController.orig_OnNetworkUserLoadoutChanged orig, RoR2.UI.CharacterSelectController self, NetworkUser networkUser)
         {
             orig(self, networkUser);
-            int num = this.GetSortedNetworkUsersList().IndexOf(networkUser);
+            int num = self.GetSortedNetworkUsersList().IndexOf(networkUser);
             if (num != -1)
             {
-                CharacterSelectController.CharacterPad safe = HGArrayUtilities.GetSafe<CharacterSelectController.CharacterPad>(this.characterDisplayPads, num);
+                RoR2.UI.CharacterSelectController.CharacterPad safe = HG.ArrayUtils.GetSafe<RoR2.UI.CharacterSelectController.CharacterPad>(self.characterDisplayPads, num);
                 if (safe.displayInstance)
                 {
                     Loadout loadout = new Loadout();
                     networkUser.networkLoadout.CopyLoadout(loadout);
                     int bodyIndexFromSurvivorIndex = SurvivorCatalog.GetBodyIndexFromSurvivorIndex(safe.displaySurvivorIndex);
                     int skinIndex = (int)loadout.bodyLoadoutManager.GetSkinIndex(bodyIndexFromSurvivorIndex);
-                    SkinDef safe2 = HGArrayUtilities.GetSafe<SkinDef>(BodyCatalog.GetBodySkins(bodyIndexFromSurvivorIndex), skinIndex);
+                    SkinDef safe2 = HG.ArrayUtils.GetSafe<SkinDef>(BodyCatalog.GetBodySkins(bodyIndexFromSurvivorIndex), skinIndex);
                     CharacterModel componentInChildren = safe.displayInstance.GetComponentInChildren<CharacterModel>();
                     if (componentInChildren && safe2 != null)
                     {
