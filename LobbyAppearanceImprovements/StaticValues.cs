@@ -6,7 +6,7 @@ using UnityEngine;
 using System.Security;
 using System.Security.Permissions;
 using static UnityEngine.ColorUtility;
-using static LobbyAppearanceImprovements.Helpers;
+using static LobbyAppearanceImprovements.Methods;
 using System.Collections;
 using System.Collections.ObjectModel;
 using R2API;
