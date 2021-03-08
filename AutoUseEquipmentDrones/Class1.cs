@@ -12,6 +12,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using EntityStates;
+using JetBrains.Annotations;
+using RoR2.Navigation;
+using UnityEngine.AI;
+using EntityStates.GoldGat;
 
 namespace AutoUseEquipmentDrones
 {
@@ -30,7 +35,125 @@ namespace AutoUseEquipmentDrones
             EquipmentDroneBodyIndex = body.GetComponent<CharacterBody>().bodyIndex;
             On.RoR2.ChestRevealer.Init += GetAllowedTypes;
 
+            //On.RoR2.CharacterAI.BaseAI.FixedUpdate += BaseAIOverride;
+            On.EntityStates.GoldGat.GoldGatIdle.FixedUpdate += FixedGoldGat;
+        }
 
+        private void FixedGoldGat(On.EntityStates.GoldGat.GoldGatIdle.orig_FixedUpdate orig, EntityStates.GoldGat.GoldGatIdle self)
+        {
+            self.FixedUpdate();
+            self.gunAnimator?.SetFloat("Crank.playbackRate", 0f, 1f, Time.fixedDeltaTime);
+            if (self.isAuthority && self.shouldFire && self.bodyMaster.money > 0U && self.bodyEquipmentSlot.stock > 0)
+            {
+                self.outer.SetNextState(new GoldGatFire
+                {
+                    shouldFire = self.shouldFire
+                });
+                return;
+            }
+        }
+
+        private void BaseAIOverride(On.RoR2.CharacterAI.BaseAI.orig_FixedUpdate orig, BaseAI self)
+        {
+            if (self.GetComponent<CharacterBody>()?.bodyIndex != EquipmentDroneBodyIndex)
+            {
+                orig(self);
+                return;
+            }
+            self.enemyAttention -= Time.fixedDeltaTime;
+            if (self.currentEnemy.characterBody && self.body && self.currentEnemy.characterBody.GetVisibilityLevel(self.body) < VisibilityLevel.Revealed)
+            {
+                self.currentEnemy.Reset();
+            }
+            if (self.pendingPath != null && self.pendingPath.status == PathTask.TaskStatus.Complete)
+            {
+                self.pathFollower.SetPath(self.pendingPath.path);
+                self.pendingPath.path.Dispose();
+                self.pendingPath = null;
+            }
+            if (self.body)
+            {
+                self.targetRefreshTimer -= Time.fixedDeltaTime;
+                self.skillDriverUpdateTimer -= Time.fixedDeltaTime;
+                if (self.skillDriverUpdateTimer <= 0f)
+                {
+                    if (self.skillDriverEvaluation.dominantSkillDriver)
+                    {
+                        self.selectedSkilldriverName = self.skillDriverEvaluation.dominantSkillDriver.customName;
+                        if (self.skillDriverEvaluation.dominantSkillDriver.resetCurrentEnemyOnNextDriverSelection)
+                        {
+                            self.currentEnemy.Reset();
+                            self.targetRefreshTimer = 0f;
+                        }
+                    }
+                    if (!self.currentEnemy.gameObject && self.targetRefreshTimer <= 0f)
+                    {
+                        self.targetRefreshTimer = 0.5f;
+                        HurtBox hurtBox = self.FindEnemyHurtBox(float.PositiveInfinity, self.fullVision, true);
+                        if (hurtBox && hurtBox.healthComponent)
+                        {
+                            self.currentEnemy.gameObject = hurtBox.healthComponent.gameObject;
+                            self.currentEnemy.bestHurtBox = hurtBox;
+                        }
+                        if (self.currentEnemy.gameObject)
+                        {
+                            self.enemyAttention = self.enemyAttentionDuration;
+                        }
+                    }
+                    self.BeginSkillDriver(self.EvaluateSkillDrivers());
+                }
+            }
+            self.PickCurrentNodeGraph();
+            if (self.bodyInputBank)
+            {
+                bool newState = false;
+                bool newState2 = false;
+                if (self.skillDriverEvaluation.dominantSkillDriver)
+                {
+                    AISkillDriver.AimType aimType = self.skillDriverEvaluation.dominantSkillDriver.aimType;
+                    if (aimType != AISkillDriver.AimType.None)
+                    {
+                        BaseAI.Target target = null;
+                        switch (aimType)
+                        {
+                            case AISkillDriver.AimType.AtMoveTarget:
+                                target = self.skillDriverEvaluation.target;
+                                break;
+                            case AISkillDriver.AimType.AtCurrentEnemy:
+                                target = self.currentEnemy;
+                                break;
+                            case AISkillDriver.AimType.AtCurrentLeader:
+                                target = self.leader;
+                                break;
+                        }
+                        if (target != null)
+                        {
+                            if (target.GetBullseyePosition(out Vector3 a))
+                            {
+                                self.desiredAimDirection = (a - self.bodyInputBank.aimOrigin).normalized;
+                            }
+                            newState = (self.skillDriverEvaluation.dominantSkillDriver.shouldFireEquipment && !self.bodyInputBank.activateEquipment.down);
+                        }
+                        else if (self.bodyInputBank.moveVector != Vector3.zero)
+                        {
+                            self.desiredAimDirection = self.bodyInputBank.moveVector;
+                        }
+                    }
+                    newState2 = self.skillDriverEvaluation.dominantSkillDriver.shouldSprint;
+                }
+                self.bodyInputBank.activateEquipment.PushState(newState);
+                self.bodyInputBank.sprint.PushState(newState2);
+                Vector3 aimDirection = self.bodyInputBank.aimDirection;
+                Vector3 eulerAngles = Util.QuaternionSafeLookRotation(self.desiredAimDirection).eulerAngles;
+                Vector3 eulerAngles2 = Util.QuaternionSafeLookRotation(aimDirection).eulerAngles;
+                float fixedDeltaTime = Time.fixedDeltaTime;
+                float x = Mathf.SmoothDampAngle(eulerAngles2.x, eulerAngles.x, ref self.aimVelocity.x, self.aimVectorDampTime, self.aimVectorMaxSpeed, fixedDeltaTime);
+                float y = Mathf.SmoothDampAngle(eulerAngles2.y, eulerAngles.y, ref self.aimVelocity.y, self.aimVectorDampTime, self.aimVectorMaxSpeed, fixedDeltaTime);
+                float z = Mathf.SmoothDampAngle(eulerAngles2.z, eulerAngles.z, ref self.aimVelocity.z, self.aimVectorDampTime, self.aimVectorMaxSpeed, fixedDeltaTime);
+                self.bodyInputBank.aimDirection = Quaternion.Euler(x, y, z) * Vector3.forward;
+                self.hasAimConfirmation = (Vector3.Dot(self.bodyInputBank.aimDirection, self.desiredAimDirection) >= 0.95f);
+            }
+            self.debugEnemyHurtBox = self.currentEnemy.bestHurtBox;
         }
 
         private void GetAllowedTypes(On.RoR2.ChestRevealer.orig_Init orig)
@@ -63,9 +186,9 @@ namespace AutoUseEquipmentDrones
                     break;
                 // Evade or Aggro
                 // Attempts to draw enemy attention
-                case Jetpack:
+                case Jetpack: // spam jump
                     break;
-                case GainArmor:
+                case GainArmor: //runs away in a radisu
                     break;
                 case Tonic:
                     break;
@@ -130,8 +253,8 @@ namespace AutoUseEquipmentDrones
 
         private bool CheckForInteractables()
         {
-            Type[] validInteractables = new Type[] {  };
-            foreach (var valid in validInteractables)
+            ///Type[] validInteractables = new Type[] {  };
+            foreach (var valid in allowedTypesToScan)
             {
                 InstanceTracker.FindInstancesEnumerable(valid);
                 if (((IInteractable)valid).ShouldShowOnScanner())
