@@ -6,14 +6,16 @@ namespace LobbyAppearanceImprovements
     public static class Commands
     {
 
-        [ConCommand(commandName = "changelight", flags = ConVarFlags.ExecuteOnServer, helpText = "changelight {r} {g} {b} {a} | only works in the lobby")]
+        [ConCommand(commandName = "LAI_ChangeLobbyColor", flags = ConVarFlags.ExecuteOnServer, helpText = "changelight {r} {g} {b} {a} | For previewing, does not save.")]
         public static void ChangeLight(ConCommandArgs args)
         {
             if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "lobby")
+            {
                 Helpers.ChangeLobbyLightColor(new Color32((byte)args.GetArgInt(0), (byte)args.GetArgInt(1), (byte)args.GetArgInt(2), (byte)args.GetArgInt(3)));
+            }
         }
 
-        [ConCommand(commandName = "LAI_BringToLobby", flags = ConVarFlags.ExecuteOnServer, helpText = "LAI_BringToLobby - For developers. See the README.")]
+        [ConCommand(commandName = "LAI_BringToLobby", flags = ConVarFlags.ExecuteOnServer, helpText = "LAI_BringToLobby - DestroyedClone's tool for helping add new values")]
         public static void SetupLobby(ConCommandArgs args)
         {
             var melon = args.senderMasterObject.AddComponent<LAIIntializer>();
