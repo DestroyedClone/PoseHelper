@@ -17,6 +17,14 @@ using JetBrains.Annotations;
 using RoR2.Navigation;
 using UnityEngine.AI;
 using EntityStates.GoldGat;
+using System.Security;
+using System.Security.Permissions;
+
+
+[module: UnverifiableCode]
+#pragma warning disable CS0618 // Type or member is obsolete
+[assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
+#pragma warning restore CS0618 // Type or member is obsolete
 
 namespace AutoUseEquipmentDrones
 {
@@ -165,6 +173,7 @@ namespace AutoUseEquipmentDrones
         private void EquipmentSlot_FixedUpdate(On.RoR2.EquipmentSlot.orig_FixedUpdate orig, EquipmentSlot self)
         {
             orig(self);
+            if (self.characterBody || self.characterBody.bodyIndex != EquipmentDroneBodyIndex) return;
             TeamIndex enemyTeamIndex = self.teamComponent.teamIndex == TeamIndex.Player ? TeamIndex.Monster : TeamIndex.Player;
             bool forceActive = false;
 
@@ -193,7 +202,9 @@ namespace AutoUseEquipmentDrones
                 case Tonic:
                     break;
                 //Custom Logic
-                case GoldGat: //Forced Equipment State
+                case GoldGat: //Forced Equipment State and money
+                    uint num2 = (uint)((float)GoldGatFire.baseMoneyCostPerBullet * (1f + (TeamManager.instance.GetTeamLevel(self.characterBody.master.teamIndex) - 1f) * 0.25f));
+                    self.characterBody.master.money = num2;
                     break;
                 case PassiveHealing: //Target damaged ally
                     break;
