@@ -23,17 +23,21 @@ namespace LobbyAppearanceImprovements
                 var component = self.gameObject.GetComponent<LAI_BGCHARCOMP>();
 
                 // Re-enable everything
-                foreach (var backgroundCharacters in component.survivorDisplays)
+                if (component.survivorDisplays.Count > 0)
                 {
-                    backgroundCharacters.Value.SetActive(true);
-                }
-                // Now we can disable
-                foreach (var currentDisplays in self.characterDisplayPads)
-                {
-                    var index = currentDisplays.displaySurvivorIndex;
-                    component.survivorDisplays.TryGetValue(index, out GameObject objectToToggle);
-                    objectToToggle.SetActive(false);
-                    //selectedCharacters.Add(currentDisplays.displaySurvivorIndex);
+                    foreach (var backgroundCharacters in component.survivorDisplays)
+                    {
+                        backgroundCharacters.Value.SetActive(true);
+                    }
+                    // Now we can disable
+                    foreach (var currentDisplays in self.characterDisplayPads)
+                    {
+                        var index = currentDisplays.displaySurvivorIndex;
+                        component.survivorDisplays.TryGetValue(index, out GameObject objectToToggle);
+                        if (objectToToggle)
+                            objectToToggle.SetActive(false);
+                        //selectedCharacters.Add(currentDisplays.displaySurvivorIndex);
+                    }
                 }
             }
         }

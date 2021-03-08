@@ -46,6 +46,8 @@ namespace LobbyAppearanceImprovements
         // SurvivorsInLobby
         public static ConfigEntry<bool> SurvivorsInLobby { get; set; }
         public static ConfigEntry<int> SelectViewMode { get; set; }
+        public static ConfigEntry<bool> LivePreview { get; set; }
+
         public static StaticValues.LobbyViewType LobbyViewType;
 
         public Dictionary<SurvivorIndex, float[]> characterCameraSettings = new Dictionary<SurvivorIndex, float[]>();
@@ -70,7 +72,37 @@ namespace LobbyAppearanceImprovements
             }
             if (DisableShaking.Value)
                 On.RoR2.PreGameShakeController.Awake += SetShakerInactive;
+            if (SurvivorsInLobby.Value && LivePreview.Value)
+            {
+                On.RoR2.UI.CharacterSelectController.OnNetworkUserLoadoutChanged += UpdateCharacterPreview;
+            }
         }
+
+
+        //update character preview
+        private void UpdateCharacterPreview(On.RoR2.UI.CharacterSelectController.orig_OnNetworkUserLoadoutChanged orig, RoR2.UI.CharacterSelectController self, NetworkUser networkUser)
+        {
+            orig(self, networkUser);
+            int num = this.GetSortedNetworkUsersList().IndexOf(networkUser);
+            if (num != -1)
+            {
+                CharacterSelectController.CharacterPad safe = HGArrayUtilities.GetSafe<CharacterSelectController.CharacterPad>(this.characterDisplayPads, num);
+                if (safe.displayInstance)
+                {
+                    Loadout loadout = new Loadout();
+                    networkUser.networkLoadout.CopyLoadout(loadout);
+                    int bodyIndexFromSurvivorIndex = SurvivorCatalog.GetBodyIndexFromSurvivorIndex(safe.displaySurvivorIndex);
+                    int skinIndex = (int)loadout.bodyLoadoutManager.GetSkinIndex(bodyIndexFromSurvivorIndex);
+                    SkinDef safe2 = HGArrayUtilities.GetSafe<SkinDef>(BodyCatalog.GetBodySkins(bodyIndexFromSurvivorIndex), skinIndex);
+                    CharacterModel componentInChildren = safe.displayInstance.GetComponentInChildren<CharacterModel>();
+                    if (componentInChildren && safe2 != null)
+                    {
+                        safe2.Apply(componentInChildren.gameObject);
+                    }
+                }
+            }
+        }
+
         public void SetupConfig()
         {
             //default new Color32((byte)0.981, (byte)0.356, (byte)0.356, (byte)1.000)
@@ -91,14 +123,15 @@ namespace LobbyAppearanceImprovements
             MeshProps = Config.Bind("Background", "Hide MeshProps", false, "Hides all the background meshprops.");
             PhysicsProps = Config.Bind("Background", "Hide Physics Props", false, "Hides only the physics props like the Chair.");
             DisableShaking = Config.Bind("Background", "Disable Shaking", false, "Disables the random shaking that rattles the ship.");
+            CharacterPadScale = Config.Bind("Background", "Character Display Scale", 1f, "Resizes character displays. "); //def 1f
             SurvivorsInLobby = Config.Bind("Background", "Survivors In Lobby", true, "Shows survivors in the lobby." +
                 "\nThese background survivors don't reflect the loadouts in the lobby.");
-            CharacterPadScale = Config.Bind("Background", "Character Display Scale", 1f, "Resizes character displays. "); //def 1f
 
             //other
             SelectViewMode = Config.Bind("Other", "Select View Mode (Requires SurvivorsInLobby set to true)", 0, "0 = None" +
                 "\n1 = Disappear on selection" +
                 "\n2 = Zoom on selection"); //def 1f
+            LivePreview = Config.Bind("Background", "Live Preview", true, "Updates the appearance for the selected character.");
             LobbyViewType = (StaticValues.LobbyViewType)SelectViewMode.Value;
         }
 
@@ -222,35 +255,6 @@ namespace LobbyAppearanceImprovements
         {
             orig(self);
             self.gameObject.SetActive(false);
-        }
-
-        private void ReplaceBackground(On.RoR2.UI.CharacterSelectController.orig_OnNetworkUserLoadoutChanged orig, RoR2.UI.CharacterSelectController self, NetworkUser networkUser)
-        {
-            orig(self, networkUser);
-            if (self && self.gameObject.GetComponent<LAI_BGCHARCOMP>())
-            {
-                var selectedCharacters = new List<SurvivorIndex>();
-                var component = self.gameObject.GetComponent<LAI_BGCHARCOMP>();
-
-                // Re-enable everything
-                foreach (var backgroundCharacters in component.survivorDisplays)
-                {
-                    backgroundCharacters.Value.SetActive(true);
-                }
-                // Cache the selected objects
-                foreach (var currentDisplays in self.characterDisplayPads)
-                {
-                    var index = currentDisplays.displaySurvivorIndex;
-                    selectedCharacters.Add(index);
-                    //selectedCharacters.Add(currentDisplays.displaySurvivorIndex);
-                }
-                // Now lets do things with it
-                foreach (var survivorIndex in selectedCharacters)
-                {
-                    //component.survivorDisplays.TryGetValue(index, out GameObject objectToToggle);
-                    //objectToToggle.SetActive(false);
-                }
-            }
         }
 
         public void CreateDisplayMaster(string bodyPrefabName, Vector3 position, Vector3 rotation, Transform parent = null, Dictionary<SurvivorIndex, GameObject> keyValuePairs = null)
