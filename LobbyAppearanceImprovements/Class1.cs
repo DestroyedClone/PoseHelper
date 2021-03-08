@@ -74,7 +74,7 @@ namespace LobbyAppearanceImprovements
             //default new Color32((byte)0.981, (byte)0.356, (byte)0.356, (byte)1.000)
             //250.155, 90.78, 90.78
             // Lights
-            Light_Color = Config.Bind("Lights", "Hex Color", "#fa5a5a", "Change the default color of the light");
+            Light_Color = Config.Bind("Lights", "Hex Color", "default", "Change the default color of the light"); //#fa5a5a
             Light_Flicker_Disable = Config.Bind("Lights", "Disable FlickerLight", true, "Makes the light not flicker anymore.");
             Light_Intensity = Config.Bind("Lights", "Intensity", 1f, "Change the intensity of the light.");
 
@@ -139,7 +139,7 @@ namespace LobbyAppearanceImprovements
             var ui_right = SafeArea.Find("RightHandPanel");
 
             //Light
-            if (TryParseHtmlString(Light_Color.Value, out Color color))
+            if (Light_Color.Value != "default" && TryParseHtmlString(Light_Color.Value, out Color color))
                 Helpers.ChangeLobbyLightColor(color);
             directionalLight.gameObject.GetComponent<Light>().intensity = Light_Intensity.Value;
             if (Light_Flicker_Disable.Value)
