@@ -91,7 +91,7 @@ namespace LobbyAppearanceImprovements
         private void ReplayAnimationOnSelect(On.RoR2.UI.CharacterSelectController.orig_OnNetworkUserLoadoutChanged orig, RoR2.UI.CharacterSelectController self, NetworkUser networkUser)
         {
             orig(self, networkUser);
-
+            RefreshBackgroundCharacter(self);
         }
 
 

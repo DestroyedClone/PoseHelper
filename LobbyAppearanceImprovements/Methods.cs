@@ -47,13 +47,21 @@ namespace LobbyAppearanceImprovements
             {
                 if (component.survivorDisplays.Count > 0)
                 {
+                    //List<SurvivorIndex> difference = new List<SurvivorIndex>();
+
+
+                    foreach (var backgroundCharacters in component.survivorDisplays)
+                    {
+                        backgroundCharacters.Value.SetActive(true);
+                    }
                     foreach (var currentDisplays in self.characterDisplayPads)
                     {
                         var index = currentDisplays.displaySurvivorIndex;
                         component.survivorDisplays.TryGetValue(index, out GameObject objectToToggle);
                         if (objectToToggle)
                         {
-                            objectToToggle.SetActive(true);
+                            var delay = self.gameObject.AddComponent<LAI_Delayer>();
+                            delay.characterDisplay = objectToToggle;
                         }
                         //selectedCharacters.Add(currentDisplays.displaySurvivorIndex);
                     }
