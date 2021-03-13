@@ -17,11 +17,9 @@ namespace LobbyAppearanceImprovements
     {
         public static void HideBackgroundCharacters(RoR2.UI.CharacterSelectController self)
         {
-            if (self && self.gameObject.GetComponent<LAI_BGCHARCOMP>())
+            var component = HasBackgroundComponent(self);
+            if (component)
             {
-                //var selectedCharacters = new List<SurvivorIndex>();
-                var component = self.gameObject.GetComponent<LAI_BGCHARCOMP>();
-
                 // Re-enable everything
                 if (component.survivorDisplays.Count > 0)
                 {
@@ -44,10 +42,9 @@ namespace LobbyAppearanceImprovements
 
         public static void RefreshBackgroundCharacter(RoR2.UI.CharacterSelectController self)
         {
-            if (self && self.gameObject.GetComponent<LAI_BGCHARCOMP>())
+            var component = HasBackgroundComponent(self);
+            if (component)
             {
-                var component = self.gameObject.GetComponent<LAI_BGCHARCOMP>();
-
                 if (component.survivorDisplays.Count > 0)
                 {
                     foreach (var currentDisplays in self.characterDisplayPads)
@@ -89,17 +86,9 @@ namespace LobbyAppearanceImprovements
 
         public static void UpdateSurvivorCache(RoR2.UI.CharacterSelectController self)
         {
-            //var component = HasBackgroundComponent(self);
-            //if (compone)
-
-
-
-            if (self && self.gameObject.GetComponent<LAI_BGCHARCOMP>())
+            var component = HasBackgroundComponent(self);
+            if (component)
             {
-                //var selectedCharacters = new List<SurvivorIndex>();
-                var component = self.gameObject.GetComponent<LAI_BGCHARCOMP>();
-
-                // Re-enable everything
                 if (component.survivorDisplays.Count > 0)
                 {
                     component.currentlySelectedSurvivors.Clear();
