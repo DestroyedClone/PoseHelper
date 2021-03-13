@@ -207,17 +207,14 @@ namespace AutoUseEquipmentDrones
                 //Custom Logic
                 case GoldGat: //Forced Equipment State and money
                     uint num2 = (uint)((float)GoldGatFire.baseMoneyCostPerBullet * (1f + (TeamManager.instance.GetTeamLevel(self.characterBody.master.teamIndex) - 1f) * 0.25f));
-                    self.characterBody.master.money = num2;
+                    self.characterBody.master.money = num2*60;
                     break;
                 case PassiveHealing: //Target damaged ally
                     break;
                 case Gateway: // Target Interactables or nearby if damaged
                     break;
                 case Cleanse: //Activate if debuffed
-                    if (CheckForDebuffs(self.characterBody))
-                    {
-                        forceActive = true;
-                    }
+                    forceActive = CheckForDebuffs(self.characterBody);
                     break;
                 case Saw: //get close
                     break;
@@ -226,10 +223,7 @@ namespace AutoUseEquipmentDrones
 
                 //Health Requirement
                 case Fruit:
-                    if (self.healthComponent?.health <= self.healthComponent?.fullHealth)
-                    {
-                        forceActive = true;
-                    }
+                    forceActive = self.healthComponent?.health <= self.healthComponent?.fullHealth * 0.5f;
                     break;
                 //Chase Priority
                 case BurnNearby:
@@ -239,10 +233,7 @@ namespace AutoUseEquipmentDrones
 
                 //Valid interactables
                 case Scanner:
-                    if (CheckForInteractables())
-                    {
-                        forceActive = true;
-                    }
+                    forceActive = CheckForInteractables();
                     break;
             }
 
