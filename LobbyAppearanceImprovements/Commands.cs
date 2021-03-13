@@ -22,6 +22,15 @@ namespace LobbyAppearanceImprovements
             melon.sender = args.sender;
             RoR2.Console.instance.SubmitCmd(args.sender, "set_scene lobby", true);
         }
+
+        [ConCommand(commandName = "LAI_DioramaTest", flags = ConVarFlags.ExecuteOnServer, helpText = "stagename x y z")]
+        public static void Diorama(ConCommandArgs args)
+        {
+            var path = "prefabs/stagedisplay/"+args.GetArgString(0)+"DioramaDisplay";
+            var gay = Resources.Load(path);
+            var diorama = (GameObject)UnityEngine.Object.Instantiate(gay);
+            diorama.transform.position = new Vector3(args.GetArgFloat(1), args.GetArgFloat(2), args.GetArgFloat(3));
+        }
         public class LAIIntializer : MonoBehaviour
         {
             public NetworkUser sender;

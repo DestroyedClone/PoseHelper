@@ -42,11 +42,14 @@ namespace LobbyAppearanceImprovements
         public static ConfigEntry<bool> MeshProps { get; set; }
         public static ConfigEntry<bool> PhysicsProps { get; set; }
         public static ConfigEntry<bool> DisableShaking { get; set; }
+
+        //Custom BG
         public static ConfigEntry<int> SelectedScene { get; set; }
 
         // SurvivorsInLobby
         public static ConfigEntry<bool> SurvivorsInLobby { get; set; }
         public static ConfigEntry<int> SelectViewMode { get; set; }
+        public static ConfigEntry<bool> ReplayAnim { get; set; }
         public static ConfigEntry<bool> LivePreview { get; set; }
 
         public static StaticValues.LobbyViewType LobbyViewType;
@@ -60,6 +63,7 @@ namespace LobbyAppearanceImprovements
             CommandHelper.AddToConsoleWhenReady();
 
             On.RoR2.UI.CharacterSelectController.Awake += CharacterSelectController_Awake;
+            //On.RoR2.UI.CharacterSelectController.OnNetworkUserLoadoutChanged += UpdateSurvivorCache;
 
             switch (LobbyViewType)
             {
@@ -72,12 +76,22 @@ namespace LobbyAppearanceImprovements
                     On.RoR2.UI.CharacterSelectController.SelectSurvivor += ZoomOnSelected;
                     break;
             }
+            if (ReplayAnim.Value)
+            {
+                On.RoR2.UI.CharacterSelectController.OnNetworkUserLoadoutChanged += ReplayAnimationOnSelect;
+            }
             if (DisableShaking.Value)
                 On.RoR2.PreGameShakeController.Awake += SetShakerInactive;
             if (SurvivorsInLobby.Value && LivePreview.Value)
             {
                 On.RoR2.UI.CharacterSelectController.OnNetworkUserLoadoutChanged += UpdateCharacterPreview;
             }
+        }
+
+        private void ReplayAnimationOnSelect(On.RoR2.UI.CharacterSelectController.orig_OnNetworkUserLoadoutChanged orig, RoR2.UI.CharacterSelectController self, NetworkUser networkUser)
+        {
+            orig(self, networkUser);
+
         }
 
 
@@ -128,12 +142,15 @@ namespace LobbyAppearanceImprovements
             CharacterPadScale = Config.Bind("Background", "Character Display Scale", 1f, "Resizes character displays. "); //def 1f
             SurvivorsInLobby = Config.Bind("Background", "Survivors In Lobby", true, "Shows survivors in the lobby." +
                 "\nThese background survivors don't reflect the loadouts in the lobby.");
+
+            //Custom BG
             SelectedScene = Config.Bind("Background", "Select Scene", 0, "0 = Default");
 
             //other
             SelectViewMode = Config.Bind("Other", "Select View Mode (Requires SurvivorsInLobby set to true)", 0, "0 = None" +
                 "\n1 = Disappear on selection" +
                 "\n2 = Zoom on selection"); //def 1f
+            ReplayAnim = Config.Bind("Background", "Replay Animation", true, "Replays the animation for the selected character.");
             LivePreview = Config.Bind("Background", "Live Preview", true, "Updates the appearance for the selected character.");
 
 
