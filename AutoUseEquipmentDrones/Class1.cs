@@ -36,8 +36,20 @@ namespace AutoUseEquipmentDrones
         public static ConfigEntry<string> TargetPriority { get; set; }
         public int EquipmentDroneBodyIndex = -1;
         public Type[] allowedTypesToScan = new Type[] { };
+        public static ConfigEntry<string> Recycler_Items { get; set; }
+        public static ConfigEntry<string> Recycler_Equipment { get; set; }
+
+        public List<ItemIndex> allowedItemIndices = new List<ItemIndex>();
+        public List<EquipmentIndex> allowedEquipmentIndices = new List<EquipmentIndex>();
+        public List<PickupIndex> allowedPickupIndices = new List<PickupIndex>();
         public void Awake()
         {
+            Recycler_Items = Config.Bind("Recycler", "Item IDS", "Tooth,Seed,Icicle,GhostOnKill,BounceNearby,MonstersOnShrineUse", "Enter the IDs of the item you want equipment drones to recycle." +
+    "\nSeparated by commas (ex: AffixRed,Meteor,Fruit)");
+            Recycler_Equipment = Config.Bind("Recycler", "Equipment IDS", "Meteor,CritOnUse,GoldGat,Scanner,Gateway", "Enter the IDs of the equipment you want equipment drones to recycle." +
+    "\nSeparated by commas (ex: AffixRed,Meteor,Fruit)");
+
+
             On.RoR2.EquipmentSlot.FixedUpdate += EquipmentSlot_FixedUpdate;
             var body = Resources.Load<GameObject>("prefabs/characterbodies/EquipmentDroneBody");
             EquipmentDroneBodyIndex = body.GetComponent<CharacterBody>().bodyIndex;
@@ -45,6 +57,52 @@ namespace AutoUseEquipmentDrones
 
             //On.RoR2.CharacterAI.BaseAI.FixedUpdate += BaseAIOverride;
             On.EntityStates.GoldGat.GoldGatIdle.FixedUpdate += FixedGoldGat;
+            On.RoR2.ItemCatalog.Init += CacheWhitelistedItems;
+            On.RoR2.EquipmentCatalog.Init += CacheWhitelistedEquipment;
+            On.RoR2.PickupCatalog.Init += CachePickupIndices;
+        }
+
+        private void CachePickupIndices(On.RoR2.PickupCatalog.orig_Init orig)
+        {
+            orig();
+            foreach (var itemIndex in allowedItemIndices)
+            {
+                if (PickupCatalog.FindPickupIndex(itemIndex) != PickupIndex.none)
+                    allowedPickupIndices.Add(PickupCatalog.FindPickupIndex(itemIndex));
+            }
+            foreach (var equipmentIndex in allowedEquipmentIndices)
+            {
+                if (PickupCatalog.FindPickupIndex(equipmentIndex) != PickupIndex.none)
+                    allowedPickupIndices.Add(PickupCatalog.FindPickupIndex(equipmentIndex));
+            }
+        }
+
+        private void CacheWhitelistedItems(On.RoR2.ItemCatalog.orig_Init orig)
+        {
+            orig();
+            var testStringArray = Recycler_Items.Value.Split(',');
+            if (testStringArray.Length > 0)
+            {
+                foreach (string stringToTest in testStringArray)
+                {
+                    if (ItemCatalog.FindItemIndex(stringToTest) == ItemIndex.None) { continue; }
+                    allowedItemIndices.Add(ItemCatalog.FindItemIndex(stringToTest));
+                }
+            }
+        }
+
+        private void CacheWhitelistedEquipment(On.RoR2.EquipmentCatalog.orig_Init orig)
+        {
+            orig();
+            var testStringArray = Recycler_Equipment.Value.Split(',');
+            if (testStringArray.Length > 0)
+            {
+                foreach (string stringToTest in testStringArray)
+                {
+                    if (EquipmentCatalog.FindEquipmentIndex(stringToTest) == EquipmentIndex.None) { continue; }
+                    allowedEquipmentIndices.Add(EquipmentCatalog.FindEquipmentIndex(stringToTest));
+                }
+            }
         }
 
         private void FixedGoldGat(On.EntityStates.GoldGat.GoldGatIdle.orig_FixedUpdate orig, EntityStates.GoldGat.GoldGatIdle self)
@@ -219,6 +277,17 @@ namespace AutoUseEquipmentDrones
                 case Saw: //get close
                     break;
                 case Recycle: //look at polyp
+                    //self.UpdateTargets();
+                    GenericPickupController pickupController = self.currentTarget.pickupController;
+                    if (!pickupController || pickupController.Recycled)
+                    {
+                        break;
+                    }
+                    PickupIndex initialPickupIndex = pickupController.pickupIndex;
+                    if (allowedPickupIndices.Contains(initialPickupIndex))
+                    {
+                        forceActive = true;
+                    }
                     break;
 
                 //Health Requirement
