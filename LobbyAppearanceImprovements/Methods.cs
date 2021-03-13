@@ -93,5 +93,11 @@ namespace LobbyAppearanceImprovements
         {
             public Dictionary<SurvivorIndex, GameObject> survivorDisplays = new Dictionary<SurvivorIndex, GameObject>();
         }
+
+        public static GameObject GetDiorama()
+        {
+            var gay = Resources.Load("prefabs/stagedisplay/ArenaDioramaDisplay.prefab");
+            return (GameObject)UnityEngine.Object.Instantiate(gay);
+        }
     }
 }

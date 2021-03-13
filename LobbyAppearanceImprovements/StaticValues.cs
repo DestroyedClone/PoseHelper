@@ -96,5 +96,24 @@ namespace LobbyAppearanceImprovements
             Hide,
             Zoom
         }
+
+        public enum SceneType
+        {
+            Default,
+            Arena,
+            Artifactworld,
+            Blackbeach,
+            Dampcave,
+            Foggyswamp,
+            Frozenwall,
+            Golemplains,
+            Goolake,
+            Limbo,
+            Moon,
+            Mysteryspace,
+            Shipgraveyard,
+            SkyMeadow,
+            Wispgraveyard
+        }
     }
 }

@@ -42,6 +42,7 @@ namespace LobbyAppearanceImprovements
         public static ConfigEntry<bool> MeshProps { get; set; }
         public static ConfigEntry<bool> PhysicsProps { get; set; }
         public static ConfigEntry<bool> DisableShaking { get; set; }
+        public static ConfigEntry<int> SelectedScene { get; set; }
 
         // SurvivorsInLobby
         public static ConfigEntry<bool> SurvivorsInLobby { get; set; }
@@ -49,6 +50,7 @@ namespace LobbyAppearanceImprovements
         public static ConfigEntry<bool> LivePreview { get; set; }
 
         public static StaticValues.LobbyViewType LobbyViewType;
+        public static StaticValues.SceneType SceneType;
 
         public Dictionary<SurvivorIndex, float[]> characterCameraSettings = new Dictionary<SurvivorIndex, float[]>();
         public void Awake()
@@ -126,13 +128,17 @@ namespace LobbyAppearanceImprovements
             CharacterPadScale = Config.Bind("Background", "Character Display Scale", 1f, "Resizes character displays. "); //def 1f
             SurvivorsInLobby = Config.Bind("Background", "Survivors In Lobby", true, "Shows survivors in the lobby." +
                 "\nThese background survivors don't reflect the loadouts in the lobby.");
+            SelectedScene = Config.Bind("Background", "Select Scene", 0, "0 = Default");
 
             //other
             SelectViewMode = Config.Bind("Other", "Select View Mode (Requires SurvivorsInLobby set to true)", 0, "0 = None" +
                 "\n1 = Disappear on selection" +
                 "\n2 = Zoom on selection"); //def 1f
             LivePreview = Config.Bind("Background", "Live Preview", true, "Updates the appearance for the selected character.");
+
+
             LobbyViewType = (StaticValues.LobbyViewType)SelectViewMode.Value;
+            SceneType = (StaticValues.SceneType)SelectedScene.Value;
         }
 
         private void CharacterSelectController_Awake(On.RoR2.UI.CharacterSelectController.orig_Awake orig, RoR2.UI.CharacterSelectController self)
