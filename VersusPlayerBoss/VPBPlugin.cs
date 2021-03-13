@@ -11,6 +11,10 @@ namespace VersusPlayerBoss
     [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.EveryoneNeedSameModVersion)]
     public class VPBPlugin : BaseUnityPlugin
     {
+        
+        public void Awake()
+        {
 
+        }
     }
 }
