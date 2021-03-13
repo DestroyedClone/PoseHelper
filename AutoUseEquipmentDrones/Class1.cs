@@ -214,6 +214,10 @@ namespace AutoUseEquipmentDrones
                 case Gateway: // Target Interactables or nearby if damaged
                     break;
                 case Cleanse: //Activate if debuffed
+                    if (CheckForDebuffs(self.characterBody))
+                    {
+                        forceActive = true;
+                    }
                     break;
                 case Saw: //get close
                     break;
@@ -291,6 +295,25 @@ namespace AutoUseEquipmentDrones
         private void ForceJump(BaseAI baseAI)
         {
             baseAI.bodyInputBank.jump.PushState(true);
+        }
+
+        private bool CheckForDebuffs(CharacterBody characterBody) //try hooking addbuff instead?
+        {
+            BuffIndex buffIndex = BuffIndex.Slow50;
+            BuffIndex buffCount = (BuffIndex)BuffCatalog.buffCount;
+            while (buffIndex < buffCount)
+            {
+                BuffDef buffDef = BuffCatalog.GetBuffDef(buffIndex);
+                if (buffDef.isDebuff)
+                {
+                    if (characterBody.HasBuff(buffIndex))
+                    {
+                        return true;
+                    }
+                }
+                buffIndex++;
+            }
+            return false;
         }
     }
 }
