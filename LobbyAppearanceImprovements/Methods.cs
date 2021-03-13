@@ -48,14 +48,8 @@ namespace LobbyAppearanceImprovements
             {
                 var component = self.gameObject.GetComponent<LAI_BGCHARCOMP>();
 
-                // Re-enable everything
                 if (component.survivorDisplays.Count > 0)
                 {
-                    foreach (var backgroundCharacters in component.survivorDisplays)
-                    {
-                        backgroundCharacters.Value.SetActive(true);
-                    }
-                    // Now we can disable
                     foreach (var currentDisplays in self.characterDisplayPads)
                     {
                         var index = currentDisplays.displaySurvivorIndex;
@@ -70,20 +64,6 @@ namespace LobbyAppearanceImprovements
             }
         }
 
-        public static GameObject GetBodyPrefab(string bodyPrefabName)
-        {
-            switch (bodyPrefabName)
-            {
-                case "CHEF":
-                    break;
-                default:
-                    bodyPrefabName += "Body";
-                    break;
-            }
-            var bodyPrefab = BodyCatalog.FindBodyPrefab(bodyPrefabName);
-            if (!bodyPrefab) return null;
-            return bodyPrefab;
-        }
 
         public static GameObject CreateDisplay(string bodyPrefabName, Vector3 position, Vector3 rotation, Transform parent = null)
         {
@@ -106,6 +86,34 @@ namespace LobbyAppearanceImprovements
             return gameObject;
         }
 
+
+        public static void UpdateSurvivorCache(RoR2.UI.CharacterSelectController self)
+        {
+            //var component = HasBackgroundComponent(self);
+            //if (compone)
+
+
+
+            if (self && self.gameObject.GetComponent<LAI_BGCHARCOMP>())
+            {
+                //var selectedCharacters = new List<SurvivorIndex>();
+                var component = self.gameObject.GetComponent<LAI_BGCHARCOMP>();
+
+                // Re-enable everything
+                if (component.survivorDisplays.Count > 0)
+                {
+                    component.currentlySelectedSurvivors.Clear();
+                    foreach (var currentDisplays in self.characterDisplayPads)
+                    {
+                        var index = currentDisplays.displaySurvivorIndex;
+                        component.currentlySelectedSurvivors.Add(index);
+                    }
+                }
+            }
+        }
+
+
+        // Simple Methods
         public static void SetCamera(CameraRigController cameraRig, float fov = 60f, float pitch = 0f, float yaw = 0f)
         {
             cameraRig.baseFov = fov;
@@ -117,12 +125,32 @@ namespace LobbyAppearanceImprovements
         {
             GameObject.Find("Directional Light").gameObject.GetComponent<Light>().color = color;
         }
-
-        public static void UpdateSurvivorCache(On.RoR2.UI.CharacterSelectController.orig_OnNetworkUserLoadoutChanged orig, RoR2.UI.CharacterSelectController self, NetworkUser networkUser)
+        public static GameObject GetBodyPrefab(string bodyPrefabName)
         {
-            orig(self, networkUser);
-
+            switch (bodyPrefabName)
+            {
+                case "CHEF":
+                    break;
+                default:
+                    bodyPrefabName += "Body";
+                    break;
+            }
+            var bodyPrefab = BodyCatalog.FindBodyPrefab(bodyPrefabName);
+            if (!bodyPrefab) return null;
+            return bodyPrefab;
         }
+        public static LAI_BGCHARCOMP HasBackgroundComponent(RoR2.UI.CharacterSelectController self)
+        {
+            if (self && self.gameObject.GetComponent<LAI_BGCHARCOMP>())
+            {
+                return self.gameObject.GetComponent<LAI_BGCHARCOMP>();
+            }
+            else
+                return null;
+        }
+
+        // Classes
+
         public class LAI_BGCHARCOMP : MonoBehaviour
         {
             public Dictionary<SurvivorIndex, GameObject> survivorDisplays = new Dictionary<SurvivorIndex, GameObject>();
@@ -145,12 +173,6 @@ namespace LobbyAppearanceImprovements
                     Destroy(this);
                 }
             }
-        }
-
-        public static GameObject GetDiorama()
-        {
-            var gay = Resources.Load("prefabs/stagedisplay/ArenaDioramaDisplay.prefab");
-            return (GameObject)UnityEngine.Object.Instantiate(gay);
         }
     }
 }
