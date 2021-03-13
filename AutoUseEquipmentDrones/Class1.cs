@@ -213,7 +213,7 @@ namespace AutoUseEquipmentDrones
                     break;
                 case Gateway: // Target Interactables or nearby if damaged
                     break;
-                case Cleanse: //Prioritize projectiles
+                case Cleanse: //Activate if debuffed
                     break;
                 case Saw: //get close
                     break;
@@ -222,6 +222,10 @@ namespace AutoUseEquipmentDrones
 
                 //Health Requirement
                 case Fruit:
+                    if (self.healthComponent?.health <= self.healthComponent?.fullHealth)
+                    {
+                        forceActive = true;
+                    }
                     break;
                 //Chase Priority
                 case BurnNearby:
