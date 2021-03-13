@@ -174,6 +174,8 @@ namespace AutoUseEquipmentDrones
         {
             orig(self);
             if (self.characterBody || self.characterBody.bodyIndex != EquipmentDroneBodyIndex) return;
+            var baseAI = self.gameObject.GetComponent<BaseAI>();
+            if (!baseAI) return;
             TeamIndex enemyTeamIndex = self.teamComponent.teamIndex == TeamIndex.Player ? TeamIndex.Monster : TeamIndex.Player;
             bool forceActive = false;
 
@@ -196,6 +198,7 @@ namespace AutoUseEquipmentDrones
                 // Evade or Aggro
                 // Attempts to draw enemy attention
                 case Jetpack: // spam jump
+                    ForceJump(baseAI);
                     break;
                 case GainArmor: //runs away in a radisu
                     break;
@@ -237,7 +240,7 @@ namespace AutoUseEquipmentDrones
 
             if (forceActive)
             {
-                ActivateWhenReady(self);
+                ForceEquipmentUse(baseAI);
             }
         }
 
@@ -281,5 +284,9 @@ namespace AutoUseEquipmentDrones
             baseAI.bodyInputBank.activateEquipment.PushState(true);
         }
 
+        private void ForceJump(BaseAI baseAI)
+        {
+            baseAI.bodyInputBank.jump.PushState(true);
+        }
     }
 }
