@@ -27,11 +27,18 @@ namespace SurvivorTaunts
             if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("com.TeamMoonstorm.Starstorm2")) starstormInstalled = true;
 
             // load assets and read config
-            Modules.Assets.PopulateAssets();
             Modules.Config.ReadConfig();
             Modules.States.RegisterStates(); // register states for networking
             Modules.Tokens.AddTokens(); // register name tokens
-            Modules.ItemDisplays.PopulateDisplays(); // collect item display prefabs for use in our display rules
+
+            // have to setup late so the catalog can populate
+            On.RoR2.SurvivorCatalog.Init += SurvivorCatalog_Init;
+        }
+
+        private void SurvivorCatalog_Init(On.RoR2.SurvivorCatalog.orig_Init orig)
+        {
+            orig();
+            Modules.Prefabs.CacheDisplays();
         }
     }
 }
