@@ -88,6 +88,7 @@ namespace SurvivorTaunts.Emotes
 
             if (base.inputBank)
             {
+
                 if (base.inputBank.skill1.down) flag = true;
                 if (base.inputBank.skill2.down) flag = true;
                 if (base.inputBank.skill3.down) flag = true;
