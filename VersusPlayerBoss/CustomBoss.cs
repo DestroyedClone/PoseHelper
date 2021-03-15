@@ -16,7 +16,6 @@ namespace VersusPlayerBoss
 
         protected void CreateBossGroup()
         {
-
             BossGroup bossGroup = new BossGroup()
             {
                 shouldDisplayHealthBarOnHud = true,

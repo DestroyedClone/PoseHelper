@@ -111,6 +111,10 @@ namespace LobbyAppearanceImprovements
 
 
         // Simple Methods
+        public static void SetCamera(CameraRigController cameraRig, Characters.CameraSetting cameraSetting)
+        {
+            SetCamera(cameraRig, cameraSetting.fov, cameraSetting.pitch, cameraSetting.yaw);
+        }
         public static void SetCamera(CameraRigController cameraRig, float fov = 60f, float pitch = 0f, float yaw = 0f)
         {
             cameraRig.baseFov = fov;

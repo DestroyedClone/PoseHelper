@@ -43,6 +43,22 @@ namespace LobbyAppearanceImprovements
             public bool enableCharacterPadAlignments = false;
             bool PrintCurrentPosition = false;
 
+            public void Awake()
+            {
+                if (!MainCamera)
+                {
+                    MainCamera = GameObject.Find("Main Camera").gameObject;
+                }
+                if (!CharacterSelectUI)
+                {
+                    CharacterSelectUI = GameObject.Find("CharacterSelectUI").gameObject;
+                }
+                if (!CharacterPadAlignments)
+                {
+                    CharacterPadAlignments = GameObject.Find("CharacterPadAlignments").gameObject;
+                }
+            }
+
             public void FixedUpdate()
             {
                 if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "lobby"
@@ -53,25 +69,12 @@ namespace LobbyAppearanceImprovements
                         if (sender.GetCurrentBody())
                         {
                             RoR2.Console.instance.SubmitCmd(sender, "setpos 1 1 11", true);
-
                             hasTeleported = true;
                         }
                     }
-                    if (!MainCamera)
-                    {
-                        MainCamera = GameObject.Find("Main Camera").gameObject;
-                    }
-                    MainCamera.SetActive(enableMainCamera);
-                    if (!CharacterSelectUI)
-                    {
-                        CharacterSelectUI = GameObject.Find("CharacterSelectUI").gameObject;
-                    }
-                    MainCamera.SetActive(enableCharacterSelectUI);
-                    if (!CharacterPadAlignments)
-                    {
-                        CharacterPadAlignments = GameObject.Find("CharacterPadAlignments").gameObject;
-                    }
-                    CharacterPadAlignments.SetActive(enableCharacterPadAlignments);
+                    if (MainCamera) MainCamera.SetActive(enableMainCamera);
+                    if (CharacterPadAlignments)  CharacterPadAlignments.SetActive(enableCharacterPadAlignments);
+                    if (CharacterSelectUI) CharacterSelectUI.SetActive(enableCharacterSelectUI);
 
                     // Pseudo-Commands
                     if (PrintCurrentPosition)
