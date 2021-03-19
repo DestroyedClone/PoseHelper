@@ -40,5 +40,35 @@ namespace SurvivorTaunts
             orig();
             Modules.Prefabs.CacheDisplays();
         }
+
+        public class SurvivorTauntController : MonoBehaviour
+        {
+            public LocalUser localUser;
+            private Animator animator;
+
+            public void Awake()
+            {
+                this.animator = base.GetModelAnimator();
+                this.localUser = LocalUserManager.readOnlyLocalUsersList[0];
+            }
+
+            public void Update()
+            {
+                // emotes
+                if (base.isAuthority && base.characterMotor.isGrounded && !this.localUser.isUIFocused)
+                {
+                    if (Input.GetKeyDown(Modules.Config.displayKeybind.Value))
+                    {
+                        this.outer.SetInterruptState(EntityState.Instantiate(new SerializableEntityStateType(typeof(Display))), InterruptPriority.Any);
+                        return;
+                    }
+                    else if (Input.GetKeyDown(Modules.Config.poseKeybind.Value))
+                    {
+                        this.outer.SetInterruptState(EntityState.Instantiate(new SerializableEntityStateType(typeof(Pose))), InterruptPriority.Any);
+                        return;
+                    }
+                }
+            }
+        }
     }
 }
