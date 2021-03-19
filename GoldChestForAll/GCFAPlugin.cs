@@ -13,12 +13,17 @@ namespace GoldChestForAll
     {
         public void Awake()
         {
-            On.RoR2.PurchaseInteraction.OnInteractionBegin += GiveToEveryone;
+            On.RoR2.ChestBehavior.ItemDrop += DuplicateDrops;
         }
 
-        private void GiveToEveryone(On.RoR2.PurchaseInteraction.orig_OnInteractionBegin orig, PurchaseInteraction self, Interactor activator)
+        private void DuplicateDrops(On.RoR2.ChestBehavior.orig_ItemDrop orig, ChestBehavior self)
         {
-            orig(self, activator);
+            orig(self);
+            if (self.tier3Chance >= 1)
+                for (int i = 0; i < CharacterMaster.readOnlyInstancesList.Count - 1; i++)
+                {
+                    CharacterMaster.readOnlyInstancesList[i]
+                }
         }
     }
 }

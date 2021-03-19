@@ -31,5 +31,10 @@ namespace SurvivorTaunts.Modules
                 }
             }
         }
+
+        public static void GetAnimator()
+        {
+
+        }
     }
 }

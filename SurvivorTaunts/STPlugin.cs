@@ -34,6 +34,13 @@ namespace SurvivorTaunts
 
             // have to setup late so the catalog can populate
             On.RoR2.SurvivorCatalog.Init += SurvivorCatalog_Init;
+            RoR2.CharacterBody.onBodyStartGlobal += CharacterBody_onBodyStartGlobal;
+        }
+
+        private void CharacterBody_onBodyStartGlobal(CharacterBody obj)
+        {
+            if (obj.isPlayerControlled)
+                obj.gameObject.AddComponent<SurvivorTauntController>();
         }
 
         private void SurvivorCatalog_Init(On.RoR2.SurvivorCatalog.orig_Init orig)
@@ -46,27 +53,31 @@ namespace SurvivorTaunts
         {
             public LocalUser localUser;
             private CharacterBody characterBody;
-            bool isAuthority = false;
+            bool isAuthority = true;
+            EntityStateMachine outer;
+            public SurvivorIndex survivorIndex;
 
             public void Awake()
             {
                 this.localUser = LocalUserManager.readOnlyLocalUsersList[0];
                 characterBody = this.localUser.cachedBody;
+                outer = this.gameObject.GetComponent<EntityStateMachine>();
+                survivorIndex = SurvivorCatalog.FindSurvivorIndex(Language.GetString(characterBody.baseNameToken));
             }
 
             public void Update()
             {
                 // emotes
-                if (base.isAuthority && characterBody.characterMotor.isGrounded && !this.localUser.isUIFocused)
+                if (isAuthority && characterBody.characterMotor.isGrounded && !this.localUser.isUIFocused)
                 {
                     if (Input.GetKeyDown(Modules.Config.displayKeybind.Value))
                     {
-                        this.outer.SetInterruptState(EntityState.Instantiate(new SerializableEntityStateType(typeof(Display))), InterruptPriority.Any);
+                        this.outer.SetInterruptState(EntityState.Instantiate(new SerializableEntityStateType(typeof(Emotes.Display))), InterruptPriority.Any);
                         return;
                     }
                     else if (Input.GetKeyDown(Modules.Config.poseKeybind.Value))
                     {
-                        this.outer.SetInterruptState(EntityState.Instantiate(new SerializableEntityStateType(typeof(Pose))), InterruptPriority.Any);
+                        this.outer.SetInterruptState(EntityState.Instantiate(new SerializableEntityStateType(typeof(Emotes.Pose))), InterruptPriority.Any);
                         return;
                     }
                 }

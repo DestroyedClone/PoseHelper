@@ -11,7 +11,7 @@ namespace SurvivorTaunts.Modules
         public static void ReadConfig()
         {
             displayKeybind = STPlugin.instance.Config.Bind<KeyCode>(new ConfigDefinition("Keybinds", "Display"), KeyCode.Alpha1, new ConfigDescription("Keybind used to perform the Display emote"));
-            poseKeybind = STPlugin.instance.Config.Bind<KeyCode>(new ConfigDefinition("Keybinds", "Pose"), KeyCode.Alpha3, new ConfigDescription("Keybind used to perform the Pose emote"));
+            poseKeybind = STPlugin.instance.Config.Bind<KeyCode>(new ConfigDefinition("Keybinds", "Pose"), KeyCode.Alpha2, new ConfigDescription("Keybind used to perform the Pose emote"));
         }
     }
 }
