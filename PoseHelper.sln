@@ -33,6 +33,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SurvivorTaunts", "SurvivorT
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StageVariantsPlus", "StageVariantsPlus\StageVariantsPlus.csproj", "{2FA12A80-3344-45DE-879B-4299AEAC5A7D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GoldChestForAll", "GoldChestForAll\GoldChestForAll.csproj", "{63904AFA-746B-497B-B610-B27B7F05C8F8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -99,6 +101,10 @@ Global
 		{2FA12A80-3344-45DE-879B-4299AEAC5A7D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2FA12A80-3344-45DE-879B-4299AEAC5A7D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2FA12A80-3344-45DE-879B-4299AEAC5A7D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{63904AFA-746B-497B-B610-B27B7F05C8F8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{63904AFA-746B-497B-B610-B27B7F05C8F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{63904AFA-746B-497B-B610-B27B7F05C8F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{63904AFA-746B-497B-B610-B27B7F05C8F8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

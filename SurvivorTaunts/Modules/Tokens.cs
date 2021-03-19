@@ -4,7 +4,11 @@ using System.Text;
 
 namespace SurvivorTaunts.Modules
 {
-    class Tokens
+    public static class Tokens
     {
+        public static void AddTokens()
+        {
+
+        }
     }
 }

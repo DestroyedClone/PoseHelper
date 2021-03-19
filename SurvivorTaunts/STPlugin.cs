@@ -3,6 +3,7 @@ using BepInEx.Configuration;
 using UnityEngine;
 using RoR2;
 using R2API.Utils;
+using EntityStates;
 
 namespace SurvivorTaunts
 {
@@ -44,18 +45,19 @@ namespace SurvivorTaunts
         public class SurvivorTauntController : MonoBehaviour
         {
             public LocalUser localUser;
-            private Animator animator;
+            private CharacterBody characterBody;
+            bool isAuthority = false;
 
             public void Awake()
             {
-                this.animator = base.GetModelAnimator();
                 this.localUser = LocalUserManager.readOnlyLocalUsersList[0];
+                characterBody = this.localUser.cachedBody;
             }
 
             public void Update()
             {
                 // emotes
-                if (base.isAuthority && base.characterMotor.isGrounded && !this.localUser.isUIFocused)
+                if (base.isAuthority && characterBody.characterMotor.isGrounded && !this.localUser.isUIFocused)
                 {
                     if (Input.GetKeyDown(Modules.Config.displayKeybind.Value))
                     {
