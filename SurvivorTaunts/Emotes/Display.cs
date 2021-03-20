@@ -19,7 +19,9 @@ namespace SurvivorTaunts.Emotes
             runtimeAnimator = animator.runtimeAnimatorController;
             survivorTauntController = this.characterBody.GetComponent<STPlugin.SurvivorTauntController>();
             base.OnEnter();
-            animator.runtimeAnimatorController = SurvivorTaunts.Modules.Prefabs.runtimeAnimatorControllers[(int)survivorTauntController.survivorIndex];
+            var index = (int)survivorTauntController.survivorIndex;
+            Debug.Log("using survivorindex: " + index);
+            animator.runtimeAnimatorController = SurvivorTaunts.Modules.Prefabs.runtimeAnimatorControllers[index];
         }
 
         public override void OnExit()

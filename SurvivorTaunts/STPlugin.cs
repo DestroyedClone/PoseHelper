@@ -59,9 +59,13 @@ namespace SurvivorTaunts
 
             public void Awake()
             {
+                Debug.Log("Getting localuser");
                 this.localUser = LocalUserManager.readOnlyLocalUsersList[0];
+                Debug.Log("cachedbody");
                 characterBody = this.localUser.cachedBody;
+                Debug.Log("entitystatemachine");
                 outer = this.gameObject.GetComponent<EntityStateMachine>();
+                Debug.Log("survivorindex");
                 survivorIndex = SurvivorCatalog.FindSurvivorIndex(Language.GetString(characterBody.baseNameToken));
             }
 
