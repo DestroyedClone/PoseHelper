@@ -10,6 +10,13 @@ using EntityStates.Barrel;
 using RoR2.Networking;
 using UnityEngine.Events;
 using UnityEngine.Networking;
+using System.Security;
+using System.Security.Permissions;
+
+[module: UnverifiableCode]
+#pragma warning disable CS0618 // Type or member is obsolete
+[assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
+#pragma warning restore CS0618 // Type or member is obsolete
 
 namespace GoldChestForAll
 {
@@ -49,8 +56,6 @@ namespace GoldChestForAll
                     i++;
                     vector = rotation * vector;
                 }
-
-
                 //var velocity = Vector3.up * self.dropUpVelocityStrength + self.dropTransform.forward * self.dropForwardVelocityStrength;
                 //PickupDropletController.CreatePickupDroplet(self.dropPickup, self.dropTransform.position + Vector3.up * 1.5f, velocity);
                 self.dropPickup = PickupIndex.none;
