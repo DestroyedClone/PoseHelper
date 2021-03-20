@@ -45,7 +45,7 @@ namespace StageVariantsPlus
                 if (characterBody.characterMotor)
                 {
                     var fallSpeed = characterBody.characterMotor.velocity.y;
-                    Chat.AddMessage("Fall speed " + fallSpeed);
+                    //Chat.AddMessage("Fall speed " + fallSpeed);
                     if (Mathf.Abs(fallSpeed) >= splashSpeed)
                     {
                         PlayEffect(characterBody);
