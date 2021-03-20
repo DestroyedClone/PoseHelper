@@ -27,7 +27,10 @@ namespace StageVariantsPlus
         private void MakeGooEnd(On.RoR2.EffectCatalog.orig_Init orig)
         {
             orig();
-            //LandInGoo = Resources.Load<GameObject>("prefabs/effects/impacteffects/LandInGoo");
+            LandInGoo = Resources.Load<GameObject>("prefabs/effects/impacteffects/LandInGoo");
+            var destroyOnTimer = LandInGoo.gameObject.AddComponent<DestroyOnTimer>();
+            destroyOnTimer.duration = 2f;
+
             //var particleDestroyer = LandInGoo.AddComponent<DestroyOnParticleEnd>();
             //particleDestroyer.ps = LandInGoo.transform.Find("ForwardDust").GetComponent<ParticleSystem>();
         }
