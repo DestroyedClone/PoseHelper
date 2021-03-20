@@ -35,6 +35,13 @@ namespace StageVariantsPlus
             }
         }
 
+        public void OnTriggerEnter(Collider other)
+        {
+            CharacterBody characterBody = other.GetComponent<CharacterBody>();
+            if (characterBody)
+                PlayEffect(characterBody);
+        }
+
         public void OnTriggerStay(Collider other)
         {
             if (NetworkServer.active)
@@ -47,26 +54,22 @@ namespace StageVariantsPlus
                 CharacterBody component = other.GetComponent<CharacterBody>();
                 if (component && component.mainHurtBox)
                 {
-                    ApplyDebuff(component);
+                    component.AddTimedBuff(this.buffType, this.buffDuration);
                 }
             }
         }
 
-        private void ApplyDebuff(CharacterBody characterBody)
+        private void PlayEffect(CharacterBody characterBody)
         {
-            if (!characterBody.HasBuff(this.buffType))
+            Util.PlaySound(this.buffApplicationSoundString, characterBody.gameObject);
+            if (this.buffApplicationEffectPrefab)
             {
-                Util.PlaySound(this.buffApplicationSoundString, characterBody.gameObject);
-                if (this.buffApplicationEffectPrefab)
+                EffectManager.SpawnEffect(this.buffApplicationEffectPrefab, new EffectData
                 {
-                    EffectManager.SpawnEffect(this.buffApplicationEffectPrefab, new EffectData
-                    {
-                        origin = characterBody.mainHurtBox.transform.position,
-                        scale = characterBody.radius
-                    }, true);
-                }
+                    origin = characterBody.mainHurtBox.transform.position,
+                    scale = characterBody.radius
+                }, true);
             }
-            characterBody.AddTimedBuff(this.buffType, this.buffDuration);
         }
     }
 }
