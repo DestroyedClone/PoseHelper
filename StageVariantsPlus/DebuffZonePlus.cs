@@ -55,14 +55,17 @@ namespace StageVariantsPlus
         private void ApplyDebuff(CharacterBody characterBody)
         {
             characterBody.AddTimedBuff(this.buffType, this.buffDuration);
-            Util.PlaySound(this.buffApplicationSoundString, characterBody.gameObject);
-            if (this.buffApplicationEffectPrefab)
+            if (!characterBody.HasBuff(this.buffType))
             {
-                EffectManager.SpawnEffect(this.buffApplicationEffectPrefab, new EffectData
+                Util.PlaySound(this.buffApplicationSoundString, characterBody.gameObject);
+                if (this.buffApplicationEffectPrefab)
                 {
-                    origin = characterBody.mainHurtBox.transform.position,
-                    scale = characterBody.radius
-                }, true);
+                    EffectManager.SpawnEffect(this.buffApplicationEffectPrefab, new EffectData
+                    {
+                        origin = characterBody.mainHurtBox.transform.position,
+                        scale = characterBody.radius
+                    }, true);
+                }
             }
         }
     }
