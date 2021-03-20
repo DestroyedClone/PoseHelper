@@ -85,6 +85,9 @@
 		<Reference Include="UnityEngine.Networking">
 			<HintPath>..\PoseHelper\lib\UnityEngine.Networking.dll</HintPath>
 		</Reference>
+		<Reference Include="UnityEngine.ParticleSystemModule">
+		  <HintPath>..\PoseHelper\lib\UnityEngine.ParticleSystemModule.dll</HintPath>
+		</Reference>
 		<Reference Include="UnityEngine.PhysicsModule">
 			<HintPath>..\PoseHelper\lib\UnityEngine.PhysicsModule.dll</HintPath>
 		</Reference>
