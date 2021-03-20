@@ -18,7 +18,7 @@ namespace StageVariantsPlus
 
         public void Awake()
         {
-            GooLakeFilled = Config.Bind("Default", "Filled Goo Lake Chance", 50f, "Fills a channel of the map with goo.");
+            GooLakeFilled = Config.Bind("Abandoned Aqueduct", "Filled Goo Lake Chance", 50f, "Fills a channel of the map with goo that inflicts the ClayGoo debuff.");
 
             On.RoR2.SceneDirector.Start += ChooseSceneToModify;
             On.RoR2.EffectCatalog.Init += MakeGooEnd;
@@ -30,9 +30,6 @@ namespace StageVariantsPlus
             LandInGoo = Resources.Load<GameObject>("prefabs/effects/impacteffects/LandInGoo");
             var destroyOnTimer = LandInGoo.gameObject.AddComponent<DestroyOnTimer>();
             destroyOnTimer.duration = 2f;
-
-            //var particleDestroyer = LandInGoo.AddComponent<DestroyOnParticleEnd>();
-            //particleDestroyer.ps = LandInGoo.transform.Find("ForwardDust").GetComponent<ParticleSystem>();
         }
 
         private void ChooseSceneToModify(On.RoR2.SceneDirector.orig_Start orig, SceneDirector self)
@@ -60,6 +57,7 @@ namespace StageVariantsPlus
             var debuffClone = Instantiate<GameObject>(debuffArea.gameObject, gooplanehigh);
             var SFXClone = Instantiate<GameObject>(SFX.gameObject, gooplanehigh);
 
+            debuffClone.transform.localScale = new Vector3(10f, 1f, 10f);
             var debuffZone = debuffClone.GetComponent<DebuffZone>();
             var debuffZonePlus = debuffClone.AddComponent<DebuffZonePlus>();
             debuffZonePlus.buffApplicationEffectPrefab = debuffZone.buffApplicationEffectPrefab;

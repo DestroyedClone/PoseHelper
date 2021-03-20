@@ -44,8 +44,9 @@ namespace StageVariantsPlus
             {
                 if (characterBody.characterMotor)
                 {
-                    Chat.AddMessage("Fall speed " + characterBody.characterMotor.velocity.y);
-                    if (Mathf.Abs(characterBody.characterMotor.velocity.y) >= splashSpeed)
+                    var fallSpeed = characterBody.characterMotor.velocity.y;
+                    Chat.AddMessage("Fall speed " + fallSpeed);
+                    if (Mathf.Abs(fallSpeed) >= splashSpeed)
                     {
                         PlayEffect(characterBody);
                     }
@@ -78,7 +79,8 @@ namespace StageVariantsPlus
                 EffectManager.SpawnEffect(this.buffApplicationEffectPrefab, new EffectData
                 {
                     origin = characterBody.mainHurtBox.transform.position,
-                    scale = characterBody.radius
+                    scale = characterBody.radius,
+                    rotation = Quaternion.Euler(0f,0f,270f)
                 }, true);
             }
         }
