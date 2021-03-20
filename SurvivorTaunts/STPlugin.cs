@@ -40,7 +40,10 @@ namespace SurvivorTaunts
         private void CharacterBody_onBodyStartGlobal(CharacterBody obj)
         {
             if (obj.isPlayerControlled)
-                obj.gameObject.AddComponent<SurvivorTauntController>();
+            {
+                var com = obj.gameObject.AddComponent<SurvivorTauntController>();
+                com.characterBody = obj;
+            }
         }
 
         private void SurvivorCatalog_Init(On.RoR2.SurvivorCatalog.orig_Init orig)
@@ -52,7 +55,7 @@ namespace SurvivorTaunts
         public class SurvivorTauntController : MonoBehaviour
         {
             public LocalUser localUser;
-            private CharacterBody characterBody;
+            public CharacterBody characterBody;
             bool isAuthority = true;
             EntityStateMachine outer;
             public SurvivorIndex survivorIndex;
@@ -61,14 +64,11 @@ namespace SurvivorTaunts
             {
                 Debug.Log("Getting localuser");
                 this.localUser = LocalUserManager.readOnlyLocalUsersList[0];
-                Debug.Log("cachedbody");
-                characterBody = this.localUser.cachedBody;
                 Debug.Log("entitystatemachine");
                 outer = this.gameObject.GetComponent<EntityStateMachine>();
                 Debug.Log("survivorindex");
                 survivorIndex = SurvivorCatalog.GetSurvivorIndexFromBodyIndex(characterBody.bodyIndex);
-
-                if ((int)survivorIndex == -1) Debug.LogWarning("SurvivorIndex is at -1, may cause errors.");
+                Debug.Log("SurvivorIndex: " + survivorIndex);
             }
 
             public void Update()
