@@ -5,7 +5,6 @@ using RoR2;
 using R2API.Utils;
 using System.Collections.Generic;
 using UnityEngine.Networking;
-using UnityEngine.ParticleSystemModule;
 
 namespace StageVariantsPlus
 {

@@ -4,6 +4,7 @@ using UnityEngine;
 using RoR2;
 using R2API.Utils;
 using EntityStates;
+using System.Collections.Generic;
 
 namespace SurvivorTaunts
 {
@@ -59,14 +60,21 @@ namespace SurvivorTaunts
             bool isAuthority = true;
             EntityStateMachine outer;
             public SurvivorIndex survivorIndex;
+            List<RuntimeAnimatorController> runtimeAnimatorControllers = new List<RuntimeAnimatorController>();
+            List<GameObject> displayPrefabs = new List<GameObject>();
 
             public void Awake()
             {
+                // so i can see progress
+                runtimeAnimatorControllers = Modules.Prefabs.runtimeAnimatorControllers;
+                displayPrefabs = Modules.Prefabs.displayPrefabs;
                 Debug.Log("Getting localuser");
                 this.localUser = LocalUserManager.readOnlyLocalUsersList[0];
                 Debug.Log("entitystatemachine");
                 outer = this.gameObject.GetComponent<EntityStateMachine>();
                 Debug.Log("survivorindex");
+                // errors here ?
+                Debug.Log("BodyIndex = "+ characterBody.bodyIndex);
                 survivorIndex = SurvivorCatalog.GetSurvivorIndexFromBodyIndex(characterBody.bodyIndex);
                 Debug.Log("SurvivorIndex: " + survivorIndex);
             }
