@@ -15,6 +15,7 @@ namespace SurvivorTaunts.Emotes
 
         public override void OnEnter()
         {
+            this.animDuration = 0.75f;
             animator = this.GetModelAnimator();
             runtimeAnimator = animator.runtimeAnimatorController;
             survivorTauntController = this.characterBody.GetComponent<STPlugin.SurvivorTauntController>();
