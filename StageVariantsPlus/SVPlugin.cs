@@ -13,17 +13,23 @@ namespace StageVariantsPlus
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
     public class SVPlugin : BaseUnityPlugin
     {
+        public static ConfigEntry<float> GooLakeFilled { get; set; }
+
         public void Awake()
         {
+            GooLakeFilled = Config.Bind("Default", "Filled Goo Lake", 50f, "Fills a channel of the map with goo.");
+
             On.RoR2.SceneDirector.Start += ChooseSceneToModify;
         }
 
         private void ChooseSceneToModify(On.RoR2.SceneDirector.orig_Start orig, SceneDirector self)
         {
             orig(self);
+
+
             if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "goolake")
             {
-                if (Util.CheckRoll(100))
+                if (Util.CheckRoll(GooLakeFilled.Value))
                 {
                     ModifyGooLake();
                 }
