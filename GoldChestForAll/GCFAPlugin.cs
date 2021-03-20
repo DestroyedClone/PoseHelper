@@ -1,14 +1,7 @@
 ﻿using BepInEx;
-using BepInEx.Configuration;
 using UnityEngine;
 using RoR2;
 using R2API.Utils;
-using System;
-using System.Collections.Generic;
-using EntityStates;
-using EntityStates.Barrel;
-using RoR2.Networking;
-using UnityEngine.Events;
 using UnityEngine.Networking;
 using System.Security;
 using System.Security.Permissions;
@@ -52,7 +45,7 @@ namespace GoldChestForAll
             if (participatingPlayerCount != 0)
             {
                 float angle = 360f / (float)participatingPlayerCount;
-                Vector3 vector = Quaternion.AngleAxis((float)UnityEngine.Random.Range(0, 360), Vector3.up) * (Vector3.up * 40f + Vector3.forward * 5f);
+                //Vector3 vector = Quaternion.AngleAxis((float)UnityEngine.Random.Range(0, 360), Vector3.up) * (Vector3.up * 40f + Vector3.forward * 5f);
                 var chestVelocity = Vector3.up * self.dropUpVelocityStrength + self.dropTransform.forward * self.dropForwardVelocityStrength;
                 Quaternion rotation = Quaternion.AngleAxis(angle, Vector3.up);
                 int i = 0;

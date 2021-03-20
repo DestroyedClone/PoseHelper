@@ -20,6 +20,7 @@ namespace StageVariantsPlus
         private List<Collider> previousColliderList = new List<Collider>();
         private float resetStopwatch = 3f;
         public float orbResetListFrequency;
+        public float splashSpeed = 3f;
 
 
         public void FixedUpdate()
@@ -42,10 +43,13 @@ namespace StageVariantsPlus
             {
                 if (characterBody.characterMotor)
                 {
-                    if (characterBody.characterMotor.velocity)
+                    Chat.AddMessage("Fall speed" + characterBody.characterMotor.velocity.y);
+                    if (Mathf.Abs(characterBody.characterMotor.velocity.y) >= splashSpeed)
+                    {
+                        PlayEffect(characterBody);
+                    }
                 }
             }
-                PlayEffect(characterBody);
         }
 
         public void OnTriggerStay(Collider other)
