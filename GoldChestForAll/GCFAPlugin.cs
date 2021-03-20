@@ -23,7 +23,7 @@ namespace GoldChestForAll
 
         public void Awake()
         {
-            CostMultiplier = Config.Bind("Default", "Gold Chest Cost Multiplier", 1.25f, "Multiply the costs of gold chests. Intended for balance, but you can just set it to '1' if you want it unchanged.");
+            CostMultiplier = Config.Bind("Default", "Gold Chest Cost Multiplier", 1.00f, "Multiply the costs of gold chests. Intended for balance, but you can just set it to '1' if you want it unchanged.");
 
             On.RoR2.ChestBehavior.ItemDrop += DuplicateDrops;
 
