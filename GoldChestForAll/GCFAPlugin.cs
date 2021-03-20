@@ -33,6 +33,11 @@ namespace GoldChestForAll
         //override because i dunno IL
         private void DuplicateDrops(On.RoR2.ChestBehavior.orig_ItemDrop orig, ChestBehavior self)
         {
+            if (self.tier3Chance != 1)
+            {
+                orig(self);
+                return;
+            }
             if (!NetworkServer.active)
             {
                 Debug.LogWarning("[Server] function 'System.Void RoR2.ChestBehavior::ItemDrop()' called on client");

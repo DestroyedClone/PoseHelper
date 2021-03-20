@@ -39,6 +39,12 @@ namespace StageVariantsPlus
         {
             CharacterBody characterBody = other.GetComponent<CharacterBody>();
             if (characterBody)
+            {
+                if (characterBody.characterMotor)
+                {
+                    if (characterBody.characterMotor.velocity)
+                }
+            }
                 PlayEffect(characterBody);
         }
 

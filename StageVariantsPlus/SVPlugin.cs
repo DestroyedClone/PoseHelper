@@ -18,7 +18,7 @@ namespace StageVariantsPlus
 
         public void Awake()
         {
-            GooLakeFilled = Config.Bind("Default", "Filled Goo Lake", 50f, "Fills a channel of the map with goo.");
+            GooLakeFilled = Config.Bind("Default", "Filled Goo Lake Chance", 50f, "Fills a channel of the map with goo.");
 
             On.RoR2.SceneDirector.Start += ChooseSceneToModify;
             On.RoR2.EffectCatalog.Init += MakeGooEnd;
@@ -27,9 +27,9 @@ namespace StageVariantsPlus
         private void MakeGooEnd(On.RoR2.EffectCatalog.orig_Init orig)
         {
             orig();
-            LandInGoo = Resources.Load<GameObject>("prefabs/effects/impacteffects/LandInGoo");
-            var particleDestroyer = LandInGoo.AddComponent<DestroyOnParticleEnd>();
-            particleDestroyer.ps = LandInGoo.transform.Find("ForwardDust").GetComponent<ParticleSystem>();
+            //LandInGoo = Resources.Load<GameObject>("prefabs/effects/impacteffects/LandInGoo");
+            //var particleDestroyer = LandInGoo.AddComponent<DestroyOnParticleEnd>();
+            //particleDestroyer.ps = LandInGoo.transform.Find("ForwardDust").GetComponent<ParticleSystem>();
         }
 
         private void ChooseSceneToModify(On.RoR2.SceneDirector.orig_Start orig, SceneDirector self)
