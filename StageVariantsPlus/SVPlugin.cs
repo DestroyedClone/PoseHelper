@@ -10,7 +10,7 @@ namespace StageVariantsPlus
 {
     [BepInPlugin("com.DestroyedClone.StageVariantsPlus", "Stage Variants Plus", "1.0.0")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
-    [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
+    [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.EveryoneNeedSameModVersion)]
     public class SVPlugin : BaseUnityPlugin
     {
         public static ConfigEntry<float> GooLakeFilled { get; set; }
@@ -43,13 +43,13 @@ namespace StageVariantsPlus
                 case "goolake":
                     if (Util.CheckRoll(GooLakeFilled.Value))
                     {
-                        ModifyGooLake();
+                        FillGooLake();
                     }
                     break;
             }
         }
 
-        private void ModifyGooLake()
+        private void FillGooLake()
         {
             var miscprops = GameObject.Find("HOLDER: Misc Props");
             var gooplane = miscprops.transform.Find("GooPlane");
