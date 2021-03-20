@@ -1,4 +1,5 @@
 ﻿using BepInEx;
+using BepInEx.Configuration;
 using UnityEngine;
 using RoR2;
 using R2API.Utils;
@@ -18,9 +19,31 @@ namespace GoldChestForAll
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
     public class GCFAPlugin : BaseUnityPlugin
     {
+        public static ConfigEntry<float> CostMultiplier { get; set; }
+
         public void Awake()
         {
+            CostMultiplier = Config.Bind("Default", "Gold Chest Cost Multiplier", 1.25f, "Multiply the costs of gold chests. Intended for balance, but you can just set it to '1' if you want it unchanged.");
+
             On.RoR2.ChestBehavior.ItemDrop += DuplicateDrops;
+
+            if (CostMultiplier.Value != 1f)
+            {
+                On.RoR2.PurchaseInteraction.Awake += MultiplyChestCost;
+            }
+        }
+
+        private void MultiplyChestCost(On.RoR2.PurchaseInteraction.orig_Awake orig, PurchaseInteraction self)
+        {
+            var chest = self.GetComponent<ChestBehavior>();
+
+            if (chest && chest.tier3Chance == 1f)
+            {
+                var ResultAmt = (int)Mathf.Ceil(self.cost * CostMultiplier.Value);
+                self.cost = ResultAmt;
+                self.Networkcost = ResultAmt;
+            }
+            orig(self);
         }
 
         //override because i dunno IL
