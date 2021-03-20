@@ -49,6 +49,8 @@ namespace StageVariantsPlus
             debuffZonePlus.buffType = debuffZone.buffType;
             debuffZonePlus.orbResetListFrequency = debuffZonePlus.buffDuration;
             UnityEngine.Object.Destroy(debuffZone);
+
+            gooplanehigh.gameObject.SetActive(true);
         }
 
     }
