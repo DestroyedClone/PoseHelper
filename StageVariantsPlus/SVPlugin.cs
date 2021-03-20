@@ -25,14 +25,14 @@ namespace StageVariantsPlus
         private void ChooseSceneToModify(On.RoR2.SceneDirector.orig_Start orig, SceneDirector self)
         {
             orig(self);
-
-
-            if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "goolake")
+            switch (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name)
             {
-                if (Util.CheckRoll(GooLakeFilled.Value))
-                {
-                    ModifyGooLake();
-                }
+                case "goolake":
+                    if (Util.CheckRoll(GooLakeFilled.Value))
+                    {
+                        ModifyGooLake();
+                    }
+                    break;
             }
         }
 
