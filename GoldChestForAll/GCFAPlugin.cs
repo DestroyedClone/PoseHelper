@@ -42,8 +42,7 @@ namespace GoldChestForAll
             }
 
             int participatingPlayerCount = Run.instance.participatingPlayerCount != 0 ? Run.instance.participatingPlayerCount : 1;
-            float angle = 360f / (float)participatingPlayerCount;
-            //Vector3 vector = Quaternion.AngleAxis((float)UnityEngine.Random.Range(0, 360), Vector3.up) * (Vector3.up * 40f + Vector3.forward * 5f);
+            float angle = 360f / participatingPlayerCount;
             var chestVelocity = Vector3.up * self.dropUpVelocityStrength + self.dropTransform.forward * self.dropForwardVelocityStrength;
             Quaternion rotation = Quaternion.AngleAxis(angle, Vector3.up);
             int i = 0;
@@ -53,7 +52,6 @@ namespace GoldChestForAll
                 i++;
                 chestVelocity = rotation * chestVelocity;
             }
-            //PickupDropletController.CreatePickupDroplet(self.dropPickup, self.dropTransform.position + Vector3.up * 1.5f, velocity);
             self.dropPickup = PickupIndex.none;
         }
     }
