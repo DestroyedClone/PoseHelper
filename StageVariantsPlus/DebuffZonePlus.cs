@@ -21,7 +21,7 @@ namespace StageVariantsPlus
         private float resetStopwatch = 3f;
         public float orbResetListFrequency;
         [Tooltip("The speed the player needs to enter at to cause the splash effect.")]
-        public float splashSpeed = 3f;
+        public float splashSpeed = 0.5f;
 
 
         public void FixedUpdate()
