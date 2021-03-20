@@ -66,7 +66,9 @@ namespace SurvivorTaunts
                 Debug.Log("entitystatemachine");
                 outer = this.gameObject.GetComponent<EntityStateMachine>();
                 Debug.Log("survivorindex");
-                survivorIndex = SurvivorCatalog.FindSurvivorIndex(Language.GetString(characterBody.baseNameToken));
+                survivorIndex = SurvivorCatalog.GetSurvivorIndexFromBodyIndex(characterBody.bodyIndex);
+
+                if ((int)survivorIndex == -1) Debug.LogWarning("SurvivorIndex is at -1, may cause errors.");
             }
 
             public void Update()
