@@ -54,7 +54,6 @@ namespace StageVariantsPlus
 
         private void ApplyDebuff(CharacterBody characterBody)
         {
-            characterBody.AddTimedBuff(this.buffType, this.buffDuration);
             if (!characterBody.HasBuff(this.buffType))
             {
                 Util.PlaySound(this.buffApplicationSoundString, characterBody.gameObject);
@@ -67,6 +66,7 @@ namespace StageVariantsPlus
                     }, true);
                 }
             }
+            characterBody.AddTimedBuff(this.buffType, this.buffDuration);
         }
     }
 }
