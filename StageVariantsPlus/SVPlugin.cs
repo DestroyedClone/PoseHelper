@@ -20,6 +20,8 @@ namespace StageVariantsPlus
         {
             GooLakeFilled = Config.Bind("Abandoned Aqueduct", "Filled Goo Lake Chance", 50f, "Fills a channel of the map with goo that inflicts the ClayGoo debuff.");
 
+            On.RoR2.Networking.GameNetworkManager.OnClientConnect += (self, user, t) => { };
+
             On.RoR2.SceneDirector.Start += ChooseSceneToModify;
             On.RoR2.EffectCatalog.Init += MakeGooEnd;
         }
@@ -63,7 +65,7 @@ namespace StageVariantsPlus
             debuffZonePlus.buffApplicationEffectPrefab = debuffZone.buffApplicationEffectPrefab;
             debuffZonePlus.buffApplicationSoundString = debuffZone.buffApplicationSoundString;
             debuffZonePlus.buffDuration = debuffZone.buffDuration;
-            debuffZonePlus.buffType = debuffZone.buffType;
+            //debuffZonePlus.buffType = debuffZone.buffType;
             debuffZonePlus.orbResetListFrequency = debuffZonePlus.buffDuration;
             UnityEngine.Object.Destroy(debuffZone);
 
