@@ -49,25 +49,19 @@ namespace ForcedStageVariation
         private void Run_Awake(On.RoR2.Run.orig_Awake orig, Run self)
         {
             orig(self);
-            self.gameObject.AddComponent<FSVNetworkSync>();
-        }
-
-        private void ModifyScene(On.RoR2.SceneDirector.orig_Start orig, SceneDirector self)
-        {
-            orig(self);
+            FSVNetworkSync f = self.gameObject.AddComponent<FSVNetworkSync>();
             if (NetworkServer.active)
             {
-                FSVNetworkSync f = Run.instance.GetComponent<FSVNetworkSync>();
-                if (!f)
-                {
-                    f = Run.instance.gameObject.AddComponent<FSVNetworkSync>();
-                }
-
                 f.rootJungleTreasureChests = RootJungleTreasureChests.Value;
                 f.rootJungleTunnelLandmass = RootJungleTunnelLandmass.Value;
                 f.rootJungleHeldRocks = RootJungleHeldRocks.Value;
                 f.rootJungleUndergroundShortcut = RootJungleUndergroundShortcut.Value;
             }
+        }
+
+        private void ModifyScene(On.RoR2.SceneDirector.orig_Start orig, SceneDirector self)
+        {
+            orig(self);
             switch (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name)
             {
                 case "rootjungle":
@@ -89,7 +83,7 @@ namespace ForcedStageVariation
             Debug.Log("Forced Stage Variation: Syncing randomization to host!");
             var randoHolder = GameObject.Find("HOLDER: Randomization").transform;
 
-            if (f.rootJungleTreasureChests != -1)
+            if (f.rootJungleTreasureChests > -1)
             {
                 var chestHolder = randoHolder.Find("GROUP: Large Treasure Chests");
                 foreach (Transform child in chestHolder)
@@ -100,23 +94,28 @@ namespace ForcedStageVariation
                 {
                     case 0:
                         chestHolder.Find("CHOICE: Root Bridge Front Chest").gameObject.SetActive(true);
+                        Debug.Log("A0");
                         break;
                     case 1:
                         chestHolder.Find("CHOICE: Mushroom Cave Chest").gameObject.SetActive(true);
+                        Debug.Log("A1");
                         break;
                     case 2:
                         chestHolder.Find("CHOICE: Treehouse Hole").gameObject.SetActive(true);
+                        Debug.Log("A2");
                         break;
                     case 3:
                         chestHolder.Find("CHOICE: Triangle Cave").gameObject.SetActive(true);
+                        Debug.Log("A3");
                         break;
                     case 4:
                         chestHolder.Find("CHOICE: Downed Tree Roots").gameObject.SetActive(true);
+                        Debug.Log("A4");
                         break;
                 }
             }
 
-            if (f.rootJungleTunnelLandmass != -1)
+            if (f.rootJungleTunnelLandmass > -1)
             {
                 var landmassHolder = randoHolder.Find("GROUP: Tunnel Landmass");
                 foreach (Transform child in landmassHolder)
@@ -127,14 +126,16 @@ namespace ForcedStageVariation
                 {
                     case 0:
                         landmassHolder.Find("CHOICE: Tunnel Landmass").gameObject.SetActive(true);
+                        Debug.Log("B0");
                         break;
                     case 1:
                         landmassHolder.Find("CHOICE: NO Tunnel Landmass").gameObject.SetActive(true);
+                        Debug.Log("B1");
                         break;
                 }
             }
 
-            if (f.rootJungleHeldRocks != -1)
+            if (f.rootJungleHeldRocks > -1)
             {
                 var rockHolder = randoHolder.Find("GROUP: Held Rocks");
                 foreach (Transform child in rockHolder)
@@ -145,14 +146,16 @@ namespace ForcedStageVariation
                 {
                     case 0:
                         rockHolder.Find("CHOICE: Held Rock").gameObject.SetActive(true);
+                        Debug.Log("C0");
                         break;
                     case 1:
                         rockHolder.Find("CHOICE: Split Rock").gameObject.SetActive(true);
+                        Debug.Log("C1");
                         break;
                 }
             }
 
-            if (f.rootJungleUndergroundShortcut != -1)
+            if (f.rootJungleUndergroundShortcut > -1)
             {
                 var shortcutHolder = randoHolder.Find("GROUP: Underground Shortcut");
                 foreach (Transform child in shortcutHolder)
@@ -163,9 +166,11 @@ namespace ForcedStageVariation
                 {
                     case 0:
                         shortcutHolder.Find("CHOICE: Open").gameObject.SetActive(true);
+                        Debug.Log("D0");
                         break;
                     case 1:
                         shortcutHolder.Find("CHOICE: Closed").gameObject.SetActive(true);
+                        Debug.Log("D1");
                         break;
                 }
             }
