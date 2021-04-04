@@ -1,12 +1,13 @@
 ﻿using BepInEx;
-using R2API.Utils;
+//using R2API.Utils;
+//using EnigmaticThunder;
 using RoR2;
 using UnityEngine;
 
 namespace MoonToOutro
 {
     [BepInPlugin("com.DestroyedClone.MoonToOutro", "Immediate Moon To Outro", "1.0.0")]
-    [R2APISubmoduleDependency(nameof(CommandHelper))]
+    //[R2APISubmoduleDependency(nameof(CommandHelper))]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     public class Plugin : BaseUnityPlugin
     {

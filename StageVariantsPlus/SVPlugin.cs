@@ -2,15 +2,16 @@
 using BepInEx.Configuration;
 using UnityEngine;
 using RoR2;
-using R2API.Utils;
+//using R2API.Utils;
+using EnigmaticThunder;
 using System.Collections.Generic;
 using UnityEngine.Networking;
 
 namespace StageVariantsPlus
 {
     [BepInPlugin("com.DestroyedClone.StageVariantsPlus", "Stage Variants Plus", "1.0.0")]
-    [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
-    [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.EveryoneNeedSameModVersion)]
+    //[BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
+    //[NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.EveryoneNeedSameModVersion)]
     public class SVPlugin : BaseUnityPlugin
     {
         public static ConfigEntry<float> GooLakeFilled { get; set; }
@@ -23,7 +24,16 @@ namespace StageVariantsPlus
             On.RoR2.Networking.GameNetworkManager.OnClientConnect += (self, user, t) => { };
 
             On.RoR2.SceneDirector.Start += ChooseSceneToModify;
-            On.RoR2.EffectCatalog.Init += MakeGooEnd;
+            //On.RoR2.EffectCatalog.Init += MakeGooEnd;
+
+            On.RoR2.Run.Awake += Run_Awake;
+        }
+
+        private void Run_Awake(On.RoR2.Run.orig_Awake orig, Run self)
+        {
+            orig(self);
+
+            var sinker = self.gameObject.AddComponent<SyncStageChanges>();
         }
 
         private void MakeGooEnd(On.RoR2.EffectCatalog.orig_Init orig)

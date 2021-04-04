@@ -28,6 +28,9 @@
 		<Reference Include="BetterUI">
 			<HintPath>..\PoseHelper\lib\BetterUI.dll</HintPath>
 		</Reference>
+		<Reference Include="EnigmaticThunder">
+		  <HintPath>..\PoseHelper\lib\EnigmaticThunder.dll</HintPath>
+		</Reference>
 		<Reference Include="HGCSharpUtils">
 			<HintPath>..\PoseHelper\lib\HGCSharpUtils.dll</HintPath>
 		</Reference>
