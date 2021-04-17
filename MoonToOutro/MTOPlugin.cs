@@ -24,7 +24,7 @@ namespace MoonToOutro
                 UnityEngine.Object.FindObjectOfType<EscapeSequenceController>().CompleteEscapeSequence();
         }
 
-        [ConCommand(commandName = "skipmoon", flags = ConVarFlags.ExecuteOnServer, helpText = "Immediately completes Commencement to properly head to the outro quickly. Must be used mid-run.")]
+        [ConCommand(commandName = "skipmoon_old", flags = ConVarFlags.ExecuteOnServer, helpText = "Immediately completes Commencement to properly head to the outro quickly. Must be used mid-run.")]
         private static void MyCommandName(ConCommandArgs args)
         {
             args.senderMasterObject.AddComponent<ApprovedToSkipOutro>();
