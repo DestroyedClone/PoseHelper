@@ -56,11 +56,37 @@ namespace AutoUseEquipmentDrones
             On.RoR2.ChestRevealer.Init += GetAllowedTypes;
 
             //On.RoR2.CharacterAI.BaseAI.FixedUpdate += BaseAIOverride;
-            On.EntityStates.GoldGat.GoldGatIdle.FixedUpdate += FixedGoldGat;
+            //On.EntityStates.GoldGat.GoldGatIdle.FixedUpdate += FixedGoldGat;
             On.RoR2.ItemCatalog.Init += CacheWhitelistedItems;
             On.RoR2.EquipmentCatalog.Init += CacheWhitelistedEquipment;
             On.RoR2.PickupCatalog.Init += CachePickupIndices;
+            //On.RoR2.CharacterAI.BaseAI.UpdateBodyAim += BaseAI_UpdateBodyAim;
         }
+
+        private void BaseAI_UpdateBodyAim(On.RoR2.CharacterAI.BaseAI.orig_UpdateBodyAim orig, BaseAI self, float deltaTime)
+        {
+            if (self.body.bodyIndex != EquipmentDroneBodyIndex && self.body.equipmentSlot.equipmentIndex == RoR2Content.Equipment.Recycle.equipmentIndex)
+            {
+                orig(self, deltaTime);
+                return;
+            }
+            self.hasAimConfirmation = false;
+            if (self.bodyInputBank)
+            {
+                Vector3 aimDirection = self.bodyInputBank.aimDirection;
+                Vector3 desiredAimDirection = self.bodyInputs.desiredAimDirection;
+                if (desiredAimDirection != Vector3.zero)
+                {
+
+
+                    Quaternion target = Util.QuaternionSafeLookRotation(desiredAimDirection);
+                    Vector3 vector = Util.SmoothDampQuaternion(Util.QuaternionSafeLookRotation(aimDirection), target, ref self.aimVelocity, self.aimVectorDampTime, self.aimVectorMaxSpeed, deltaTime) * Vector3.forward;
+                    self.bodyInputBank.aimDirection = vector;
+                    self.hasAimConfirmation = (Vector3.Dot(vector, desiredAimDirection) >= 0.95f);
+                }
+            }
+        }
+
 
         private void CachePickupIndices(On.RoR2.PickupCatalog.orig_Init orig)
         {
@@ -80,6 +106,7 @@ namespace AutoUseEquipmentDrones
         private void CacheWhitelistedItems(On.RoR2.ItemCatalog.orig_Init orig)
         {
             orig();
+            Debug.Log("Caching whitelisted items for Recycler.");
             var testStringArray = Recycler_Items.Value.Split(',');
             if (testStringArray.Length > 0)
             {
@@ -87,6 +114,7 @@ namespace AutoUseEquipmentDrones
                 {
                     if (ItemCatalog.FindItemIndex(stringToTest) == ItemIndex.None) { continue; }
                     allowedItemIndices.Add(ItemCatalog.FindItemIndex(stringToTest));
+                    Debug.Log("Adding whitelisted item: "+ stringToTest);
                 }
             }
         }
@@ -94,6 +122,7 @@ namespace AutoUseEquipmentDrones
         private void CacheWhitelistedEquipment(On.RoR2.EquipmentCatalog.orig_Init orig)
         {
             orig();
+            Debug.Log("Caching whitelisted EQUIPMENT for Recycler.");
             var testStringArray = Recycler_Equipment.Value.Split(',');
             if (testStringArray.Length > 0)
             {
@@ -101,6 +130,7 @@ namespace AutoUseEquipmentDrones
                 {
                     if (EquipmentCatalog.FindEquipmentIndex(stringToTest) == EquipmentIndex.None) { continue; }
                     allowedEquipmentIndices.Add(EquipmentCatalog.FindEquipmentIndex(stringToTest));
+                    Debug.Log("Adding whitelisted equipment: " + stringToTest);
                 }
             }
         }
@@ -119,108 +149,6 @@ namespace AutoUseEquipmentDrones
             }
         }
 
-        private void BaseAIOverride(On.RoR2.CharacterAI.BaseAI.orig_FixedUpdate orig, BaseAI self)
-        {
-            if (self.GetComponent<CharacterBody>()?.bodyIndex != EquipmentDroneBodyIndex)
-            {
-                orig(self);
-                return;
-            }
-            self.enemyAttention -= Time.fixedDeltaTime;
-            if (self.currentEnemy.characterBody && self.body && self.currentEnemy.characterBody.GetVisibilityLevel(self.body) < VisibilityLevel.Revealed)
-            {
-                self.currentEnemy.Reset();
-            }
-            if (self.pendingPath != null && self.pendingPath.status == PathTask.TaskStatus.Complete)
-            {
-                self.pathFollower.SetPath(self.pendingPath.path);
-                self.pendingPath.path.Dispose();
-                self.pendingPath = null;
-            }
-            if (self.body)
-            {
-                self.targetRefreshTimer -= Time.fixedDeltaTime;
-                self.skillDriverUpdateTimer -= Time.fixedDeltaTime;
-                if (self.skillDriverUpdateTimer <= 0f)
-                {
-                    if (self.skillDriverEvaluation.dominantSkillDriver)
-                    {
-                        self.selectedSkilldriverName = self.skillDriverEvaluation.dominantSkillDriver.customName;
-                        if (self.skillDriverEvaluation.dominantSkillDriver.resetCurrentEnemyOnNextDriverSelection)
-                        {
-                            self.currentEnemy.Reset();
-                            self.targetRefreshTimer = 0f;
-                        }
-                    }
-                    if (!self.currentEnemy.gameObject && self.targetRefreshTimer <= 0f)
-                    {
-                        self.targetRefreshTimer = 0.5f;
-                        HurtBox hurtBox = self.FindEnemyHurtBox(float.PositiveInfinity, self.fullVision, true);
-                        if (hurtBox && hurtBox.healthComponent)
-                        {
-                            self.currentEnemy.gameObject = hurtBox.healthComponent.gameObject;
-                            self.currentEnemy.bestHurtBox = hurtBox;
-                        }
-                        if (self.currentEnemy.gameObject)
-                        {
-                            self.enemyAttention = self.enemyAttentionDuration;
-                        }
-                    }
-                    self.BeginSkillDriver(self.EvaluateSkillDrivers());
-                }
-            }
-            self.PickCurrentNodeGraph();
-            if (self.bodyInputBank)
-            {
-                bool newState = false;
-                bool newState2 = false;
-                if (self.skillDriverEvaluation.dominantSkillDriver)
-                {
-                    AISkillDriver.AimType aimType = self.skillDriverEvaluation.dominantSkillDriver.aimType;
-                    if (aimType != AISkillDriver.AimType.None)
-                    {
-                        BaseAI.Target target = null;
-                        switch (aimType)
-                        {
-                            case AISkillDriver.AimType.AtMoveTarget:
-                                target = self.skillDriverEvaluation.target;
-                                break;
-                            case AISkillDriver.AimType.AtCurrentEnemy:
-                                target = self.currentEnemy;
-                                break;
-                            case AISkillDriver.AimType.AtCurrentLeader:
-                                target = self.leader;
-                                break;
-                        }
-                        if (target != null)
-                        {
-                            if (target.GetBullseyePosition(out Vector3 a))
-                            {
-                                self.desiredAimDirection = (a - self.bodyInputBank.aimOrigin).normalized;
-                            }
-                            newState = (self.skillDriverEvaluation.dominantSkillDriver.shouldFireEquipment && !self.bodyInputBank.activateEquipment.down);
-                        }
-                        else if (self.bodyInputBank.moveVector != Vector3.zero)
-                        {
-                            self.desiredAimDirection = self.bodyInputBank.moveVector;
-                        }
-                    }
-                    newState2 = self.skillDriverEvaluation.dominantSkillDriver.shouldSprint;
-                }
-                self.bodyInputBank.activateEquipment.PushState(newState);
-                self.bodyInputBank.sprint.PushState(newState2);
-                Vector3 aimDirection = self.bodyInputBank.aimDirection;
-                Vector3 eulerAngles = Util.QuaternionSafeLookRotation(self.desiredAimDirection).eulerAngles;
-                Vector3 eulerAngles2 = Util.QuaternionSafeLookRotation(aimDirection).eulerAngles;
-                float fixedDeltaTime = Time.fixedDeltaTime;
-                float x = Mathf.SmoothDampAngle(eulerAngles2.x, eulerAngles.x, ref self.aimVelocity.x, self.aimVectorDampTime, self.aimVectorMaxSpeed, fixedDeltaTime);
-                float y = Mathf.SmoothDampAngle(eulerAngles2.y, eulerAngles.y, ref self.aimVelocity.y, self.aimVectorDampTime, self.aimVectorMaxSpeed, fixedDeltaTime);
-                float z = Mathf.SmoothDampAngle(eulerAngles2.z, eulerAngles.z, ref self.aimVelocity.z, self.aimVectorDampTime, self.aimVectorMaxSpeed, fixedDeltaTime);
-                self.bodyInputBank.aimDirection = Quaternion.Euler(x, y, z) * Vector3.forward;
-                self.hasAimConfirmation = (Vector3.Dot(self.bodyInputBank.aimDirection, self.desiredAimDirection) >= 0.95f);
-            }
-            self.debugEnemyHurtBox = self.currentEnemy.bestHurtBox;
-        }
 
         private void GetAllowedTypes(On.RoR2.ChestRevealer.orig_Init orig)
         {
@@ -247,7 +175,7 @@ namespace AutoUseEquipmentDrones
             // If there are enemies alive, use.
             if (match(RoR2Content.Equipment.CommandMissile) || match(RoR2Content.Equipment.Meteor))
             {
-                forceActive = CheckForEnemies(enemyTeamIndex);
+                forceActive = CheckForAlive(enemyTeamIndex);
             }
             // Priority Target
             // Prioritizes a certain enemy rather than firing blindly
@@ -329,11 +257,13 @@ namespace AutoUseEquipmentDrones
             }
         }
 
-        private bool CheckForEnemies(TeamIndex teamIndex)
+        private bool CheckForAlive(TeamIndex teamIndex)
         {
             ReadOnlyCollection<TeamComponent> teamComponents = TeamComponent.GetTeamMembers(teamIndex);
             return teamComponents.Count > 0;
         }
+
+
 
         private void ActivateWhenReady(EquipmentSlot equipmentSlot)
         {
@@ -376,7 +306,7 @@ namespace AutoUseEquipmentDrones
 
         private bool CheckForDebuffs(CharacterBody characterBody) //try hooking addbuff instead?
         {
-            BuffIndex buffIndex = BuffIndex.Slow50;
+            BuffIndex buffIndex = (BuffIndex)0;
             BuffIndex buffCount = (BuffIndex)BuffCatalog.buffCount;
             while (buffIndex < buffCount)
             {
