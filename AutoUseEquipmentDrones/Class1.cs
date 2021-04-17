@@ -228,6 +228,7 @@ namespace AutoUseEquipmentDrones
             allowedTypesToScan = ChestRevealer.typesToCheck;
         }
 
+
         private void EquipmentSlot_FixedUpdate(On.RoR2.EquipmentSlot.orig_FixedUpdate orig, EquipmentSlot self)
         {
             orig(self);
@@ -237,73 +238,89 @@ namespace AutoUseEquipmentDrones
             TeamIndex enemyTeamIndex = self.teamComponent.teamIndex == TeamIndex.Player ? TeamIndex.Monster : TeamIndex.Player;
             bool forceActive = false;
 
-            switch (self.equipmentIndex)
+            bool match(EquipmentDef equipmentDef)
             {
-                // Enemy On Map
-                // If there are enemies alive, use.
-                case RoR2Content.Equipment.CommandMissile.equipmentIndex:
-                case Meteor:
-                    forceActive = CheckForEnemies(enemyTeamIndex);
-                    break;
-                // Priority Target
-                // Prioritizes a certain enemy rather than firing blindly
-                // Overrides BaseAI
-                case Blackhole:
-                case BFG:
-                case Lightning:
-                case CrippleWard:
-                    break;
-                // Evade or Aggro
-                // Attempts to draw enemy attention
-                case Jetpack: // spam jump
-                    ForceJump(baseAI);
-                    break;
-                case GainArmor: //runs away in a radisu
-                    break;
-                case Tonic:
-                    break;
-                //Custom Logic
-                case GoldGat: //Forced Equipment State and money
-                    uint num2 = (uint)((float)GoldGatFire.baseMoneyCostPerBullet * (1f + (TeamManager.instance.GetTeamLevel(self.characterBody.master.teamIndex) - 1f) * 0.25f));
-                    self.characterBody.master.money = num2*60;
-                    break;
-                case PassiveHealing: //Target damaged ally
-                    break;
-                case Gateway: // Target Interactables or nearby if damaged
-                    break;
-                case Cleanse: //Activate if debuffed
-                    forceActive = CheckForDebuffs(self.characterBody);
-                    break;
-                case Saw: //get close
-                    break;
-                case Recycle: //look at polyp
-                    //self.UpdateTargets();
-                    GenericPickupController pickupController = self.currentTarget.pickupController;
-                    if (!pickupController || pickupController.Recycled)
-                    {
-                        break;
-                    }
-                    PickupIndex initialPickupIndex = pickupController.pickupIndex;
-                    if (allowedPickupIndices.Contains(initialPickupIndex))
-                    {
-                        forceActive = true;
-                    }
-                    break;
+                return self.equipmentIndex == equipmentDef.equipmentIndex;
+            }
 
-                //Health Requirement
-                case Fruit:
-                    forceActive = self.healthComponent?.health <= self.healthComponent?.fullHealth * 0.5f;
-                    break;
-                //Chase Priority
-                case BurnNearby:
-                case QuestVolatileBattery:
-                    break;
-                //(FireBallDash)
+            // Enemy On Map
+            // If there are enemies alive, use.
+            if (match(RoR2Content.Equipment.CommandMissile) || match(RoR2Content.Equipment.Meteor))
+            {
+                forceActive = CheckForEnemies(enemyTeamIndex);
+            }
+            // Priority Target
+            // Prioritizes a certain enemy rather than firing blindly
+            // Overrides BaseAI
+            else if (match(RoR2Content.Equipment.Blackhole) || match(RoR2Content.Equipment.BFG) || match(RoR2Content.Equipment.Lightning) || match(RoR2Content.Equipment.CrippleWard))
+            {
 
-                //Valid interactables
-                case Scanner:
-                    forceActive = CheckForInteractables();
-                    break;
+            }
+
+            // Evade or Aggro
+            // Attempts to draw enemy attention
+            else if (match(RoR2Content.Equipment.Jetpack)) //Spam Jump
+            {
+
+            }
+            else if (match(RoR2Content.Equipment.GainArmor)) //Kite
+            {
+
+            }
+            else if (match(RoR2Content.Equipment.Tonic)) //Kite
+            {
+
+            }
+            // Custom
+            else if (match(RoR2Content.Equipment.GoldGat))
+            {
+                uint num2 = (uint)((float)GoldGatFire.baseMoneyCostPerBullet * (1f + (TeamManager.instance.GetTeamLevel(self.characterBody.master.teamIndex) - 1f) * 0.25f));
+                self.characterBody.master.money = num2 * 60;
+            }
+            else if (match(RoR2Content.Equipment.PassiveHealing)) //Target damaged ally, or self 
+            {
+
+            }
+            else if (match(RoR2Content.Equipment.Gateway)) // Target Interactables or nearby if damaged
+            {
+
+            }
+            else if (match(RoR2Content.Equipment.Cleanse))
+            {
+                forceActive = CheckForDebuffs(self.characterBody);
+            }
+            else if (match(RoR2Content.Equipment.Saw))//get close
+            {
+
+            }
+            else if (match(RoR2Content.Equipment.Recycle))
+            {
+                GenericPickupController pickupController = self.currentTarget.pickupController;
+                if (!pickupController || pickupController.Recycled)
+                {
+                    //break
+                }
+                PickupIndex initialPickupIndex = pickupController.pickupIndex;
+                if (allowedPickupIndices.Contains(initialPickupIndex))
+                {
+                    forceActive = true;
+                }
+                //break;
+            }
+            else if (match(RoR2Content.Equipment.Fruit))
+            {
+                forceActive = self.healthComponent?.health <= self.healthComponent?.fullHealth * 0.5f;
+            }
+            // chase
+            // fireball dash already done
+            else if (match(RoR2Content.Equipment.BurnNearby) || match(RoR2Content.Equipment.QuestVolatileBattery))
+            {
+
+            }
+            // valid interactables
+            else if (match(RoR2Content.Equipment.Scanner))
+            {
+                forceActive = CheckForInteractables();
             }
 
             if (forceActive)
