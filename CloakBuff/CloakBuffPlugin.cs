@@ -21,52 +21,53 @@ namespace CloakBuff
         public void Awake()
         {
             On.RoR2.UI.CombatHealthBarViewer.VictimIsValid += CombatHealthBarViewer_VictimIsValid;
-            On.RoR2.PingerController.GeneratePingInfo += PingerController_GeneratePingInfo;
-        }
+            On.RoR2.Util.HandleCharacterPhysicsCastResults += Util_HandleCharacterPhysicsCastResults;
 
-        private bool PingerController_GeneratePingInfo(On.RoR2.PingerController.orig_GeneratePingInfo orig, Ray aimRay, GameObject bodyObject, out PingerController.PingInfo result)
+		}
+
+        private bool Util_HandleCharacterPhysicsCastResults(On.RoR2.Util.orig_HandleCharacterPhysicsCastResults orig, GameObject bodyObject, Ray ray, RaycastHit[] hits, out RaycastHit hitInfo)
         {
-			result = new PingerController.PingInfo
+			int num = -1;
+			float num2 = float.PositiveInfinity;
+			for (int i = 0; i < hits.Length; i++)
 			{
-				active = true,
-				origin = Vector3.zero,
-				normal = Vector3.zero,
-				targetNetworkIdentity = null
-			};
-            aimRay = CameraRigController.ModifyAimRayIfApplicable(aimRay, bodyObject, out float num);
-            float maxDistance = 1000f + num;
-			if (Util.CharacterRaycast(bodyObject, aimRay, out RaycastHit raycastHit, maxDistance, LayerIndex.entityPrecise.mask | LayerIndex.world.mask, QueryTriggerInteraction.UseGlobal))
-			{
-				HurtBox component = raycastHit.collider.GetComponent<HurtBox>();
-				if (component && component.healthComponent && !component.healthComponent.body.hasCloakBuff)
+				float distance = hits[i].distance;
+				if (distance < num2)
 				{
-					CharacterBody body = component.healthComponent.body;
-					result.origin = body.corePosition;
-					result.normal = Vector3.zero;
-					result.targetNetworkIdentity = body.networkIdentity;
-					return true;
-				}
-			}
-			if (Util.CharacterRaycast(bodyObject, aimRay, out raycastHit, maxDistance, LayerIndex.world.mask | LayerIndex.defaultLayer.mask | LayerIndex.pickups.mask, QueryTriggerInteraction.Collide))
-			{
-				GameObject gameObject = raycastHit.collider.gameObject;
-				NetworkIdentity networkIdentity = gameObject.GetComponentInParent<NetworkIdentity>();
-				if (!networkIdentity)
-				{
-					Transform parent = gameObject.transform.parent;
-					EntityLocator entityLocator = parent ? parent.GetComponentInChildren<EntityLocator>() : gameObject.GetComponent<EntityLocator>();
-					if (entityLocator)
+					HurtBox hurtBox = hits[i].collider.GetComponent<HurtBox>();
+					if (hurtBox)
 					{
-						gameObject = entityLocator.entity;
-						networkIdentity = gameObject.GetComponent<NetworkIdentity>();
+						HealthComponent healthComponent = hurtBox.healthComponent;
+						if (healthComponent)
+						{
+							if (healthComponent.gameObject == bodyObject)
+								goto IL_82;
+							else if (!healthComponent.body.hasCloakBuff)
+                            {
+								goto IL_skip;
+                            }
+						}
 					}
+					if (distance == 0f)
+					{
+						hitInfo = hits[i];
+						hitInfo.point = ray.origin;
+						return true;
+					}
+				IL_skip:;
+					num = i;
+					num2 = distance;
 				}
-				result.origin = raycastHit.point;
-				result.normal = raycastHit.normal;
-				result.targetNetworkIdentity = networkIdentity;
-				return true;
+			IL_82:;
 			}
-			return false;
+			// If nothing was hit:
+			if (num == -1)
+			{
+				hitInfo = default;
+				return false;
+			}
+			hitInfo = hits[num];
+			return true;
 		}
 
         private bool CombatHealthBarViewer_VictimIsValid(On.RoR2.UI.CombatHealthBarViewer.orig_VictimIsValid orig, RoR2.UI.CombatHealthBarViewer self, HealthComponent victim)
@@ -74,5 +75,6 @@ namespace CloakBuff
             return victim && victim.alive && (self.victimToHealthBarInfo[victim].endTime > Time.time || victim == self.crosshairTarget) && !victim.body.hasCloakBuff;
         }
 
-    }
+
+	}
 }

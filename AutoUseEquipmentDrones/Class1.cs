@@ -34,7 +34,7 @@ namespace AutoUseEquipmentDrones
     public class AUEDPlugin : BaseUnityPlugin
     {
         public static ConfigEntry<string> TargetPriority { get; set; }
-        public int EquipmentDroneBodyIndex = -1;
+        public BodyIndex EquipmentDroneBodyIndex = BodyIndex.None;
         public Type[] allowedTypesToScan = new Type[] { };
         public static ConfigEntry<string> Recycler_Items { get; set; }
         public static ConfigEntry<string> Recycler_Equipment { get; set; }
@@ -241,7 +241,7 @@ namespace AutoUseEquipmentDrones
             {
                 // Enemy On Map
                 // If there are enemies alive, use.
-                case CommandMissile:
+                case RoR2Content.Equipment.CommandMissile.equipmentIndex:
                 case Meteor:
                     forceActive = CheckForEnemies(enemyTeamIndex);
                     break;
