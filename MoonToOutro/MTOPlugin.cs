@@ -28,7 +28,7 @@ namespace MoonToOutro
         private static void MyCommandName(ConCommandArgs args)
         {
             args.senderMasterObject.AddComponent<ApprovedToSkipOutro>();
-            RoR2.Console.instance.SubmitCmd(args.sender, "set_scene moon", false);
+            RoR2.Console.instance.SubmitCmd(args.sender, "next_scene moon", false);
         }
         public class ApprovedToSkipOutro : MonoBehaviour
         {
