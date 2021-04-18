@@ -57,12 +57,14 @@ namespace CloakBuff
 					if (hurtBox)
 					{
 						HealthComponent healthComponent = hurtBox.healthComponent;
-						if (healthComponent && !healthComponent.body.hasCloakBuff)
+						if (healthComponent)
 						{
 							if (healthComponent.gameObject == bodyObject)
-                            {
+							{
 								goto IL_82;
 							}
+							else if (healthComponent.body.hasCloakBuff)
+								goto IL_Skip;
 						}
 					}
 					if (distance == 0f)
@@ -73,6 +75,7 @@ namespace CloakBuff
 					}
 					num = i;
 					num2 = distance;
+				IL_Skip:;
 				}
 			IL_82:;
 			}
