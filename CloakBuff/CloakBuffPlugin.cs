@@ -27,44 +27,26 @@ namespace CloakBuff
 		}
 
         private bool Util_HandleCharacterPhysicsCastResults(On.RoR2.Util.orig_HandleCharacterPhysicsCastResults orig, GameObject bodyObject, Ray ray, RaycastHit[] hits, out RaycastHit hitInfo)
-        {
+		{
 			int num = -1;
 			float num2 = float.PositiveInfinity;
-			/*List<RaycastHit> newHits = new List<RaycastHit>(hits);
-			foreach (var hit in hits)
-			{
-				HurtBox hurtBox = hit.collider.GetComponent<HurtBox>();
-				if (hurtBox)
-				{
-					HealthComponent healthComponent = hurtBox.healthComponent;
-					if (healthComponent)
-					{
-						if (healthComponent.body.hasCloakBuff)
-						{
-							newHits.Remove(hit);
-						}
-					}
-				}
-			}
-			hits = newHits.ToArray();*/
-
 			for (int i = 0; i < hits.Length; i++)
 			{
 				float distance = hits[i].distance;
 				if (distance < num2)
 				{
-					HurtBox hurtBox = hits[i].collider.GetComponent<HurtBox>();
-					if (hurtBox)
+					HurtBox component = hits[i].collider.GetComponent<HurtBox>();
+					if (component)
 					{
-						HealthComponent healthComponent = hurtBox.healthComponent;
+						HealthComponent healthComponent = component.healthComponent;
 						if (healthComponent)
 						{
 							if (healthComponent.gameObject == bodyObject)
-							{
 								goto IL_82;
-							}
-							else if (healthComponent.body.hasCloakBuff)
-								goto IL_Skip;
+                            else if (healthComponent.body.hasCloakBuff) // This is where you would put IL if you were smart (not me)
+                            {
+								continue;
+                            }
 						}
 					}
 					if (distance == 0f)
@@ -75,7 +57,6 @@ namespace CloakBuff
 					}
 					num = i;
 					num2 = distance;
-				IL_Skip:;
 				}
 			IL_82:;
 			}
@@ -88,7 +69,7 @@ namespace CloakBuff
 			return true;
 		}
 
-        private bool CombatHealthBarViewer_VictimIsValid(On.RoR2.UI.CombatHealthBarViewer.orig_VictimIsValid orig, RoR2.UI.CombatHealthBarViewer self, HealthComponent victim)
+		private bool CombatHealthBarViewer_VictimIsValid(On.RoR2.UI.CombatHealthBarViewer.orig_VictimIsValid orig, RoR2.UI.CombatHealthBarViewer self, HealthComponent victim)
         {
             return victim && victim.alive && (self.victimToHealthBarInfo[victim].endTime > Time.time || victim == self.crosshairTarget) && !victim.body.hasCloakBuff;
         }
