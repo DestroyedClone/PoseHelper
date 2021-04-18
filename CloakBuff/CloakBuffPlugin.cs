@@ -4,6 +4,7 @@ using RoR2;
 using R2API.Utils;
 using System.Security;
 using System.Security.Permissions;
+using System.Collections.Generic;
 using UnityEngine.Networking;
 
 [module: UnverifiableCode]
@@ -29,6 +30,24 @@ namespace CloakBuff
         {
 			int num = -1;
 			float num2 = float.PositiveInfinity;
+			/*List<RaycastHit> newHits = new List<RaycastHit>(hits);
+			foreach (var hit in hits)
+			{
+				HurtBox hurtBox = hit.collider.GetComponent<HurtBox>();
+				if (hurtBox)
+				{
+					HealthComponent healthComponent = hurtBox.healthComponent;
+					if (healthComponent)
+					{
+						if (healthComponent.body.hasCloakBuff)
+						{
+							newHits.Remove(hit);
+						}
+					}
+				}
+			}
+			hits = newHits.ToArray();*/
+
 			for (int i = 0; i < hits.Length; i++)
 			{
 				float distance = hits[i].distance;
@@ -38,14 +57,12 @@ namespace CloakBuff
 					if (hurtBox)
 					{
 						HealthComponent healthComponent = hurtBox.healthComponent;
-						if (healthComponent)
+						if (healthComponent && !healthComponent.body.hasCloakBuff)
 						{
 							if (healthComponent.gameObject == bodyObject)
-								goto IL_82;
-							else if (!healthComponent.body.hasCloakBuff)
                             {
-								goto IL_skip;
-                            }
+								goto IL_82;
+							}
 						}
 					}
 					if (distance == 0f)
@@ -54,13 +71,11 @@ namespace CloakBuff
 						hitInfo.point = ray.origin;
 						return true;
 					}
-				IL_skip:;
 					num = i;
 					num2 = distance;
 				}
 			IL_82:;
 			}
-			// If nothing was hit:
 			if (num == -1)
 			{
 				hitInfo = default;
