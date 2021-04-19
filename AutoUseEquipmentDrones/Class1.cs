@@ -36,14 +36,13 @@ namespace AutoUseEquipmentDrones
     public class AUEDPlugin : BaseUnityPlugin
     {
         public static ConfigEntry<string> TargetPriority { get; set; }
-        public BodyIndex EquipmentDroneBodyIndex = BodyIndex.None;
-        public Type[] allowedTypesToScan = new Type[] { };
+        public static Type[] allowedTypesToScan = new Type[] { };
         public static ConfigEntry<string> Recycler_Items { get; set; }
         public static ConfigEntry<string> Recycler_Equipment { get; set; }
 
-        public List<ItemIndex> allowedItemIndices = new List<ItemIndex>();
-        public List<EquipmentIndex> allowedEquipmentIndices = new List<EquipmentIndex>();
-        public List<PickupIndex> allowedPickupIndices = new List<PickupIndex>();
+        public static List<ItemIndex> allowedItemIndices = new List<ItemIndex>();
+        public static List<EquipmentIndex> allowedEquipmentIndices = new List<EquipmentIndex>();
+        public static List<PickupIndex> allowedPickupIndices = new List<PickupIndex>();
 
         public void Awake()
         {
@@ -53,9 +52,7 @@ namespace AutoUseEquipmentDrones
     "\nSeparated by commas (ex: AffixRed,Meteor,Fruit)");
 
 
-            On.RoR2.EquipmentSlot.FixedUpdate += EquipmentSlot_FixedUpdate;
             var body = Resources.Load<GameObject>("prefabs/characterbodies/EquipmentDroneBody");
-            EquipmentDroneBodyIndex = body.GetComponent<CharacterBody>().bodyIndex;
             On.RoR2.ChestRevealer.Init += GetAllowedTypes;
 
             //On.RoR2.CharacterAI.BaseAI.FixedUpdate += BaseAIOverride;
@@ -64,12 +61,40 @@ namespace AutoUseEquipmentDrones
             On.RoR2.PickupCatalog.Init += CachePickupIndices;
 
             //On.RoR2.CharacterAI.BaseAI.UpdateBodyAim += BaseAI_UpdateBodyAim;
-            On.RoR2.CharacterAI.BaseAI.UpdateBodyInputs += BaseAI_UpdateBodyInputs;
+            On.RoR2.CharacterAI.BaseAI.UpdateBodyInputs += Conditional_ForceEquipmentUse;
+            On.RoR2.EquipmentSlot.Awake += GiveComponent;
         }
 
-        private void BaseAI_UpdateBodyInputs(On.RoR2.CharacterAI.BaseAI.orig_UpdateBodyInputs orig, BaseAI self)
+        private void GiveComponent(On.RoR2.EquipmentSlot.orig_Awake orig, EquipmentSlot self)
         {
-            if (self.body.bodyIndex == EquipmentDroneBodyIndex && self.gameObject.GetComponent<BEDUComponent>())
+            orig(self);
+            switch (self.characterBody.baseNameToken)
+            {
+                case "EQUIPMENTDRONE_BODY_NAME":
+                    var baseAI = self.characterBody.masterObject.GetComponent<BaseAI>();
+                    if (!baseAI)
+                    {
+                        Debug.Log("No BaseAI!");
+                        return;
+                    }
+
+                    var component = baseAI.gameObject.GetComponent<BEDUComponent>();
+                    if (!component)
+                    {
+                        component = baseAI.gameObject.AddComponent<BEDUComponent>();
+                        component.baseAI = baseAI;
+                        Chat.AddMessage("Adding drone component!");
+                    }
+                    break;
+                default:
+                    return;
+            }
+        }
+
+        private void Conditional_ForceEquipmentUse(On.RoR2.CharacterAI.BaseAI.orig_UpdateBodyInputs orig, BaseAI self)
+        {
+            var component = self.gameObject.GetComponent<BEDUComponent>();
+            if (component)
             {
                 BaseAIState baseAIState;
                 if ((baseAIState = (self.stateMachine.state as BaseAIState)) != null)
@@ -78,14 +103,15 @@ namespace AutoUseEquipmentDrones
                 }
                 if (self.bodyInputBank)
                 {
-                    var component = self.gameObject.GetComponent<BEDUComponent>();
+                    bool useEquipment = component.useEquipment || component.freeUse;
+
                     self.bodyInputBank.skill1.PushState(self.bodyInputs.pressSkill1);
                     self.bodyInputBank.skill2.PushState(self.bodyInputs.pressSkill2);
                     self.bodyInputBank.skill3.PushState(self.bodyInputs.pressSkill3);
                     self.bodyInputBank.skill4.PushState(self.bodyInputs.pressSkill4);
                     self.bodyInputBank.jump.PushState(self.bodyInputs.pressJump);
                     self.bodyInputBank.sprint.PushState(self.bodyInputs.pressSprint);
-                    self.bodyInputBank.activateEquipment.PushState(component.useEquipment);
+                    self.bodyInputBank.activateEquipment.PushState(useEquipment);
                     self.bodyInputBank.moveVector = self.bodyInputs.moveVector;
                 }
             } else
@@ -93,29 +119,6 @@ namespace AutoUseEquipmentDrones
                 orig(self);
             }
         }
-
-        private void BaseAI_UpdateBodyAim(On.RoR2.CharacterAI.BaseAI.orig_UpdateBodyAim orig, BaseAI self, float deltaTime)
-        {
-            if (self.body.bodyIndex != EquipmentDroneBodyIndex && self.body.equipmentSlot.equipmentIndex == RoR2Content.Equipment.Recycle.equipmentIndex)
-            {
-                orig(self, deltaTime);
-                return;
-            }
-            self.hasAimConfirmation = false;
-            if (self.bodyInputBank)
-            {
-                Vector3 aimDirection = self.bodyInputBank.aimDirection;
-                Vector3 desiredAimDirection = self.bodyInputs.desiredAimDirection;
-                if (desiredAimDirection != Vector3.zero)
-                {
-                    Quaternion target = Util.QuaternionSafeLookRotation(desiredAimDirection);
-                    Vector3 vector = Util.SmoothDampQuaternion(Util.QuaternionSafeLookRotation(aimDirection), target, ref self.aimVelocity, self.aimVectorDampTime, self.aimVectorMaxSpeed, deltaTime) * Vector3.forward;
-                    self.bodyInputBank.aimDirection = vector;
-                    self.hasAimConfirmation = (Vector3.Dot(vector, desiredAimDirection) >= 0.95f);
-                }
-            }
-        }
-
 
         private void CachePickupIndices(On.RoR2.PickupCatalog.orig_Init orig)
         {
@@ -186,162 +189,13 @@ namespace AutoUseEquipmentDrones
         }
 
 
-        private void EquipmentSlot_FixedUpdate(On.RoR2.EquipmentSlot.orig_FixedUpdate orig, EquipmentSlot self)
-        {
-            orig(self);
-            switch (self.characterBody.baseNameToken)
-            {
-                case "EQUIPMENTDRONE_BODY_NAME":
-                    break;
-                default:
-                    return;
-            }
-            //if (self.characterBody.baseNameToken != "EQUIPMENTDRONE_BODY_NAME") return;
-
-            var baseAI = self.characterBody.masterObject.GetComponent<BaseAI>();
-            if (!baseAI)
-            {
-                Debug.Log("NoBaseAI");
-                return;
-            }
-
-            var component = baseAI.gameObject.GetComponent<BEDUComponent>();
-            if (!component)
-            {
-                component = baseAI.gameObject.AddComponent<BEDUComponent>();
-                component.baseAI = baseAI;
-                Debug.Log("Adding drone component");
-            }
-
-            bool forceActive = false;
-
-            bool match(EquipmentDef equipmentDef)
-            {
-                return self.equipmentIndex == equipmentDef.equipmentIndex && self.stock > 0;
-            }
-
-            void DroneSay(string msg)
-            {
-                Chat.AddMessage(Run.instance.NetworkfixedTime+ " <style=cIsUtility> Drone: "+msg+"</style>");
-            }
-
-            // Enemy On Map
-            // If there are enemies alive, use.
-            if (match(RoR2Content.Equipment.CommandMissile) || match(RoR2Content.Equipment.Meteor))
-            {
-                if (CheckForAlive(component.enemyTeamIndex))
-                {
-                    DroneSay("There's enemies alive!");
-                    forceActive = true;
-                    //forceActive = CheckForAlive(enemyTeamIndex);
-                }
-            }
-            // Priority Target
-            // Prioritizes a certain enemy rather than firing blindly
-            // Overrides BaseAI
-            else if (match(RoR2Content.Equipment.Blackhole) || match(RoR2Content.Equipment.BFG) || match(RoR2Content.Equipment.Lightning) || match(RoR2Content.Equipment.CrippleWard))
-            {
-
-            }
-
-            // Evade or Aggro
-            // Attempts to draw enemy attention
-            else if (match(RoR2Content.Equipment.Jetpack)) //Spam Jump
-            {
-
-            }
-            else if (match(RoR2Content.Equipment.GainArmor)) //Kite
-            {
-
-            }
-            else if (match(RoR2Content.Equipment.Tonic)) //Kite
-            {
-
-            }
-            // Custom
-            else if (match(RoR2Content.Equipment.GoldGat))
-            {
-                uint num2 = (uint)((float)GoldGatFire.baseMoneyCostPerBullet * (1f + (TeamManager.instance.GetTeamLevel(self.characterBody.master.teamIndex) - 1f) * 0.25f));
-                self.characterBody.master.money = num2 * 60;
-            }
-            else if (match(RoR2Content.Equipment.PassiveHealing)) //Target damaged ally, or self 
-            {
-
-            }
-            else if (match(RoR2Content.Equipment.Gateway)) // Target Interactables or nearby if damaged
-            {
-
-            }
-            else if (match(RoR2Content.Equipment.Cleanse))
-            {
-                if (CheckForDebuffs(self.characterBody))
-                {
-                    DroneSay("I'm filthy! Cleaning!!");
-                    forceActive = true;
-                }
-                //forceActive = CheckForDebuffs(self.characterBody);
-            }
-            else if (match(RoR2Content.Equipment.Saw))//get close
-            {
-
-            }
-            else if (match(RoR2Content.Equipment.Recycle))
-            {
-                GenericPickupController pickupController = self.currentTarget.pickupController;
-                if (!pickupController || pickupController.Recycled)
-                {
-                    //
-                }
-
-                if (pickupController && !pickupController.Recycled)
-                {
-                    PickupIndex initialPickupIndex = pickupController.pickupIndex;
-                    if (allowedPickupIndices.Contains(initialPickupIndex))
-                    {
-                        DroneSay("Bad Item/Equipment!!");
-                        forceActive = true;
-                    }
-                }
-                //break;
-            }
-            else if (match(RoR2Content.Equipment.Fruit))
-            {
-                if (self.healthComponent?.health <= self.healthComponent?.fullHealth * 0.5f)
-                {
-                    DroneSay("I'm low health! Gonna heal!");
-                    forceActive = true;
-                }
-                //forceActive = self.healthComponent?.health <= self.healthComponent?.fullHealth * 0.5f;
-            }
-            // chase
-            // fireball dash already done
-            else if (match(RoR2Content.Equipment.BurnNearby) || match(RoR2Content.Equipment.QuestVolatileBattery))
-            {
-
-            }
-            // valid interactables
-            else if (match(RoR2Content.Equipment.Scanner))
-            {
-                if (CheckForInteractables())
-                {
-                    forceActive = true;
-                    DroneSay("There's still stuff to buy!");
-                }
-
-                //forceActive = CheckForInteractables();
-            }
-
-            if (forceActive) Debug.Log("attempting to use equipment");
-            component.useEquipment = forceActive;
-        }
-
-        private bool CheckForAlive(TeamIndex teamIndex)
+        public static bool CheckForAlive(TeamIndex teamIndex)
         {
             ReadOnlyCollection<TeamComponent> teamComponents = TeamComponent.GetTeamMembers(teamIndex);
             return teamComponents.Count > 0;
         }
 
-        private bool CheckForInteractables()
+        public static bool CheckForInteractables()
         {
             ///Type[] validInteractables = new Type[] {  };
             foreach (var valid in allowedTypesToScan)
@@ -355,18 +209,7 @@ namespace AutoUseEquipmentDrones
             return false;
         }
 
-        private void ForceEquipmentUse(BaseAI baseAI)
-        {
-            Debug.Log("Forcing Equipment Use");
-            //baseAI.bodyInputBank.activateEquipment.PushState(true);
-        }
-
-        private void ForceJump(BaseAI baseAI)
-        {
-            baseAI.bodyInputBank.jump.PushState(true);
-        }
-
-        private bool CheckForDebuffs(CharacterBody characterBody) //try hooking addbuff instead?
+        public static bool CheckForDebuffs(CharacterBody characterBody) //try hooking addbuff instead?
         {
             BuffIndex buffIndex = (BuffIndex)0;
             BuffIndex buffCount = (BuffIndex)BuffCatalog.buffCount;
@@ -385,17 +228,164 @@ namespace AutoUseEquipmentDrones
             return false;
         }
 
+        enum DroneMode
+        {
+            None,
+            EnemyOnMap,
+            PriorityTarget,
+            Evade,
+            GoldGat,
+            PassiveHealing,
+            Gateway,
+            Cleanse,
+            Saw,
+            Recycle,
+            Fruit,
+            Snuggle,
+            Scan
+        }
+
         public class BEDUComponent : MonoBehaviour
         {
             public BaseAI baseAI = null;
             bool isNetwork = false;
-            public bool useEquipment = false;
             public TeamIndex enemyTeamIndex = TeamIndex.None;
+            readonly EquipmentSlot equipmentSlot;
+            EquipmentIndex equipmentIndex;
+            DroneMode droneMode = DroneMode.None;
+            bool equipmentReady = false;
+
+            public bool freeUse = false;
+            public bool useEquipment = false;
+
+            bool hasSpoken = false;
 
             void Awake()
             {
                 enemyTeamIndex = baseAI.body.teamComponent.teamIndex == TeamIndex.Player ? TeamIndex.Monster : TeamIndex.Player;
                 isNetwork = NetworkServer.active;
+                equipmentIndex = equipmentSlot.equipmentIndex;
+
+                EvaluateDroneMode();
+            }
+            void DroneSay(string msg)
+            {
+                if (!hasSpoken)
+                {
+                    Chat.AddMessage(Run.instance.NetworkfixedTime + " <style=cIsUtility> Drone: " + msg + "</style>");
+                    hasSpoken = true;
+                }
+            }
+            void EvaluateDroneMode()
+            {
+                bool match(EquipmentDef equipmentDef)
+                {
+                    return equipmentIndex == equipmentDef.equipmentIndex;
+                }
+
+                if (match(RoR2Content.Equipment.CommandMissile) || match(RoR2Content.Equipment.Meteor))
+                    droneMode = DroneMode.EnemyOnMap;
+                else if (match(RoR2Content.Equipment.Blackhole) || match(RoR2Content.Equipment.BFG) || match(RoR2Content.Equipment.Lightning) || match(RoR2Content.Equipment.CrippleWard))
+                    droneMode = DroneMode.PriorityTarget;
+                else if (match(RoR2Content.Equipment.Jetpack) || match(RoR2Content.Equipment.GainArmor) || match(RoR2Content.Equipment.Tonic)) //Spam Jump
+                    droneMode = DroneMode.Evade;
+                else if (match(RoR2Content.Equipment.GoldGat))
+                    droneMode = DroneMode.GoldGat;
+                else if (match(RoR2Content.Equipment.PassiveHealing))
+                    droneMode = DroneMode.PassiveHealing;
+                else if (match(RoR2Content.Equipment.Gateway))
+                    droneMode = DroneMode.Gateway;
+                else if (match(RoR2Content.Equipment.Cleanse))
+                    droneMode = DroneMode.Cleanse;
+                else if (match(RoR2Content.Equipment.Saw))
+                    droneMode = DroneMode.Saw;
+                else if (match(RoR2Content.Equipment.Recycle))
+                    droneMode = DroneMode.Recycle;
+                else if (match(RoR2Content.Equipment.Fruit))
+                    droneMode = DroneMode.Fruit;
+                else if (match(RoR2Content.Equipment.BurnNearby) || match(RoR2Content.Equipment.QuestVolatileBattery))
+                    droneMode = DroneMode.Snuggle;
+                else if (match(RoR2Content.Equipment.Scanner))
+                    droneMode = DroneMode.Scan;
+            }
+
+            void FixedUpdate()
+            {
+                bool forceActive = false;
+                freeUse = false;
+                equipmentReady = equipmentSlot.stock > 0;
+                if (!equipmentReady)
+                {
+                    hasSpoken = false;
+                    return;
+                }
+
+                switch (droneMode)
+                {
+                    case DroneMode.EnemyOnMap:
+                        if (CheckForAlive(enemyTeamIndex))
+                        {
+                            DroneSay("There's enemies alive!");
+                            forceActive = true;
+                        }
+                        break;
+                    case DroneMode.PriorityTarget:
+                        break;
+                    case DroneMode.Evade:
+                        freeUse = true;
+                        break;
+                    case DroneMode.GoldGat:
+                        uint num2 = (uint)((float)GoldGatFire.baseMoneyCostPerBullet * (1f + (TeamManager.instance.GetTeamLevel(baseAI.master.teamIndex) - 1f) * 0.25f));
+                        baseAI.master.money = num2 * 60;
+                        break;
+                    case DroneMode.PassiveHealing:
+                        break;
+                    case DroneMode.Cleanse:
+                        if (CheckForDebuffs(baseAI.body))
+                        {
+                            DroneSay("I'm filthy! Cleaning!!");
+                            forceActive = true;
+                        }
+                        break;
+                    case DroneMode.Saw:
+                        freeUse = true;
+                        break;
+                    case DroneMode.Recycle:
+                        GenericPickupController pickupController = equipmentSlot.currentTarget.pickupController;
+                        if (pickupController && !pickupController.Recycled)
+                        {
+                            PickupIndex initialPickupIndex = pickupController.pickupIndex;
+                            if (allowedPickupIndices.Contains(initialPickupIndex))
+                            {
+                                DroneSay("Bad Item/Equipment!!");
+                                forceActive = true;
+                            }
+                        }
+                        break;
+                    case DroneMode.Fruit:
+                        if (baseAI.body.healthComponent.health <= baseAI.body.healthComponent.fullHealth * 0.5f)
+                        {
+                            DroneSay("I'm low health! Gonna heal!");
+                            forceActive = true;
+                        }
+                        //forceActive = self.healthComponent?.health <= self.healthComponent?.fullHealth * 0.5f;
+                        break;
+                    case DroneMode.Snuggle:
+                        freeUse = true;
+                        break;
+                    case DroneMode.Scan:
+                        if (CheckForInteractables())
+                        {
+                            forceActive = true;
+                            DroneSay("There's still stuff to buy!");
+                        }
+                        break;
+                    default:
+                        freeUse = true;
+                        break;
+                }
+                if (forceActive) Debug.Log("attempting to use equipment");
+                    useEquipment = forceActive && equipmentReady;
             }
         }
     }
