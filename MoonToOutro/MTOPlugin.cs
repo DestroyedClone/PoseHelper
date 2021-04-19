@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace MoonToOutro
 {
-    [BepInPlugin("com.DestroyedClone.MoonToOutro", "Immediate Moon To Outro", "1.0.0")]
+    [BepInPlugin("com.DestroyedClone.MoonToOutro", "Immediate Moon To Outro", "1.1.0")]
     //[R2APISubmoduleDependency(nameof(CommandHelper))]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     public class Plugin : BaseUnityPlugin
@@ -25,11 +25,26 @@ namespace MoonToOutro
         }
 
         [ConCommand(commandName = "skipmoon_old", flags = ConVarFlags.ExecuteOnServer, helpText = "Immediately completes Commencement to properly head to the outro quickly. Must be used mid-run.")]
-        private static void MyCommandName(ConCommandArgs args)
+        private static void SkipMoonOld(ConCommandArgs args)
         {
             args.senderMasterObject.AddComponent<ApprovedToSkipOutro>();
             RoR2.Console.instance.SubmitCmd(args.sender, "next_scene moon", false);
         }
+
+        [ConCommand(commandName = "skipmoon_win", flags = ConVarFlags.ExecuteOnServer, helpText = "Beats the game with a win.")]
+        private static void SkipMoonWin(ConCommandArgs args)
+        {
+            args.senderMasterObject.AddComponent<ApprovedToSkipOutro>();
+            RoR2.Console.instance.SubmitCmd(args.sender, "next_scene moon", false);
+        }
+
+        [ConCommand(commandName = "skipmoon_fail", flags = ConVarFlags.ExecuteOnServer, helpText = "Ends the game with a fail.")]
+        private static void SkipMoonFail(ConCommandArgs args)
+        {
+            args.senderMasterObject.AddComponent<ApprovedToSkipOutro>();
+            RoR2.Console.instance.SubmitCmd(args.sender, "next_scene moon", false);
+        }
+
         public class ApprovedToSkipOutro : MonoBehaviour
         {
 

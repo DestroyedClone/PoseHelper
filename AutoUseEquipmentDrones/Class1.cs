@@ -20,6 +20,8 @@ using EntityStates.GoldGat;
 using System.Security;
 using System.Security.Permissions;
 
+using EntityStates.AI;
+
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -42,6 +44,7 @@ namespace AutoUseEquipmentDrones
         public List<ItemIndex> allowedItemIndices = new List<ItemIndex>();
         public List<EquipmentIndex> allowedEquipmentIndices = new List<EquipmentIndex>();
         public List<PickupIndex> allowedPickupIndices = new List<PickupIndex>();
+
         public void Awake()
         {
             Recycler_Items = Config.Bind("Recycler", "Item IDS", "Tooth,Seed,Icicle,GhostOnKill,BounceNearby,MonstersOnShrineUse", "Enter the IDs of the item you want equipment drones to recycle." +
@@ -56,11 +59,39 @@ namespace AutoUseEquipmentDrones
             On.RoR2.ChestRevealer.Init += GetAllowedTypes;
 
             //On.RoR2.CharacterAI.BaseAI.FixedUpdate += BaseAIOverride;
-            //On.EntityStates.GoldGat.GoldGatIdle.FixedUpdate += FixedGoldGat;
             On.RoR2.ItemCatalog.Init += CacheWhitelistedItems;
             On.RoR2.EquipmentCatalog.Init += CacheWhitelistedEquipment;
             On.RoR2.PickupCatalog.Init += CachePickupIndices;
+
             //On.RoR2.CharacterAI.BaseAI.UpdateBodyAim += BaseAI_UpdateBodyAim;
+            On.RoR2.CharacterAI.BaseAI.UpdateBodyInputs += BaseAI_UpdateBodyInputs;
+        }
+
+        private void BaseAI_UpdateBodyInputs(On.RoR2.CharacterAI.BaseAI.orig_UpdateBodyInputs orig, BaseAI self)
+        {
+            if (self.body.bodyIndex == EquipmentDroneBodyIndex && self.gameObject.GetComponent<BEDUComponent>())
+            {
+                BaseAIState baseAIState;
+                if ((baseAIState = (self.stateMachine.state as BaseAIState)) != null)
+                {
+                    self.bodyInputs = baseAIState.GenerateBodyInputs(self.bodyInputs);
+                }
+                if (self.bodyInputBank)
+                {
+                    var component = self.gameObject.GetComponent<BEDUComponent>();
+                    self.bodyInputBank.skill1.PushState(self.bodyInputs.pressSkill1);
+                    self.bodyInputBank.skill2.PushState(self.bodyInputs.pressSkill2);
+                    self.bodyInputBank.skill3.PushState(self.bodyInputs.pressSkill3);
+                    self.bodyInputBank.skill4.PushState(self.bodyInputs.pressSkill4);
+                    self.bodyInputBank.jump.PushState(self.bodyInputs.pressJump);
+                    self.bodyInputBank.sprint.PushState(self.bodyInputs.pressSprint);
+                    self.bodyInputBank.activateEquipment.PushState(component.useEquipment);
+                    self.bodyInputBank.moveVector = self.bodyInputs.moveVector;
+                }
+            } else
+            {
+                orig(self);
+            }
         }
 
         private void BaseAI_UpdateBodyAim(On.RoR2.CharacterAI.BaseAI.orig_UpdateBodyAim orig, BaseAI self, float deltaTime)
@@ -77,8 +108,6 @@ namespace AutoUseEquipmentDrones
                 Vector3 desiredAimDirection = self.bodyInputs.desiredAimDirection;
                 if (desiredAimDirection != Vector3.zero)
                 {
-
-
                     Quaternion target = Util.QuaternionSafeLookRotation(desiredAimDirection);
                     Vector3 vector = Util.SmoothDampQuaternion(Util.QuaternionSafeLookRotation(aimDirection), target, ref self.aimVelocity, self.aimVectorDampTime, self.aimVectorMaxSpeed, deltaTime) * Vector3.forward;
                     self.bodyInputBank.aimDirection = vector;
@@ -160,22 +189,42 @@ namespace AutoUseEquipmentDrones
         private void EquipmentSlot_FixedUpdate(On.RoR2.EquipmentSlot.orig_FixedUpdate orig, EquipmentSlot self)
         {
             orig(self);
-            if (self.characterBody || self.characterBody.bodyIndex != EquipmentDroneBodyIndex) return;
-            var baseAI = self.gameObject.GetComponent<BaseAI>();
+            if (!self.characterBody || self.characterBody.bodyIndex != EquipmentDroneBodyIndex) return;
+
+            var baseAI = self.characterBody.masterObject.GetComponent<BaseAI>();
             if (!baseAI) return;
+
+            var component = baseAI.gameObject.GetComponent<BEDUComponent>();
+            if (!component)
+            {
+                component = baseAI.gameObject.AddComponent<BEDUComponent>();
+                component.baseAI = baseAI;
+                Debug.Log("Adding drone component");
+            }
+
             TeamIndex enemyTeamIndex = self.teamComponent.teamIndex == TeamIndex.Player ? TeamIndex.Monster : TeamIndex.Player;
             bool forceActive = false;
 
             bool match(EquipmentDef equipmentDef)
             {
-                return self.equipmentIndex == equipmentDef.equipmentIndex;
+                return self.equipmentIndex == equipmentDef.equipmentIndex && self.stock > 0;
+            }
+
+            void DroneSay(string msg)
+            {
+                Chat.AddMessage(Run.instance.NetworkfixedTime+ " <style=cIsUtility> Drone: "+msg+"</style>");
             }
 
             // Enemy On Map
             // If there are enemies alive, use.
             if (match(RoR2Content.Equipment.CommandMissile) || match(RoR2Content.Equipment.Meteor))
             {
-                forceActive = CheckForAlive(enemyTeamIndex);
+                if (CheckForAlive(enemyTeamIndex))
+                {
+                    DroneSay("There's enemies alive!");
+                    forceActive = true;
+                    //forceActive = CheckForAlive(enemyTeamIndex);
+                }
             }
             // Priority Target
             // Prioritizes a certain enemy rather than firing blindly
@@ -215,7 +264,12 @@ namespace AutoUseEquipmentDrones
             }
             else if (match(RoR2Content.Equipment.Cleanse))
             {
-                forceActive = CheckForDebuffs(self.characterBody);
+                if (CheckForDebuffs(self.characterBody))
+                {
+                    DroneSay("I'm filthy! Cleaning!!");
+                    forceActive = true;
+                }
+                //forceActive = CheckForDebuffs(self.characterBody);
             }
             else if (match(RoR2Content.Equipment.Saw))//get close
             {
@@ -226,18 +280,28 @@ namespace AutoUseEquipmentDrones
                 GenericPickupController pickupController = self.currentTarget.pickupController;
                 if (!pickupController || pickupController.Recycled)
                 {
-                    //break
+                    //
                 }
-                PickupIndex initialPickupIndex = pickupController.pickupIndex;
-                if (allowedPickupIndices.Contains(initialPickupIndex))
+
+                if (pickupController && !pickupController.Recycled)
                 {
-                    forceActive = true;
+                    PickupIndex initialPickupIndex = pickupController.pickupIndex;
+                    if (allowedPickupIndices.Contains(initialPickupIndex))
+                    {
+                        DroneSay("Bad Item/Equipment!!");
+                        forceActive = true;
+                    }
                 }
                 //break;
             }
             else if (match(RoR2Content.Equipment.Fruit))
             {
-                forceActive = self.healthComponent?.health <= self.healthComponent?.fullHealth * 0.5f;
+                if (self.healthComponent?.health <= self.healthComponent?.fullHealth * 0.5f)
+                {
+                    DroneSay("I'm low health! Gonna heal!");
+                    forceActive = true;
+                }
+                //forceActive = self.healthComponent?.health <= self.healthComponent?.fullHealth * 0.5f;
             }
             // chase
             // fireball dash already done
@@ -248,36 +312,23 @@ namespace AutoUseEquipmentDrones
             // valid interactables
             else if (match(RoR2Content.Equipment.Scanner))
             {
-                forceActive = CheckForInteractables();
+                if (CheckForInteractables())
+                {
+                    forceActive = true;
+                    DroneSay("There's still stuff to buy!");
+                }
+
+                //forceActive = CheckForInteractables();
             }
 
-            if (forceActive)
-            {
-                ForceEquipmentUse(baseAI);
-            }
+            if (forceActive) Debug.Log("attempting to use equipment");
+            component.useEquipment = forceActive;
         }
 
         private bool CheckForAlive(TeamIndex teamIndex)
         {
             ReadOnlyCollection<TeamComponent> teamComponents = TeamComponent.GetTeamMembers(teamIndex);
             return teamComponents.Count > 0;
-        }
-
-
-
-        private void ActivateWhenReady(EquipmentSlot equipmentSlot)
-        {
-            //equipmentslot L299
-            bool isEquipmentActivationAllowed = equipmentSlot.characterBody.isEquipmentActivationAllowed;
-            if (isEquipmentActivationAllowed && equipmentSlot.hasEffectiveAuthority)
-            {
-                if (NetworkServer.active)
-                {
-                    equipmentSlot.ExecuteIfReady();
-                    return;
-                }
-                equipmentSlot.CallCmdExecuteIfReady();
-            }
         }
 
         private bool CheckForInteractables()
@@ -296,7 +347,8 @@ namespace AutoUseEquipmentDrones
 
         private void ForceEquipmentUse(BaseAI baseAI)
         {
-            baseAI.bodyInputBank.activateEquipment.PushState(true);
+            Debug.Log("Forcing Equipment Use");
+            //baseAI.bodyInputBank.activateEquipment.PushState(true);
         }
 
         private void ForceJump(BaseAI baseAI)
@@ -321,6 +373,18 @@ namespace AutoUseEquipmentDrones
                 buffIndex++;
             }
             return false;
+        }
+
+        public class BEDUComponent : MonoBehaviour
+        {
+            public BaseAI baseAI = null;
+            bool isNetwork = false;
+            public bool useEquipment = false;
+
+            void Awake()
+            {
+                isNetwork = NetworkServer.active;
+            }
         }
     }
 }

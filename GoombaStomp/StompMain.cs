@@ -74,48 +74,8 @@ namespace GoombaStomp
             };
 
             On.RoR2.CharacterMotor.OnHitGround += CharacterMotor_OnHitGround;
-            On.RoR2.GlobalEventManager.OnPlayerCharacterDeath += GlobalEventManager_OnPlayerCharacterDeath; //full override until i can get IL
         }
 
-        private static void GlobalEventManager_OnPlayerCharacterDeath(On.RoR2.GlobalEventManager.orig_OnPlayerCharacterDeath orig, GlobalEventManager self, DamageReport damageReport, NetworkUser victimNetworkUser)
-        {
-            if (!victimNetworkUser)
-            {
-                return;
-            }
-            CharacterBody victimBody = damageReport.victimBody;
-            string text;
-
-            if (damageReport.damageInfo.inflictor && damageReport.damageInfo.inflictor.name == goombaGameObject.name && RunArtifactManager.instance.IsArtifactEnabled(GoombaArtifactDef.artifactIndex))
-            {
-                text = "PLAYER_DEATH_QUOTE_GOOMBADEATH";
-            }
-            else if ((damageReport.damageInfo.damageType & DamageType.VoidDeath) != DamageType.Generic)
-            {
-                text = "PLAYER_DEATH_QUOTE_VOIDDEATH";
-            }
-            else if (damageReport.isFallDamage)
-            {
-                text = GlobalEventManager.fallDamageDeathQuoteTokens[UnityEngine.Random.Range(0, GlobalEventManager.fallDamageDeathQuoteTokens.Length)];
-            }
-            else if (victimBody && victimBody.inventory && victimBody.inventory.GetItemCount(ItemIndex.LunarDagger) > 0)
-            {
-                text = "PLAYER_DEATH_QUOTE_BRITTLEDEATH";
-            }
-            else
-            {
-                text = GlobalEventManager.standardDeathQuoteTokens[UnityEngine.Random.Range(0, GlobalEventManager.standardDeathQuoteTokens.Length)];
-            }
-            if (victimNetworkUser.masterController)
-            {
-                victimNetworkUser.masterController.finalMessageTokenServer = text;
-            }
-            Chat.SendBroadcastChat(new Chat.PlayerDeathChatMessage
-            {
-                subjectAsNetworkUser = victimNetworkUser,
-                baseToken = text
-            });
-        }
 
         private static void CharacterMotor_OnHitGround(On.RoR2.CharacterMotor.orig_OnHitGround orig, CharacterMotor self, CharacterMotor.HitGroundInfo hitGroundInfo)
         {

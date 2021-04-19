@@ -295,7 +295,7 @@ namespace LobbyAppearanceImprovements
                 {
                     Loadout loadout = new Loadout();
                     networkUser.networkLoadout.CopyLoadout(loadout);
-                    int bodyIndexFromSurvivorIndex = SurvivorCatalog.GetBodyIndexFromSurvivorIndex(safe.displaySurvivorIndex);
+                    int bodyIndexFromSurvivorIndex = (int)SurvivorCatalog.GetBodyIndexFromSurvivorIndex(safe.displaySurvivorIndex);
                     int skinIndex = (int)loadout.bodyLoadoutManager.GetSkinIndex(bodyIndexFromSurvivorIndex);
                     SkinDef safe2 = HG.ArrayUtils.GetSafe<SkinDef>(BodyCatalog.GetBodySkins(bodyIndexFromSurvivorIndex), skinIndex);
                     CharacterModel componentInChildren = safe.displayInstance.GetComponentInChildren<CharacterModel>();

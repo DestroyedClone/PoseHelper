@@ -31,7 +31,7 @@ namespace VersusPlayerBoss
             //public bool UpdateNetworkList = false;
             public BossGroup bossGroup;
             public BossGroup.BossMemory bossMemory;
-            public CombatSquad combatSquad;
+            public CombatSquad combatSquad = null;
 
 
             public void Awake()
