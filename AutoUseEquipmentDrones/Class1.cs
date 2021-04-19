@@ -62,16 +62,19 @@ namespace AutoUseEquipmentDrones
 
             //On.RoR2.CharacterAI.BaseAI.UpdateBodyAim += BaseAI_UpdateBodyAim;
             On.RoR2.CharacterAI.BaseAI.UpdateBodyInputs += Conditional_ForceEquipmentUse;
-            On.RoR2.EquipmentSlot.Awake += GiveComponent;
+            On.RoR2.EquipmentSlot.OnStartServer += GiveComponent;
         }
 
-        private void GiveComponent(On.RoR2.EquipmentSlot.orig_Awake orig, EquipmentSlot self)
+        private void GiveComponent(On.RoR2.EquipmentSlot.orig_OnStartServer orig, EquipmentSlot self)
         {
             orig(self);
+            if (!self) Debug.Log("no self");
+            if (!self.characterBody) Debug.Log("no CB!");
+            if (!self.characterBody.master) Debug.Log("no master!");
             switch (self.characterBody.baseNameToken)
             {
                 case "EQUIPMENTDRONE_BODY_NAME":
-                    var baseAI = self.characterBody.masterObject.GetComponent<BaseAI>();
+                    var baseAI = self.characterBody.master.gameObject.GetComponent<BaseAI>();
                     if (!baseAI)
                     {
                         Debug.Log("No BaseAI!");
@@ -83,11 +86,10 @@ namespace AutoUseEquipmentDrones
                     {
                         component = baseAI.gameObject.AddComponent<BEDUComponent>();
                         component.baseAI = baseAI;
+                        component.equipmentSlot = self;
                         Chat.AddMessage("Adding drone component!");
                     }
                     break;
-                default:
-                    return;
             }
         }
 
@@ -248,9 +250,8 @@ namespace AutoUseEquipmentDrones
         public class BEDUComponent : MonoBehaviour
         {
             public BaseAI baseAI = null;
-            bool isNetwork = false;
             public TeamIndex enemyTeamIndex = TeamIndex.None;
-            readonly EquipmentSlot equipmentSlot;
+            public EquipmentSlot equipmentSlot;
             EquipmentIndex equipmentIndex;
             DroneMode droneMode = DroneMode.None;
             bool equipmentReady = false;
@@ -260,10 +261,9 @@ namespace AutoUseEquipmentDrones
 
             bool hasSpoken = false;
 
-            void Awake()
+            void Start()
             {
                 enemyTeamIndex = baseAI.body.teamComponent.teamIndex == TeamIndex.Player ? TeamIndex.Monster : TeamIndex.Player;
-                isNetwork = NetworkServer.active;
                 equipmentIndex = equipmentSlot.equipmentIndex;
 
                 EvaluateDroneMode();
@@ -313,6 +313,7 @@ namespace AutoUseEquipmentDrones
             {
                 bool forceActive = false;
                 freeUse = false;
+                useEquipment = false;
                 equipmentReady = equipmentSlot.stock > 0;
                 if (!equipmentReady)
                 {
