@@ -189,10 +189,21 @@ namespace AutoUseEquipmentDrones
         private void EquipmentSlot_FixedUpdate(On.RoR2.EquipmentSlot.orig_FixedUpdate orig, EquipmentSlot self)
         {
             orig(self);
-            if (!self.characterBody || self.characterBody.bodyIndex != EquipmentDroneBodyIndex) return;
+            switch (self.characterBody.baseNameToken)
+            {
+                case "EQUIPMENTDRONE_BODY_NAME":
+                    break;
+                default:
+                    return;
+            }
+            //if (self.characterBody.baseNameToken != "EQUIPMENTDRONE_BODY_NAME") return;
 
             var baseAI = self.characterBody.masterObject.GetComponent<BaseAI>();
-            if (!baseAI) return;
+            if (!baseAI)
+            {
+                Debug.Log("NoBaseAI");
+                return;
+            }
 
             var component = baseAI.gameObject.GetComponent<BEDUComponent>();
             if (!component)
@@ -202,7 +213,6 @@ namespace AutoUseEquipmentDrones
                 Debug.Log("Adding drone component");
             }
 
-            TeamIndex enemyTeamIndex = self.teamComponent.teamIndex == TeamIndex.Player ? TeamIndex.Monster : TeamIndex.Player;
             bool forceActive = false;
 
             bool match(EquipmentDef equipmentDef)
@@ -219,7 +229,7 @@ namespace AutoUseEquipmentDrones
             // If there are enemies alive, use.
             if (match(RoR2Content.Equipment.CommandMissile) || match(RoR2Content.Equipment.Meteor))
             {
-                if (CheckForAlive(enemyTeamIndex))
+                if (CheckForAlive(component.enemyTeamIndex))
                 {
                     DroneSay("There's enemies alive!");
                     forceActive = true;
@@ -380,9 +390,11 @@ namespace AutoUseEquipmentDrones
             public BaseAI baseAI = null;
             bool isNetwork = false;
             public bool useEquipment = false;
+            public TeamIndex enemyTeamIndex = TeamIndex.None;
 
             void Awake()
             {
+                enemyTeamIndex = baseAI.body.teamComponent.teamIndex == TeamIndex.Player ? TeamIndex.Monster : TeamIndex.Player;
                 isNetwork = NetworkServer.active;
             }
         }
