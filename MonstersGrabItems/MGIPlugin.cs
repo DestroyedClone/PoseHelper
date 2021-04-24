@@ -42,32 +42,55 @@ namespace MonstersGrabItems
         {
             On.RoR2.GenericPickupController.BodyHasPickupPermission += GenericPickupController_BodyHasPickupPermission;
             On.RoR2.GenericPickupController.AttemptGrant += GenericPickupController_AttemptGrant;
-            On.RoR2.EquipmentCatalog.SetEquipmentDefs += EquipmentCatalog_SetEquipmentDefs;
+            On.RoR2.GenericPickupController.GrantLunarCoin += GenericPickupController_GrantLunarCoin;
+            On.RoR2.GenericPickupController.GrantItem += GenericPickupController_GrantItem;
         }
 
-
-        private void EquipmentCatalog_SetEquipmentDefs(On.RoR2.EquipmentCatalog.orig_SetEquipmentDefs orig, EquipmentDef[] newEquipmentDefs)
+        private void GenericPickupController_GrantItem(On.RoR2.GenericPickupController.orig_GrantItem orig, GenericPickupController self, CharacterBody body, Inventory inventory)
         {
-			orig(newEquipmentDefs);
-			EquipmentIndex[] array =
-		{
-			Equipment.BFG.equipmentIndex,
-			Equipment.Blackhole.equipmentIndex,
-			Equipment.CommandMissile.equipmentIndex,
-			Equipment.CritOnUse.equipmentIndex,
-			Equipment.DroneBackup.equipmentIndex,
-			Equipment.FireBallDash.equipmentIndex,
-			Equipment.Fruit.equipmentIndex,
-			Equipment.GainArmor.equipmentIndex,
-			Equipment.LifestealOnHit.equipmentIndex,
-			Equipment.Lightning.equipmentIndex,
-			Equipment.Meteor.equipmentIndex,
-			Equipment.QuestVolatileBattery.equipmentIndex,
-			Equipment.Recycle.equipmentIndex,
-			Equipment.Saw.equipmentIndex,
-			Equipment.TeamWarCry.equipmentIndex
-		};
-			desirableEquipment = array;
+			if (!NetworkServer.active)
+			{
+				Debug.LogWarning("[Server] function 'System.Void RoR2.GenericPickupController::GrantItem(RoR2.CharacterBody,RoR2.Inventory)' called on client");
+				return;
+			}
+			PickupDef pickupDef = PickupCatalog.GetPickupDef(self.pickupIndex);
+			var itemIndex = (pickupDef != null) ? pickupDef.itemIndex : ItemIndex.None;
+			inventory.GiveItem(itemIndex, 1);
+			GenericPickupController.SendPickupMessage(inventory.GetComponent<CharacterMaster>(), self.pickupIndex);
+			body.master?.GetBodyObject().GetComponent<DropInventoryOnDeath>()?.AddItem(itemIndex, 1);
+			UnityEngine.Object.Destroy(self.gameObject);
+		}
+
+        private void GenericPickupController_GrantLunarCoin(On.RoR2.GenericPickupController.orig_GrantLunarCoin orig, GenericPickupController self, CharacterBody body, uint count)
+        {
+			if (!NetworkServer.active)
+			{
+				Debug.LogWarning("[Server] function 'System.Void RoR2.GenericPickupController::GrantLunarCoin(RoR2.CharacterBody,System.UInt32)' called on client");
+				return;
+			}
+			CharacterMaster master = body.master;
+			NetworkUser networkUser = Util.LookUpBodyNetworkUser(body);
+			if (networkUser)
+			{
+				if (master)
+				{
+					GenericPickupController.SendPickupMessage(master, self.pickupIndex);
+				}
+				networkUser.AwardLunarCoins(count);
+				UnityEngine.Object.Destroy(self.gameObject);
+			}
+			else
+            {
+				if (master)
+                {
+					if (master.GetBodyObject().GetComponent<DropInventoryOnDeath>())
+                    {
+						master.GetBodyObject().GetComponent<DropInventoryOnDeath>().incrementCoins();
+						GenericPickupController.SendPickupMessage(master, self.pickupIndex);
+						UnityEngine.Object.Destroy(self.gameObject);
+					}
+                }
+            }
 		}
 
         private void GenericPickupController_AttemptGrant(On.RoR2.GenericPickupController.orig_AttemptGrant orig, GenericPickupController self, CharacterBody body)
@@ -88,24 +111,30 @@ namespace MonstersGrabItems
 
 					self.consumed = true;
 					PickupDef pickupDef = PickupCatalog.GetPickupDef(self.pickupIndex);
+					DropInventoryOnDeath comp = null;
+					if (!isPlayer)
+                    {
+						comp = body.gameObject.GetComponent<DropInventoryOnDeath>();
+						if (!comp)
+							comp = body.gameObject.AddComponent<DropInventoryOnDeath>();
+					}
 					if (pickupDef.itemIndex != ItemIndex.None)
 					{
 						self.GrantItem(body, inventory);
 					}
-					if (pickupDef.equipmentIndex != EquipmentIndex.None)
+					if (pickupDef.coinValue != 0U)
 					{
-						if ((desirableEquipment.Contains(inventory.currentEquipmentIndex) && !isPlayer) || isPlayer)
-							self.GrantEquipment(body, inventory);
+						self.GrantLunarCoin(body, pickupDef.coinValue);
 					}
 					if (isPlayer)
 					{
+						if (pickupDef.equipmentIndex != EquipmentIndex.None)
+						{
+							self.GrantEquipment(body, inventory);
+						}
 						if (pickupDef.artifactIndex != ArtifactIndex.None)
 						{
 							self.GrantArtifact(body, pickupDef.artifactIndex);
-						}
-						if (pickupDef.coinValue != 0U)
-						{
-							self.GrantLunarCoin(body, pickupDef.coinValue);
 						}
 					}
 				}
@@ -121,13 +150,20 @@ namespace MonstersGrabItems
         {
 			List<ItemIndex> itemIndices = new List<ItemIndex>();
 			EquipmentIndex equipmentIndex = EquipmentIndex.None;
+			uint coinCount = 0U;
 
 			public void AddItem(ItemIndex itemIndex, uint amount)
             {
-
+				for (int i = 0; i < amount; i++)
+                {
+					itemIndices.Add(itemIndex);
+                }
             }
 
-
+			public void incrementCoins()
+            {
+				coinCount++;
+            }
 
 			public void OnKilledServer(DamageReport damageReport)
 			{
@@ -146,11 +182,16 @@ namespace MonstersGrabItems
                     }
 				}
 
-				foreach (var itemIndex in itemIndices)
-				{
-					PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(itemIndex), position, Vector3.up * 20f);
-				}
+				DropItems(position);
 
+				PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(equipmentIndex), position, Vector3.up * 20f);
+
+				DropCoins(position);
+			}
+
+			public void DropItems(Vector3 position)
+            {
+				if (itemIndices.Count == 0) return;
 				float angle = 360f / itemIndices.Count;
 				var chestVelocity = (Vector3.up * 20f) + (Vector3.forward * 5f);
 				Quaternion rotation = Quaternion.AngleAxis(angle, Vector3.up);
@@ -158,6 +199,21 @@ namespace MonstersGrabItems
 				while (i < itemIndices.Count)
 				{
 					PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex(itemIndices[i]), position + Vector3.up * 1.5f, chestVelocity);
+					i++;
+					chestVelocity = rotation * chestVelocity;
+				}
+			}
+
+			public void DropCoins(Vector3 position)
+            {
+				if (coinCount == 0) return;
+				float angle = 360f / coinCount;
+				var chestVelocity = (Vector3.up * 20f) + (Vector3.forward * 5f);
+				Quaternion rotation = Quaternion.AngleAxis(angle, Vector3.up);
+				int i = 0;
+				while (i < coinCount)
+				{
+					PickupDropletController.CreatePickupDroplet(PickupCatalog.FindPickupIndex("LunarCoin.Coin0"), position + Vector3.up * 1.5f, chestVelocity);
 					i++;
 					chestVelocity = rotation * chestVelocity;
 				}
