@@ -68,16 +68,15 @@ namespace AutoUseEquipmentDrones
         private void GiveComponent(On.RoR2.EquipmentSlot.orig_OnStartServer orig, EquipmentSlot self)
         {
             orig(self);
-            if (!self) Debug.Log("no self");
-            if (!self.characterBody) Debug.Log("no CB!");
-            if (!self.characterBody.master) Debug.Log("no master!");
+            if (!self) return;
+            if (!self.characterBody) return;
+            if (!self.characterBody.master) return;
             switch (self.characterBody.baseNameToken)
             {
                 case "EQUIPMENTDRONE_BODY_NAME":
                     var baseAI = self.characterBody.master.gameObject.GetComponent<BaseAI>();
                     if (!baseAI)
                     {
-                        Debug.Log("No BaseAI!");
                         return;
                     }
 
@@ -87,7 +86,6 @@ namespace AutoUseEquipmentDrones
                         component = baseAI.gameObject.AddComponent<BEDUComponent>();
                         component.baseAI = baseAI;
                         component.equipmentSlot = self;
-                        Chat.AddMessage("Adding drone component!");
                     }
                     break;
             }
@@ -151,6 +149,7 @@ namespace AutoUseEquipmentDrones
                     Debug.Log("Adding whitelisted item: "+ stringToTest);
                 }
             }
+            Debug.Log(allowedItemIndices);
         }
 
         private void CacheWhitelistedEquipment(On.RoR2.EquipmentCatalog.orig_Init orig)
@@ -169,19 +168,6 @@ namespace AutoUseEquipmentDrones
             }
         }
 
-        private void FixedGoldGat(On.EntityStates.GoldGat.GoldGatIdle.orig_FixedUpdate orig, EntityStates.GoldGat.GoldGatIdle self)
-        {
-            self.FixedUpdate();
-            self.gunAnimator?.SetFloat("Crank.playbackRate", 0f, 1f, Time.fixedDeltaTime);
-            if (self.isAuthority && self.shouldFire && self.bodyMaster.money > 0U && self.bodyEquipmentSlot.stock > 0)
-            {
-                self.outer.SetNextState(new GoldGatFire
-                {
-                    shouldFire = self.shouldFire
-                });
-                return;
-            }
-        }
 
 
         private void GetAllowedTypes(On.RoR2.ChestRevealer.orig_Init orig)
@@ -197,6 +183,40 @@ namespace AutoUseEquipmentDrones
             return teamComponents.Count > 0;
         }
 
+        public static GameObject GetMostHurtAlly(TeamIndex teamIndex)
+        {
+            ReadOnlyCollection<TeamComponent> teamComponents = TeamComponent.GetTeamMembers(teamIndex);
+            Dictionary<TeamComponent, float> keyValuePairs = new Dictionary<TeamComponent, float>();
+            foreach (var ally in teamComponents)
+            {
+                if (ally.body?.healthComponent)
+                {
+                    keyValuePairs.Add(ally, ally.body.healthComponent.health / ally.body.healthComponent.fullHealth);
+                }
+            }
+            // https://stackoverflow.com/questions/23734686/c-sharp-dictionary-get-the-key-of-the-min-value
+            var min = keyValuePairs.Aggregate((l, r) => l.Value < r.Value ? l : r).Key;
+            return null;
+        }
+
+
+        public static bool CheckInteractables()
+        {
+            Type[] array = ChestRevealer.typesToCheck;
+            for (int i = 0; i < array.Length; i++)
+            {
+                foreach (MonoBehaviour monoBehaviour in InstanceTracker.FindInstancesEnumerable(array[i]))
+                {
+                    if (((IInteractable)monoBehaviour).ShouldShowOnScanner())
+                    {
+                        Debug.Log("interactable check 1");
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
         public static bool CheckForInteractables()
         {
             ///Type[] validInteractables = new Type[] {  };
@@ -205,28 +225,31 @@ namespace AutoUseEquipmentDrones
                 InstanceTracker.FindInstancesEnumerable(valid);
                 if (((IInteractable)valid).ShouldShowOnScanner())
                 {
+                    Debug.Log("interactable check 2");
                     return true;
                 }
             }
             return false;
         }
 
-        public static bool CheckForDebuffs(CharacterBody characterBody) //try hooking addbuff instead?
+        public static bool CheckForDebuffs(CharacterBody characterBody)
         {
-            BuffIndex buffIndex = (BuffIndex)0;
+            BuffIndex buffIndex = 0;
             BuffIndex buffCount = (BuffIndex)BuffCatalog.buffCount;
             while (buffIndex < buffCount)
             {
                 BuffDef buffDef = BuffCatalog.GetBuffDef(buffIndex);
-                if (buffDef.isDebuff)
+                if (buffDef.isDebuff && characterBody.HasBuff(buffIndex))
                 {
                     if (characterBody.HasBuff(buffIndex))
                     {
+                        Debug.Log("debuffs!");
                         return true;
                     }
                 }
                 buffIndex++;
             }
+            Debug.Log("no debuffs?!");
             return false;
         }
 
@@ -249,16 +272,25 @@ namespace AutoUseEquipmentDrones
 
         public class BEDUComponent : MonoBehaviour
         {
+            [Tooltip("A reference to the component's BaseAI.")]
             public BaseAI baseAI = null;
+            [Tooltip("The team that is opposite to the baseAI's team..")]
             public TeamIndex enemyTeamIndex = TeamIndex.None;
+            [Tooltip("A reference to the body's equipmentSlot.")]
             public EquipmentSlot equipmentSlot;
+            [Tooltip("The current EquipmentIndex.")]
             EquipmentIndex equipmentIndex;
+            [Tooltip("The current mode of the drone.")]
             DroneMode droneMode = DroneMode.None;
+            [Tooltip("Whether or not to fire the equipment.")]
             bool equipmentReady = false;
 
+            [Tooltip("Whether or not the drone may freely use their equipment.")]
             public bool freeUse = false;
+            [Tooltip("Whether or not the drone is forced to use their equipment.")]
             public bool useEquipment = false;
 
+            [Tooltip("Speaking for debugging.")]
             bool hasSpoken = false;
 
             void Start()
@@ -308,6 +340,10 @@ namespace AutoUseEquipmentDrones
                 else if (match(RoR2Content.Equipment.Scanner))
                     droneMode = DroneMode.Scan;
             }
+            void TargetAlly(GameObject ally)
+            {
+                baseAI.currentEnemy.gameObject = ally;
+            }
 
             void FixedUpdate()
             {
@@ -323,6 +359,7 @@ namespace AutoUseEquipmentDrones
 
                 switch (droneMode)
                 {
+                    // If there are enemies on the map, but not necessarily any priority targets. //
                     case DroneMode.EnemyOnMap:
                         if (CheckForAlive(enemyTeamIndex))
                         {
@@ -330,17 +367,30 @@ namespace AutoUseEquipmentDrones
                             forceActive = true;
                         }
                         break;
+                    // If there is a high-value target, then it will prioritize that target before firing. //
+                    // internal cooldown of 30 seconds, before allowing freeuse to prevent wasted fires before a priority enemy appears //
                     case DroneMode.PriorityTarget:
+                        freeUse = true;
                         break;
+                    // Attempts to evade, using its skills //
                     case DroneMode.Evade:
                         freeUse = true;
                         break;
+                    // 
                     case DroneMode.GoldGat:
-                        uint num2 = (uint)((float)GoldGatFire.baseMoneyCostPerBullet * (1f + (TeamManager.instance.GetTeamLevel(baseAI.master.teamIndex) - 1f) * 0.25f));
-                        baseAI.master.money = num2 * 60;
+                        baseAI.master.money = uint.MaxValue;
                         break;
+                    /* Priority Listing:
+                     * Heal allied players in order of most hurt.
+                     * Unless about to die (<10% health), then heal until 50%
+                    */
                     case DroneMode.PassiveHealing:
+                        var ally = GetMostHurtAlly(baseAI.body.teamComponent.teamIndex);
+                        TargetAlly(ally);
+
+                        forceActive = true;
                         break;
+                    // If there are any debuffs, then use. //
                     case DroneMode.Cleanse:
                         if (CheckForDebuffs(baseAI.body))
                         {
@@ -348,6 +398,7 @@ namespace AutoUseEquipmentDrones
                             forceActive = true;
                         }
                         break;
+                    // Ideally we'd want to get in close, but I'd have to work on it //
                     case DroneMode.Saw:
                         freeUse = true;
                         break;
@@ -371,11 +422,12 @@ namespace AutoUseEquipmentDrones
                         }
                         //forceActive = self.healthComponent?.health <= self.healthComponent?.fullHealth * 0.5f;
                         break;
+                    // Tries to get as close as possible to the enemy //
                     case DroneMode.Snuggle:
                         freeUse = true;
                         break;
                     case DroneMode.Scan:
-                        if (CheckForInteractables())
+                        if (CheckForInteractables() || CheckInteractables())
                         {
                             forceActive = true;
                             DroneSay("There's still stuff to buy!");
