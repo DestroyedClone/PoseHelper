@@ -42,27 +42,9 @@ namespace MonstersGrabItems
         {
             On.RoR2.GenericPickupController.BodyHasPickupPermission += GenericPickupController_BodyHasPickupPermission;
             On.RoR2.GenericPickupController.AttemptGrant += GenericPickupController_AttemptGrant;
-            On.RoR2.GenericPickupController.GrantItem += GenericPickupController_GrantItem;
             On.RoR2.EquipmentCatalog.SetEquipmentDefs += EquipmentCatalog_SetEquipmentDefs;
         }
 
-        private void GenericPickupController_GrantItem(On.RoR2.GenericPickupController.orig_GrantItem orig, GenericPickupController self, CharacterBody body, Inventory inventory)
-        {
-			if (body.master.playerCharacterMasterController)
-            {
-				orig(self, body, inventory);
-				return;
-            }
-			if (!NetworkServer.active)
-			{
-				Debug.LogWarning("[Server] function 'System.Void RoR2.GenericPickupController::GrantItem(RoR2.CharacterBody,RoR2.Inventory)' called on client");
-				return;
-			}
-			PickupDef pickupDef = PickupCatalog.GetPickupDef(self.pickupIndex);
-			inventory.GiveItem((pickupDef != null) ? pickupDef.itemIndex : ItemIndex.None, 1);
-			GenericPickupController.SendPickupMessage(inventory.GetComponent<CharacterMaster>(), self.pickupIndex);
-			UnityEngine.Object.Destroy(base.gameObject);
-		}
 
         private void EquipmentCatalog_SetEquipmentDefs(On.RoR2.EquipmentCatalog.orig_SetEquipmentDefs orig, EquipmentDef[] newEquipmentDefs)
         {
