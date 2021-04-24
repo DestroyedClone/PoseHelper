@@ -6,6 +6,9 @@
 
   <ItemGroup>
     <Compile Remove="Class1.cs" />
+    <Compile Remove="Commands.cs" />
+    <Compile Remove="LAIPlugin.cs" />
+    <Compile Remove="RewritePlugin.cs" />
     <Compile Remove="Testing.cs" />
   </ItemGroup>
 
