@@ -16,7 +16,7 @@ namespace Speedometer
     [BepInPlugin(ModGuid, ModName, ModVer)]
     public class SpeedometerMain : BaseUnityPlugin
     {
-        public const string ModVer = "1.0.0";
+        public const string ModVer = "1.1.0";
         public const string ModName = "Speedometer";
         public const string ModGuid = "com.DestroyedClone.Speedometer";
 
@@ -27,13 +27,13 @@ namespace Speedometer
         private void ShowUnusedHUDElements(On.RoR2.UI.HUD.orig_Awake orig, RoR2.UI.HUD self)
         {
             orig(self);
-            var mainUIArea = GameObject.Find("HUDSimple(Clone)").transform.Find("MainContainer").transform.Find("MainUIArea").transform;
+            var mainUIArea = self.gameObject.transform.Find("MainContainer").transform.Find("MainUIArea").transform.Find("SpringCanvas").transform;
             var speedometer = mainUIArea.Find("UpperRightCluster").transform.Find("TimerRoot").transform.Find("SpeedometerPanel").gameObject;
             speedometer.transform.parent = speedometer.transform.parent.transform.Find("RightInfoBar").transform;
             speedometer.SetActive(true);
 
             //mainUIArea.Find("UpperLeftCluster").transform.Find("InputStickVisualizer").gameObject.SetActive(true);
-            mainUIArea.Find("ScoreboardPanel").transform.Find("PP").gameObject.SetActive(false);
+            //mainUIArea.Find("ScoreboardPanel").transform.Find("PP").gameObject.SetActive(false);
         }
     }
 }
