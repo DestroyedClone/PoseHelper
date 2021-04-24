@@ -31,14 +31,22 @@ namespace MithrixMeme
         public const string ModVer = "1.0.0";
         public const string ModName = "Honorable Mithrix";
         public const string ModGuid = "com.DestroyedClone.HonorableMithrix";
-        public static ConfigEntry<ItemIndex> HonoredItem { get; set; }
+        public static ConfigEntry<string> HonoredItemString { get; set; }
+        public static ItemIndex HonoredItem;
 
         public void Awake()
         {
             LanguageAPI.Add("MMP_MITHRIX_DIALOGUE_STYLE", "<color=#c6d5ff><size=120%> Mithrix: {0}</color></size>");
-            HonoredItem = Config.Bind("", "Honored Item", ItemIndex.Squid, "Allow players, regardless of team, to get extinguished.");
+            HonoredItemString = Config.Bind("", "Honored Item", "Squid", "Name of item that mithrix bows down to, must follow ItemIndex names.");
 
             On.RoR2.ItemStealController.RpcOnStealFinishClient += ItemStealController_RpcOnStealFinishClient;
+            On.RoR2.PickupCatalog.Init += PickupCatalog_Init;
+        }
+
+        private void PickupCatalog_Init(On.RoR2.PickupCatalog.orig_Init orig)
+        {
+            orig();
+            HonoredItem = ItemCatalog.FindItemIndex(HonoredItemString.Value);
         }
 
         private void ItemStealController_RpcOnStealFinishClient(On.RoR2.ItemStealController.orig_RpcOnStealFinishClient orig, ItemStealController self)
@@ -48,7 +56,7 @@ namespace MithrixMeme
 
             foreach (var invInfo in self.stolenInventoryInfos)
             {
-                if (invInfo.stolenItemStacks[(int)HonoredItem.Value] > 0)
+                if (invInfo.stolenItemStacks[(int)HonoredItem] > 0)
                 {
                     activate = true;
                     break;
@@ -62,7 +70,7 @@ namespace MithrixMeme
                 {
                     var component = brother.AddComponent<MithrixKneel>();
                     component.characterBody = brother.GetComponent<CharacterBody>();
-                    component.question = Language.GetString(ItemCatalog.GetItemDef(HonoredItem.Value).nameToken);
+                    component.question = Language.GetString(ItemCatalog.GetItemDef(HonoredItem).nameToken);
 
                 }
             }
@@ -152,7 +160,7 @@ namespace MithrixMeme
                 //entityStateMachine.SetState(EntityState.Instantiate(EntityStates.BrotherMonster.TrueDeathState));
                 //characterBody.SetBodyStateToPreferredInitialState
                 //entityStateMachine.SetInterruptState(EntityState.Instantiate(new SerializableEntityStateType(typeof(EntityStates.BrotherMonster.TrueDeathState))), InterruptPriority.Death);
-                entityStateMachine.SetInterruptState(EntityState.Instantiate(new SerializableEntityStateType(typeof(KneelState))), InterruptPriority.Death);
+                entityStateMachine.SetInterruptState(new KneelState(), InterruptPriority.Death);
                 //base.PlayAnimation("FullBody Override", "TrueDeath");
                 characterBody.moveSpeed = 0f;
                 characterBody.characterDirection.moveVector = characterBody.characterDirection.forward;

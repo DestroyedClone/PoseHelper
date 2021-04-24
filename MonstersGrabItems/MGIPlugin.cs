@@ -48,6 +48,11 @@ namespace MonstersGrabItems
 
         private void GenericPickupController_GrantItem(On.RoR2.GenericPickupController.orig_GrantItem orig, GenericPickupController self, CharacterBody body, Inventory inventory)
         {
+			if (body.master.playerCharacterMasterController)
+            {
+				orig(self, body, inventory);
+				return;
+            }
 			if (!NetworkServer.active)
 			{
 				Debug.LogWarning("[Server] function 'System.Void RoR2.GenericPickupController::GrantItem(RoR2.CharacterBody,RoR2.Inventory)' called on client");
