@@ -36,7 +36,6 @@ namespace MonstersGrabItems
     [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.EveryoneNeedSameModVersion)]
     public class MGI_Plugin : BaseUnityPlugin
     {
-		public static EquipmentIndex[] desirableEquipment = { };
 
         void Awake()
         {
@@ -44,21 +43,51 @@ namespace MonstersGrabItems
             On.RoR2.GenericPickupController.AttemptGrant += GenericPickupController_AttemptGrant;
             On.RoR2.GenericPickupController.GrantLunarCoin += GenericPickupController_GrantLunarCoin;
             On.RoR2.GenericPickupController.GrantItem += GenericPickupController_GrantItem;
+            On.RoR2.GenericPickupController.OnTriggerStay += GenericPickupController_OnTriggerStay;
         }
+
+        private void GenericPickupController_OnTriggerStay(On.RoR2.GenericPickupController.orig_OnTriggerStay orig, GenericPickupController self, Collider other)
+        {
+			if (NetworkServer.active && self.waitStartTime.timeSince >= self.waitDuration && !self.consumed)
+			{
+				CharacterBody component = other.GetComponent<CharacterBody>();
+				if (component)
+				{
+					PickupDef pickupDef = PickupCatalog.GetPickupDef(self.pickupIndex);
+					ItemIndex itemIndex = (pickupDef != null) ? pickupDef.itemIndex : ItemIndex.None;
+					if (itemIndex != ItemIndex.None && ItemCatalog.GetItemDef(itemIndex).tier == ItemTier.Lunar && component.isPlayerControlled)
+					{
+						return;
+					}
+					EquipmentIndex equipmentIndex = (pickupDef != null) ? pickupDef.equipmentIndex : EquipmentIndex.None;
+					if (equipmentIndex != EquipmentIndex.None)
+					{
+						if (EquipmentCatalog.GetEquipmentDef(equipmentIndex).isLunar)
+						{
+							return;
+						}
+						if (component.inventory && component.inventory.currentEquipmentIndex != EquipmentIndex.None)
+						{
+							return;
+						}
+					}
+					if (pickupDef != null && pickupDef.coinValue != 0U && component.isPlayerControlled)
+					{
+						return;
+					}
+					if (GenericPickupController.BodyHasPickupPermission(component))
+					{
+						self.AttemptGrant(component);
+					}
+				}
+			}
+		}
 
         private void GenericPickupController_GrantItem(On.RoR2.GenericPickupController.orig_GrantItem orig, GenericPickupController self, CharacterBody body, Inventory inventory)
         {
-			if (!NetworkServer.active)
-			{
-				Debug.LogWarning("[Server] function 'System.Void RoR2.GenericPickupController::GrantItem(RoR2.CharacterBody,RoR2.Inventory)' called on client");
-				return;
-			}
+			orig(self, body, inventory);
 			PickupDef pickupDef = PickupCatalog.GetPickupDef(self.pickupIndex);
-			var itemIndex = (pickupDef != null) ? pickupDef.itemIndex : ItemIndex.None;
-			inventory.GiveItem(itemIndex, 1);
-			GenericPickupController.SendPickupMessage(inventory.GetComponent<CharacterMaster>(), self.pickupIndex);
-			body.master?.GetBodyObject().GetComponent<DropInventoryOnDeath>()?.AddItem(itemIndex, 1);
-			UnityEngine.Object.Destroy(self.gameObject);
+			body.master?.GetBodyObject().GetComponent<DropInventoryOnDeath>()?.AddItem((pickupDef != null) ? pickupDef.itemIndex : ItemIndex.None, 1);
 		}
 
         private void GenericPickupController_GrantLunarCoin(On.RoR2.GenericPickupController.orig_GrantLunarCoin orig, GenericPickupController self, CharacterBody body, uint count)
@@ -81,15 +110,15 @@ namespace MonstersGrabItems
 			}
 			else
             {
-				if (master)
-                {
-					if (master.GetBodyObject().GetComponent<DropInventoryOnDeath>())
-                    {
-						master.GetBodyObject().GetComponent<DropInventoryOnDeath>().incrementCoins();
-						GenericPickupController.SendPickupMessage(master, self.pickupIndex);
-						UnityEngine.Object.Destroy(self.gameObject);
-					}
-                }
+				if (master && master.teamIndex != TeamIndex.Player)
+				{
+					var component = master.GetBodyObject().GetComponent<DropInventoryOnDeath>();
+					if (!component)
+						component = master.GetBodyObject().AddComponent<DropInventoryOnDeath>();
+					component.incrementCoins();
+					GenericPickupController.SendPickupMessage(master, self.pickupIndex);
+					UnityEngine.Object.Destroy(self.gameObject);
+				}
             }
 		}
 
@@ -112,7 +141,7 @@ namespace MonstersGrabItems
 					self.consumed = true;
 					PickupDef pickupDef = PickupCatalog.GetPickupDef(self.pickupIndex);
 					DropInventoryOnDeath comp = null;
-					if (!isPlayer)
+					if (!isPlayer && body.teamComponent.teamIndex != TeamIndex.Player)
                     {
 						comp = body.gameObject.GetComponent<DropInventoryOnDeath>();
 						if (!comp)
