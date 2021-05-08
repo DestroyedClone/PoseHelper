@@ -16,12 +16,28 @@ namespace AlternateSkills.Commando
     public class CommandoMain
     {
         public static GameObject myCharacter = Resources.Load<GameObject>("prefabs/characterbodies/CommandoBody");
+        public static BodyIndex bodyIndex = myCharacter.GetComponent<CharacterBody>().bodyIndex;
 
         public static void Init()
         {
             SetupSkills();
             On.RoR2.CharacterBody.RecalculateStats += CharacterBody_RecalculateStats;
             On.RoR2.HealthComponent.TakeDamage += HealthComponent_TakeDamage;
+            CharacterBody.onBodyStartGlobal += CharacterBody_onBodyStartGlobal;
+        }
+
+        private static void CharacterBody_onBodyStartGlobal(CharacterBody obj)
+        {
+            if (obj)
+            {
+                if (obj.bodyIndex == bodyIndex)
+                {
+                    if (obj.skillLocator.FindSkill("COMMANDO_SPECIAL_PROMOTE_NAME"))
+                    {
+                        Chat.AddMessage("Loaded Special!");
+                    }
+                }
+            }
         }
 
         private static void HealthComponent_TakeDamage(On.RoR2.HealthComponent.orig_TakeDamage orig, HealthComponent self, DamageInfo damageInfo)
@@ -128,18 +144,17 @@ namespace AlternateSkills.Commando
             mySkillDef.activationState = new SerializableEntityStateType(typeof(Commando.RunSkill));
             mySkillDef.activationStateMachineName = "Weapon";
             mySkillDef.baseMaxStock = 1;
-            mySkillDef.baseRechargeInterval = 0f;
+            mySkillDef.baseRechargeInterval = 60f;
             mySkillDef.beginSkillCooldownOnSkillEnd = true;
             mySkillDef.canceledFromSprinting = false;
             mySkillDef.fullRestockOnAssign = true;
             mySkillDef.interruptPriority = InterruptPriority.Any;
             mySkillDef.isCombatSkill = false;
-            mySkillDef.mustKeyPress = false;
+            mySkillDef.mustKeyPress = true;
             mySkillDef.rechargeStock = 1;
             mySkillDef.requiredStock = 1;
             mySkillDef.stockToConsume = 1;
-            mySkillDef.forceSprintDuringState = true;
-            mySkillDef.icon = Resources.Load<Sprite>("textures/bufficons/texBuffPowerIcon");
+            mySkillDef.icon = Resources.Load<Sprite>("textures/bufficons/texBuffWarbannerIcon");
             mySkillDef.skillDescriptionToken = "COMMANDO_SPECIAL_PROMOTE_DESCRIPTION";
             mySkillDef.skillName = "COMMANDO_SPECIAL_PROMOTE_NAME";
             mySkillDef.skillNameToken = "COMMANDO_SPECIAL_PROMOTE_NAME";
