@@ -32,10 +32,6 @@ namespace AlternateSkills.Commando
             {
                 if (obj.bodyIndex == bodyIndex)
                 {
-                    if (obj.skillLocator.FindSkill("COMMANDO_SPECIAL_PROMOTE_NAME"))
-                    {
-                        Chat.AddMessage("Loaded Special!");
-                    }
                 }
             }
         }
@@ -57,6 +53,13 @@ namespace AlternateSkills.Commando
                 if (self.HasBuff(Buffs.runningBuff))
                 {
                     self.moveSpeed *= 1.25f;
+                }
+                if (self.HasBuff(Buffs.promotedBuff))
+                {
+                    self.attackSpeed *= 1.5f;
+                    self.damage *= 1.25f;
+                    self.armor += 20f;
+                    self.regen *= 2f;
                 }
             }
         }
@@ -100,7 +103,7 @@ namespace AlternateSkills.Commando
             };
 
             LanguageAPI.Add("COMMANDO_UTILITY_RUN_NAME", "Run");
-            LanguageAPI.Add("COMMANDO_UTILITY_RUN_DESCRIPTION", "Hold to <style=cIsUtility>run for 25% increased movement speed<style>. Grants increased pickup range.");
+            LanguageAPI.Add("COMMANDO_UTILITY_RUN_DESCRIPTION", "Hold to <style=cIsUtility>run for 25% increased movement speed<style>. Grants a chance to dodge.");
 
             mySkillDef = ScriptableObject.CreateInstance<SkillDef>();
             mySkillDef.activationState = new SerializableEntityStateType(typeof(Commando.RunSkill));
@@ -126,7 +129,7 @@ namespace AlternateSkills.Commando
 
             skillLocator = myCharacter.GetComponent<SkillLocator>();
 
-            skillFamily = skillLocator.secondary.skillFamily;
+            skillFamily = skillLocator.utility.skillFamily;
 
             Array.Resize(ref skillFamily.variants, skillFamily.variants.Length + 1);
             skillFamily.variants[skillFamily.variants.Length - 1] = new SkillFamily.Variant
@@ -163,7 +166,7 @@ namespace AlternateSkills.Commando
 
             skillLocator = myCharacter.GetComponent<SkillLocator>();
 
-            skillFamily = skillLocator.secondary.skillFamily;
+            skillFamily = skillLocator.special.skillFamily;
 
             Array.Resize(ref skillFamily.variants, skillFamily.variants.Length + 1);
             skillFamily.variants[skillFamily.variants.Length - 1] = new SkillFamily.Variant

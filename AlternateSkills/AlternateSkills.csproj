@@ -6,11 +6,8 @@
 
   <ItemGroup>
     <Compile Remove="Captain\**" />
-    <Compile Remove="Commando\**" />
     <EmbeddedResource Remove="Captain\**" />
-    <EmbeddedResource Remove="Commando\**" />
     <None Remove="Captain\**" />
-    <None Remove="Commando\**" />
   </ItemGroup>
 
 

@@ -29,9 +29,19 @@ namespace AlternateSkills
     {
         public void Awake()
         {
+            try
+            {
+                Artificer.ArtificerMain.Init();
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+
+
             //Buffs.RegisterBuffs();
-            Acrid.AcridMain.Init();
-            Captain.CaptainMain.Init();
+            //Acrid.AcridMain.Init();
+            //Captain.CaptainMain.Init();
             //Commando.CommandoMain.Init();
         }
 

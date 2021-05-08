@@ -46,6 +46,7 @@ namespace AlternateSkills.Commando
 					falloffModel = BlastAttack.FalloffModel.None,
 					attackerFiltering = AttackerFiltering.NeverHit,
 				}.Fire();
+				this.outer.SetNextStateToMain();
 			}
 		}
 
