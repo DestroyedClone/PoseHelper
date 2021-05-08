@@ -11,12 +11,6 @@ namespace AlternateSkills.Captain
         public void Init()
         {
             On.RoR2.CharacterBody.RecalculateStats += CharacterBody_RecalculateStats;
-            On.RoR2.CharacterBody.AddBuff += CharacterBody_AddBuff;
-        }
-
-        private void CharacterBody_AddBuff(On.RoR2.CharacterBody.orig_AddBuff orig, CharacterBody self, BuffIndex buffType)
-        {
-            orig(self, buffType);
         }
 
         private void CharacterBody_RecalculateStats(On.RoR2.CharacterBody.orig_RecalculateStats orig, CharacterBody self)

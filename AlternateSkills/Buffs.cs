@@ -8,33 +8,30 @@ namespace AlternateSkills
 {
     public static class Buffs
     {
-        internal static BuffDef acceleratedBuff;
-        internal static BuffDef tacticBuff;
+        //internal static BuffDef acceleratedBuff;
+        //internal static BuffDef tacticBuff;
+        //internal static BuffDef promotedBuff;
+        internal static BuffDef tacticAllyBuff;
+        internal static BuffDef tacticEnemyBuff;
+        internal static BuffDef runningBuff;
         internal static BuffDef promotedBuff;
+        internal static BuffDef promotedScepterBuff;
 
         internal static List<BuffDef> buffDefs = new List<BuffDef>();
 
         internal static void RegisterBuffs()
         {
             // fix the buff catalog to actually register our buffs
-            IL.RoR2.BuffCatalog.Init += FixBuffCatalog; // remove this hook after next ror2 update as it will have been fixed
 
-            acceleratedBuff = AddNewBuff("Accelerated!", Resources.Load<Sprite>("Textures/BuffIcons/texBuffGenericShield"), Color.blue, false, false);
-            tacticBuff = AddNewBuff("Tactical Advantage", Resources.Load<Sprite>("Textures/BuffIcons/texBuffGenericShield"), Color.red, false, false);
-            promotedBuff = AddNewBuff("Promoted!", Resources.Load<Sprite>("Textures/BuffIcons/texBuffGenericShield"), Color.yellow, false, false);
-        }
+            tacticAllyBuff = AddNewBuff("Tactics: Ally", Resources.Load<Sprite>("Textures/BuffIcons/texBuffGenericShield"), Color.blue, true, false);
+            tacticEnemyBuff = AddNewBuff("Tactics: Enemy", Resources.Load<Sprite>("Textures/BuffIcons/texBuffGenericShield"), Color.red, true, false);
+            runningBuff = AddNewBuff("Running!", Resources.Load<Sprite>("Textures/BuffIcons/texBuffGenericShield"), Color.red, false, false);
+            promotedBuff = AddNewBuff("Promoted!", Resources.Load<Sprite>("Textures/BuffIcons/texBuffGenericShield"), Color.red, false, false);
+            promotedScepterBuff = AddNewBuff("Promoted! (Scepter)", Resources.Load<Sprite>("Textures/BuffIcons/texBuffGenericShield"), Color.red, false, false);
 
-        internal static void FixBuffCatalog(ILContext il)
-        {
-            ILCursor c = new ILCursor(il);
-
-            if (!c.Next.MatchLdsfld(typeof(RoR2Content.Buffs), nameof(RoR2Content.Buffs.buffDefs)))
-            {
-                return;
-            }
-
-            c.Remove();
-            c.Emit(OpCodes.Ldsfld, typeof(ContentManager).GetField(nameof(ContentManager.buffDefs)));
+            //acceleratedBuff = AddNewBuff("Accelerated!", Resources.Load<Sprite>("Textures/BuffIcons/texBuffGenericShield"), Color.blue, false, false);
+            //tacticBuff = AddNewBuff("Tactical Advantage", Resources.Load<Sprite>("Textures/BuffIcons/texBuffGenericShield"), Color.red, false, false);
+            //promotedBuff = AddNewBuff("Promoted!", Resources.Load<Sprite>("Textures/BuffIcons/texBuffGenericShield"), Color.yellow, false, false);
         }
 
         // simple helper method

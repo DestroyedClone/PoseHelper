@@ -4,6 +4,16 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Remove="Captain\**" />
+    <EmbeddedResource Remove="Captain\**" />
+    <None Remove="Captain\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Buffs.cs" />
+  </ItemGroup>
+
 
 	<ItemGroup>
 		<Reference Include="0Harmony">
@@ -11,9 +21,6 @@
 		</Reference>
 		<Reference Include="Assembly-CSharp">
 			<HintPath>..\PoseHelper\lib\Assembly-CSharp.dll</HintPath>
-		</Reference>
-		<Reference Include="Assembly-CSharp.R2API.mm">
-			<HintPath>..\PoseHelper\lib\Assembly-CSharp.R2API.mm.dll</HintPath>
 		</Reference>
 		<Reference Include="BepInEx">
 			<HintPath>..\PoseHelper\lib\BepInEx.dll</HintPath>
@@ -99,9 +106,9 @@
 	<ItemGroup>
 	  <Folder Include="Acrid\" />
 	  <Folder Include="Artificer\" />
-	  <Folder Include="Commando\" />
 	  <Folder Include="Engineer\" />
 	  <Folder Include="Huntress\" />
+	  <Folder Include="NewFolder\" />
 	</ItemGroup>
 
 </Project>
