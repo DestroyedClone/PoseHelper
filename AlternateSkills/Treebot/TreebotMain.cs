@@ -11,11 +11,11 @@ using EntityStates;
 using R2API;
 using RoR2.Skills;
 
-namespace AlternateSkills.Captain
+namespace AlternateSkills.Treebot
 {
-    public class CaptainMain
+    public class Bandit2Main
     {
-        public static GameObject myCharacter = Resources.Load<GameObject>("prefabs/characterbodies/CaptainBody");
+        public static GameObject myCharacter = Resources.Load<GameObject>("prefabs/characterbodies/TreebotBody");
         public static BodyIndex bodyIndex = myCharacter.GetComponent<CharacterBody>().bodyIndex;
 
         public static void Init()
@@ -26,14 +26,14 @@ namespace AlternateSkills.Captain
 
         private static void SetupSkills()
         {
-            LanguageAPI.Add("CAPTAINSCEPTER_NAME", "OGM-72 'DIABLO' Strike");
-            LanguageAPI.Add("CAPTAINSCEPTER_DESCRIPTION", "Increased radius, deals 50% damage to teammates.");
+            LanguageAPI.Add("REXSCEPTER_NAME", "DIRECTIVE: Reap");
+            LanguageAPI.Add("REXSCEPTER_DESCRIPTION", "Roots on hit");
 
             var mySkillDef = ScriptableObject.CreateInstance<SkillDef>();
-            mySkillDef.activationState = new SerializableEntityStateType(typeof(Captain.DiabloStrike));
+            mySkillDef.activationState = new SerializableEntityStateType(typeof(Treebot.TreebotPrepFruitSeedSCEPTER));
             mySkillDef.activationStateMachineName = "Weapon";
             mySkillDef.baseMaxStock = 1;
-            mySkillDef.baseRechargeInterval = 40f;
+            mySkillDef.baseRechargeInterval = 6f;
             mySkillDef.beginSkillCooldownOnSkillEnd = true;
             mySkillDef.canceledFromSprinting = false;
             mySkillDef.fullRestockOnAssign = true;
@@ -44,8 +44,8 @@ namespace AlternateSkills.Captain
             mySkillDef.requiredStock = 1;
             mySkillDef.stockToConsume = 1;
             mySkillDef.icon = Resources.Load<Sprite>("textures/bufficons/texBuffLunarShellIcon");
-            mySkillDef.skillDescriptionToken = "CAPTAINSCEPTER_DESCRIPTION";
-            mySkillDef.skillName = "CAPTAINSCEPTER_NAME";
+            mySkillDef.skillDescriptionToken = "REXSCEPTER_DESCRIPTION";
+            mySkillDef.skillName = "REXSCEPTER_NAME";
             mySkillDef.skillNameToken = mySkillDef.skillName;
 
             LoadoutAPI.AddSkillDef(mySkillDef);

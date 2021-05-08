@@ -29,7 +29,7 @@ namespace AlternateSkills.Mercenary
             LanguageAPI.Add("MERC_SECONDARY_FALLINGLIGHTDESCRIPTION", "<style=cIsUtility>Heavy.</style> Unleash a slicing downwardcut, dealing <style=cIsDamage>550% damage</style> and sending you downwards.");
 
             var mySkillDef = ScriptableObject.CreateInstance<SkillDef>();
-            mySkillDef.activationState = new SerializableEntityStateType(typeof(Commando.BackupShiv));
+            mySkillDef.activationState = new SerializableEntityStateType(typeof(Mercenary.FallingLight));
             mySkillDef.activationStateMachineName = "Weapon";
             mySkillDef.baseMaxStock = 1;
             mySkillDef.baseRechargeInterval = 2.5f;

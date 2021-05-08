@@ -5,12 +5,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Captain\**" />
-    <EmbeddedResource Remove="Captain\**" />
-    <None Remove="Captain\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Compile Remove="Mercenary\LaserSaw.cs" />
   </ItemGroup>
 

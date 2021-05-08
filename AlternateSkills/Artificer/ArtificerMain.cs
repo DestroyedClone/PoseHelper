@@ -149,7 +149,7 @@ namespace AlternateSkills.Artificer
             LanguageAPI.Add("MAGE_UTILITY_DEBUFFHIT_DESCRIPTION", "<style=cHealth>Excises</style> a chunk out of yourself to launch a canister containing your debuffs for <style=cIsDamage>70% damage</style>. Deals <style=cIsDamage>+10% damage</style> per stack. <style=cDeath>Costs 10% of your health</style>.");
 
             var mySkillDef = ScriptableObject.CreateInstance<SkillDef>();
-            mySkillDef.activationState = new SerializableEntityStateType(typeof(Acrid.KickOff));
+            mySkillDef.activationState = new SerializableEntityStateType(typeof(Artificer.DebuffHit));
             mySkillDef.activationStateMachineName = "Weapon";
             mySkillDef.baseMaxStock = 1;
             mySkillDef.baseRechargeInterval = 10f;
@@ -185,7 +185,7 @@ namespace AlternateSkills.Artificer
             LanguageAPI.Add("MAGE_SPECIAL_BUFFTRANSFER_DESCRIPTION", "Attacks the closest enemy, targeting them. The targeted enemy receives your debuffs, and you receive their buffs.");
 
             mySkillDef = ScriptableObject.CreateInstance<SkillDef>();
-            mySkillDef.activationState = new SerializableEntityStateType(typeof(Acrid.KickOff));
+            mySkillDef.activationState = new SerializableEntityStateType(typeof(Artificer.BuffTransfer));
             mySkillDef.activationStateMachineName = "Weapon";
             mySkillDef.baseMaxStock = 1;
             mySkillDef.baseRechargeInterval = 30f;

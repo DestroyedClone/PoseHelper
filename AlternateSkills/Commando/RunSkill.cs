@@ -33,6 +33,7 @@ namespace AlternateSkills.Commando
 			{
 				this.characterBody.RemoveBuff(Buffs.runningBuff);
 			}
+			this.outer.SetNextStateToMain();
 		}
 
 		public override void FixedUpdate()

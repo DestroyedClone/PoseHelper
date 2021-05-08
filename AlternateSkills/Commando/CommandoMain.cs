@@ -96,7 +96,7 @@ namespace AlternateSkills.Commando
 
             mySkillDef = ScriptableObject.CreateInstance<SkillDef>();
             mySkillDef.activationState = new SerializableEntityStateType(typeof(Commando.RunSkill));
-            mySkillDef.activationStateMachineName = "Weapon";
+            mySkillDef.activationStateMachineName = "Body";
             mySkillDef.baseMaxStock = 1;
             mySkillDef.baseRechargeInterval = 0f;
             mySkillDef.beginSkillCooldownOnSkillEnd = true;
@@ -133,7 +133,7 @@ namespace AlternateSkills.Commando
             LanguageAPI.Add("COMMANDO_SPECIAL_PROMOTE_DESCRIPTION", "Promote an ally, grants +50% attack speed, +25% damage, +20 armor, and +100% health regen for 8 seconds.");
 
             mySkillDef = ScriptableObject.CreateInstance<SkillDef>();
-            mySkillDef.activationState = new SerializableEntityStateType(typeof(Commando.RunSkill));
+            mySkillDef.activationState = new SerializableEntityStateType(typeof(Commando.Promote));
             mySkillDef.activationStateMachineName = "Weapon";
             mySkillDef.baseMaxStock = 1;
             mySkillDef.baseRechargeInterval = 60f;
