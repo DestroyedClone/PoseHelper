@@ -28,7 +28,8 @@ namespace AlternateSkills
         public void Awake()
         {
             //Buffs.RegisterBuffs();
-            Acrid.AcridMain.Init();
+            //Acrid.AcridMain.Init();
+            Captain.CaptainMain.Init();
             //Commando.CommandoMain.Init();
         }
 
