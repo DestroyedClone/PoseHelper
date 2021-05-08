@@ -10,6 +10,10 @@
     <None Remove="Captain\**" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="Mercenary\LaserSaw.cs" />
+  </ItemGroup>
+
 
 	<ItemGroup>
 		<Reference Include="0Harmony">
@@ -102,7 +106,6 @@
 	<ItemGroup>
 	  <Folder Include="Engineer\" />
 	  <Folder Include="Huntress\" />
-	  <Folder Include="NewFolder\" />
 	</ItemGroup>
 
 </Project>

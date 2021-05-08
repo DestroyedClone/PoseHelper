@@ -29,20 +29,12 @@ namespace AlternateSkills
     {
         public void Awake()
         {
-            try
-            {
-                Artificer.ArtificerMain.Init();
-            }
-            catch (Exception)
-            {
-                throw;
-            }
-
-
-            //Buffs.RegisterBuffs();
-            //Acrid.AcridMain.Init();
+            Buffs.RegisterBuffs();
+            Acrid.AcridMain.Init();
+            Artificer.ArtificerMain.Init();
             //Captain.CaptainMain.Init();
-            //Commando.CommandoMain.Init();
+            Commando.CommandoMain.Init();
+            Mercenary.MercenaryMain.Init();
         }
 
         public static BuffDef[] ReturnBuffs(CharacterBody characterBody, bool returnDebuffs, bool returnBuffs)

@@ -23,17 +23,6 @@ namespace AlternateSkills.Commando
             SetupSkills();
             On.RoR2.CharacterBody.RecalculateStats += CharacterBody_RecalculateStats;
             On.RoR2.HealthComponent.TakeDamage += HealthComponent_TakeDamage;
-            CharacterBody.onBodyStartGlobal += CharacterBody_onBodyStartGlobal;
-        }
-
-        private static void CharacterBody_onBodyStartGlobal(CharacterBody obj)
-        {
-            if (obj)
-            {
-                if (obj.bodyIndex == bodyIndex)
-                {
-                }
-            }
         }
 
         private static void HealthComponent_TakeDamage(On.RoR2.HealthComponent.orig_TakeDamage orig, HealthComponent self, DamageInfo damageInfo)
