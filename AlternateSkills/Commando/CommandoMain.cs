@@ -38,7 +38,7 @@ namespace AlternateSkills.Commando
             mySkillDef.activationState = new SerializableEntityStateType(typeof(Commando.BackupShiv));
             mySkillDef.activationStateMachineName = "Weapon";
             mySkillDef.baseMaxStock = 1;
-            mySkillDef.baseRechargeInterval = 0f;
+            mySkillDef.baseRechargeInterval = 7f;
             mySkillDef.beginSkillCooldownOnSkillEnd = true;
             mySkillDef.canceledFromSprinting = false;
             mySkillDef.fullRestockOnAssign = true;
