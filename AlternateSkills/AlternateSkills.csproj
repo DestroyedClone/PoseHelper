@@ -10,10 +10,6 @@
     <None Remove="Captain\**" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Remove="Buffs.cs" />
-  </ItemGroup>
-
 
 	<ItemGroup>
 		<Reference Include="0Harmony">
