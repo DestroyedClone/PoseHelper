@@ -32,9 +32,11 @@ namespace AlternateSkills
             Buffs.RegisterBuffs();
             Acrid.AcridMain.Init();
             Artificer.ArtificerMain.Init();
-            //Captain.CaptainMain.Init();
+            Bandit2.Bandit2Main.Init();
+            Captain.CaptainMain.Init();
             Commando.CommandoMain.Init();
             Mercenary.MercenaryMain.Init();
+            Treebot.TreebotMain.Init();
         }
 
         public static BuffDef[] ReturnBuffs(CharacterBody characterBody, bool returnDebuffs, bool returnBuffs)

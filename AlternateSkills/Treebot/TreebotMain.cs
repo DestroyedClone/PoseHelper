@@ -13,7 +13,7 @@ using RoR2.Skills;
 
 namespace AlternateSkills.Treebot
 {
-    public class Bandit2Main
+    public class TreebotMain
     {
         public static GameObject myCharacter = Resources.Load<GameObject>("prefabs/characterbodies/TreebotBody");
         public static BodyIndex bodyIndex = myCharacter.GetComponent<CharacterBody>().bodyIndex;

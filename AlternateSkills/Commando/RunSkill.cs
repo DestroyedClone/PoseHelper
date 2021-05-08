@@ -16,7 +16,7 @@ namespace AlternateSkills.Commando
 {
     public class RunSkill : BaseSkillState
 	{
-		private bool released;
+		private bool released = false;
 		public override void OnEnter()
 		{
 			base.OnEnter();
@@ -41,7 +41,7 @@ namespace AlternateSkills.Commando
 			base.FixedUpdate();
 			if (base.isAuthority)
 			{
-				if (!this.released && (!base.inputBank || !base.inputBank.skill4.down))
+				if (!this.released && (!base.inputBank || !base.inputBank.skill3.down))
 				{
 					this.released = true;
 				}

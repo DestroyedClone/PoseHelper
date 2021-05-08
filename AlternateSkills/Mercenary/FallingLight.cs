@@ -79,7 +79,7 @@ namespace AlternateSkills.Mercenary
 					if (base.characterMotor && base.characterDirection)
 					{
 						Vector3 velocity = base.characterDirection.forward * this.moveSpeedStat * Mathf.Lerp(Uppercut.moveSpeedBonusCoefficient, 0f, base.age / this.duration);
-						velocity.y = Uppercut.yVelocityCurve.Evaluate(base.fixedAge / this.duration);
+						velocity.y = -Uppercut.yVelocityCurve.Evaluate(base.fixedAge / this.duration);
 						base.characterMotor.velocity = velocity;
 					}
 				}

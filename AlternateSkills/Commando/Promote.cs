@@ -27,7 +27,13 @@ namespace AlternateSkills.Commando
 		{
 			base.OnExit();
 			ChooseTarget();
-			PromoteTarget();
+			if (target)
+			{
+				PromoteTarget();
+			} else
+            {
+				Debug.Log("No target!");
+            }
 
 			this.outer.SetNextStateToMain();
 		}
@@ -41,17 +47,15 @@ namespace AlternateSkills.Commando
 				if (Util.CharacterRaycast(gameObject, ray, out RaycastHit raycastHit, float.PositiveInfinity, LayerIndex.entityPrecise.mask, QueryTriggerInteraction.UseGlobal))
 				{
 					target = raycastHit.collider.gameObject;
+					Debug.Log("");
 				}
 			}
 		}
 
 		private void PromoteTarget()
 		{
-			if (target)
-			{
-				target.GetComponent<CharacterBody>()?.AddBuff(Buffs.promotedBuff);
-				Chat.AddMessage("Promoting target!");
-			}
+			target.GetComponent<CharacterBody>()?.AddBuff(Buffs.promotedBuff);
+			Chat.AddMessage("Promoting target!");
 		}
 	}
 }
