@@ -23,6 +23,7 @@ namespace AlternateSkills.Acrid
             SetupSkills();
         }
 
+
         private static void SetupSkills()
         {
             LanguageAPI.Add("CROCO_UTILITY_KICKOFF_NAME", "Kick Off");
