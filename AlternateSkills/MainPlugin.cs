@@ -7,6 +7,14 @@ using System;
 using EntityStates;
 using R2API;
 using RoR2.Skills;
+using System.Security;
+using System.Security.Permissions;
+
+
+[module: UnverifiableCode]
+#pragma warning disable CS0618 // Type or member is obsolete
+[assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
+#pragma warning restore CS0618 // Type or member is obsolete
 
 namespace AlternateSkills
 {
@@ -20,7 +28,8 @@ namespace AlternateSkills
         public void Awake()
         {
             //Buffs.RegisterBuffs();
-            Commando.CommandoMain.Init();
+            Acrid.AcridMain.Init();
+            //Commando.CommandoMain.Init();
         }
 
     }

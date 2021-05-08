@@ -5,9 +5,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Acrid\**" />
     <Compile Remove="Captain\**" />
+    <Compile Remove="Commando\**" />
+    <EmbeddedResource Remove="Acrid\**" />
     <EmbeddedResource Remove="Captain\**" />
+    <EmbeddedResource Remove="Commando\**" />
+    <None Remove="Acrid\**" />
     <None Remove="Captain\**" />
+    <None Remove="Commando\**" />
   </ItemGroup>
 
 
@@ -100,7 +106,6 @@
 
 
 	<ItemGroup>
-	  <Folder Include="Acrid\" />
 	  <Folder Include="Artificer\" />
 	  <Folder Include="Engineer\" />
 	  <Folder Include="Huntress\" />
