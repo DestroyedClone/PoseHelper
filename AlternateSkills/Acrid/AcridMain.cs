@@ -52,7 +52,7 @@ namespace AlternateSkills.Acrid
 
             var skillLocator = myCharacter.GetComponent<SkillLocator>();
 
-            var skillFamily = skillLocator.secondary.skillFamily;
+            var skillFamily = skillLocator.utility.skillFamily;
 
             Array.Resize(ref skillFamily.variants, skillFamily.variants.Length + 1);
             skillFamily.variants[skillFamily.variants.Length - 1] = new SkillFamily.Variant

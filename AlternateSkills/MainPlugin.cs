@@ -9,6 +9,8 @@ using R2API;
 using RoR2.Skills;
 using System.Security;
 using System.Security.Permissions;
+using System.Collections;
+using System.Collections.Generic;
 
 
 [module: UnverifiableCode]
@@ -28,10 +30,46 @@ namespace AlternateSkills
         public void Awake()
         {
             //Buffs.RegisterBuffs();
-            //Acrid.AcridMain.Init();
+            Acrid.AcridMain.Init();
             Captain.CaptainMain.Init();
             //Commando.CommandoMain.Init();
         }
 
+        public static BuffDef[] ReturnBuffs(CharacterBody characterBody, bool returnDebuffs, bool returnBuffs)
+        {
+            List<BuffDef> buffDefs = new List<BuffDef>();
+            BuffIndex buffIndex = (BuffIndex)0;
+            BuffIndex buffCount = (BuffIndex)BuffCatalog.buffCount;
+            while (buffIndex < buffCount)
+            {
+                BuffDef buffDef = BuffCatalog.GetBuffDef(buffIndex);
+                if (characterBody.HasBuff(buffDef))
+                {
+                    if ((buffDef.isDebuff && returnDebuffs) || (!buffDef.isDebuff && returnBuffs))
+                    {
+                        buffDefs.Add(buffDef);
+                    }
+                }
+                buffIndex++;
+            }
+            return buffDefs.ToArray();
+        }
+
+        //KomradeSpectre Aetherium AccursedPotion
+        public static void AddBuffAndDot(BuffDef buff, float duration, int stackCount, RoR2.CharacterBody body)
+        {
+            DotController.DotIndex index = (DotController.DotIndex)Array.FindIndex(DotController.dotDefs, (dotDef) => dotDef.associatedBuff == buff);
+            for (int y = 0; y < stackCount; y++)
+            {
+                if (index != DotController.DotIndex.None)
+                {
+                    DotController.InflictDot(body.gameObject, body.gameObject, index, duration, 0.25f);
+                }
+                else
+                {
+                    body.AddTimedBuffAuthority(buff.buffIndex, duration);
+                }
+            }
+        }
     }
 }

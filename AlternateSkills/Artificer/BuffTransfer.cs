@@ -16,9 +16,9 @@ using RoR2.Projectile;
 
 namespace AlternateSkills.Artificer
 {
-    public class DebuffHit : BaseSkillState
+    public class BuffTransfer : BaseSkillState
     {
-        public GameObject projectilePrefab = Artificer.ArtificerMain.debuffHitProjectile;
+        public GameObject projectilePrefab = Artificer.ArtificerMain.buffTransferProjectile;
         readonly float damageCoefficient = 0.7f;
 
         public override void OnEnter()
