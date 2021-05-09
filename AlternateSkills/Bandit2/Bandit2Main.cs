@@ -27,10 +27,10 @@ namespace AlternateSkills.Bandit2
         private static void SetupSkills()
         {
             LanguageAPI.Add("BANDIT2SCEPTER_NAME", "Eclipse");
-            LanguageAPI.Add("BANDIT2SCEPTER_DESCRIPTION", "Overkills damage nearby enemies for the remaining damage.");
+            LanguageAPI.Add("BANDIT2SCEPTER_DESCRIPTION", "<style=cIsUtility>Cripples</style> nearby enemies within a radius of <style=cIsDamage>7 meters</style>.");
 
             var mySkillDef = ScriptableObject.CreateInstance<SkillDef>();
-            mySkillDef.activationState = new SerializableEntityStateType(typeof(Bandit2.Eclipse));
+            mySkillDef.activationState = new SerializableEntityStateType(typeof(Bandit2.PrepEclipse));
             mySkillDef.activationStateMachineName = "Weapon";
             mySkillDef.baseMaxStock = 1;
             mySkillDef.baseRechargeInterval = 4f;
@@ -63,10 +63,10 @@ namespace AlternateSkills.Bandit2
             };
 
             LanguageAPI.Add("BANDIT2DESPERADOSCEPTER_NAME", "Renegade");
-            LanguageAPI.Add("BANDIT2DESPERADOSCEPTER_DESCRIPTION", "Guaranteed crit.");
+            LanguageAPI.Add("BANDIT2DESPERADOSCEPTER_DESCRIPTION", "Marks up to three targets before firing.");
 
             mySkillDef = ScriptableObject.CreateInstance<SkillDef>();
-            mySkillDef.activationState = new SerializableEntityStateType(typeof(Bandit2.Renegade));
+            mySkillDef.activationState = new SerializableEntityStateType(typeof(Bandit2.PrepPaint));
             mySkillDef.activationStateMachineName = "Weapon";
             mySkillDef.baseMaxStock = 1;
             mySkillDef.baseRechargeInterval = 4f;
