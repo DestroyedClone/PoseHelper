@@ -96,7 +96,7 @@ namespace AlternateSkills.Commando
 
             mySkillDef = ScriptableObject.CreateInstance<SkillDef>();
             mySkillDef.activationState = new SerializableEntityStateType(typeof(Commando.RunSkill));
-            mySkillDef.activationStateMachineName = "Body";
+            mySkillDef.activationStateMachineName = "Weapon";
             mySkillDef.baseMaxStock = 1;
             mySkillDef.baseRechargeInterval = 0f;
             mySkillDef.beginSkillCooldownOnSkillEnd = true;

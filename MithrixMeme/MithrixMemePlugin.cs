@@ -28,7 +28,7 @@ namespace MithrixMeme
     [BepInPlugin(ModGuid, ModName, ModVer)]
     public class MithrixMemePlugin : BaseUnityPlugin
     {
-        public const string ModVer = "1.0.0";
+        public const string ModVer = "2.0.0";
         public const string ModName = "Honorable Mithrix";
         public const string ModGuid = "com.DestroyedClone.HonorableMithrix";
         public static ConfigEntry<string> HonoredItemString { get; set; }

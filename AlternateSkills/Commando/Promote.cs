@@ -21,6 +21,7 @@ namespace AlternateSkills.Commando
 		public override void OnEnter()
 		{
 			base.OnEnter();
+			OnExit();
 		}
 
 		public override void OnExit()
@@ -47,15 +48,21 @@ namespace AlternateSkills.Commando
 				if (Util.CharacterRaycast(gameObject, ray, out RaycastHit raycastHit, float.PositiveInfinity, LayerIndex.entityPrecise.mask, QueryTriggerInteraction.UseGlobal))
 				{
 					target = raycastHit.collider.gameObject;
-					Debug.Log("");
+					Debug.Log("Fired Raycast");
 				}
 			}
 		}
 
 		private void PromoteTarget()
 		{
-			target.GetComponent<CharacterBody>()?.AddBuff(Buffs.promotedBuff);
-			Chat.AddMessage("Promoting target!");
+			if (target.GetComponent<CharacterBody>())
+			{
+				target.GetComponent<CharacterBody>().AddTimedBuff(Buffs.promotedBuff, 16f);
+				Chat.AddMessage("Promoting target!");
+			} else
+			{
+				Debug.Log("No characterBody!");
+			}
 		}
 	}
 }

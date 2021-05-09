@@ -28,7 +28,12 @@ namespace AlternateSkills.Commando
 
 		public override void OnExit()
 		{
+			StopRunning();
 			base.OnExit();
+		}
+
+		public void StopRunning()
+		{
 			if (this.characterBody && this.characterBody.HasBuff(Buffs.runningBuff))
 			{
 				this.characterBody.RemoveBuff(Buffs.runningBuff);

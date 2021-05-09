@@ -19,9 +19,6 @@
 		<Reference Include="Assembly-CSharp">
 			<HintPath>..\PoseHelper\lib\Assembly-CSharp.dll</HintPath>
 		</Reference>
-		<Reference Include="Assembly-CSharp.R2API.mm">
-			<HintPath>..\PoseHelper\lib\Assembly-CSharp.R2API.mm.dll</HintPath>
-		</Reference>
 		<Reference Include="BepInEx">
 			<HintPath>..\PoseHelper\lib\BepInEx.dll</HintPath>
 		</Reference>
