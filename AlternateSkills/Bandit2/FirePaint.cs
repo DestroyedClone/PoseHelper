@@ -151,7 +151,7 @@ namespace AlternateSkills.Bandit2
 			bulletAttack.isCrit = base.RollCrit();
 			bulletAttack.HitEffectNormal = false;
 			bulletAttack.radius = this.bulletRadius;
-			bulletAttack.damageType |= DamageType.BonusToLowHealth & DamageType.GiveSkullOnKill;
+			bulletAttack.damageType |= DamageType.BonusToLowHealth | DamageType.GiveSkullOnKill;
 			bulletAttack.smartCollision = true;
 			bulletAttack.Fire();
 		}

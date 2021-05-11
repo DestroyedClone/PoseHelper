@@ -52,7 +52,7 @@ namespace AlternateSkills.Commando
 				}
 				if (this.released)
 				{
-					OnExit();
+					StopRunning();
 				}
 			}
 		}
