@@ -49,6 +49,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShopTextPoC", "ShopTextPoC\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RadiusCommand", "RadiusCommand\RadiusCommand.csproj", "{D4533B56-3D50-4755-B8B8-7192B0C9FC5B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NoQuitMainMenu", "NoQuitMainMenu\NoQuitMainMenu.csproj", "{46289BA8-5C53-41F2-9599-F7F6A64203E9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -147,6 +149,10 @@ Global
 		{D4533B56-3D50-4755-B8B8-7192B0C9FC5B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D4533B56-3D50-4755-B8B8-7192B0C9FC5B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D4533B56-3D50-4755-B8B8-7192B0C9FC5B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{46289BA8-5C53-41F2-9599-F7F6A64203E9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{46289BA8-5C53-41F2-9599-F7F6A64203E9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{46289BA8-5C53-41F2-9599-F7F6A64203E9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{46289BA8-5C53-41F2-9599-F7F6A64203E9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

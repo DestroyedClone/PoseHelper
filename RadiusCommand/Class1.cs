@@ -36,9 +36,38 @@ namespace RadiusCommand
             ModifierKey = Config.Bind("", "Modifier Key", KeyCode.LeftShift, "Hold this button to affect all command essence in your desired radius.");
             Radius = Config.Bind("", "Radius", 5f, "Desired radius.");
 
-            On.RoR2.PickupPickerController.SubmitChoice += PickupPickerController_SubmitChoice;
+            //On.RoR2.PickupPickerController.SubmitChoice += PickupPickerController_SubmitChoice;
+            On.RoR2.PickupPickerController.SubmitChoice += PickupPickerController_SubmitChoice1;
 
             On.RoR2.Networking.GameNetworkManager.OnClientConnect += (self, user, t) => { };
+        }
+
+        private void PickupPickerController_SubmitChoice1(On.RoR2.PickupPickerController.orig_SubmitChoice orig, PickupPickerController self, int choiceIndex)
+        {
+            var CommandCubes = InstanceTracker.GetInstancesList<PickupPickerController>();
+            CommandCubes.Remove(self);
+            var displayToken = self.GetComponent<GenericDisplayNameProvider>().displayToken;
+            var isModifying = Input.GetKey(ModifierKey.Value);
+
+            
+            if (isModifying && self.networkUIPromptController.currentParticipantMaster)
+            {
+                foreach (var cube in CommandCubes.ToList())
+                {
+                    if (Vector3.Distance(self.gameObject.transform.position, cube.gameObject.transform.position) <= Radius.Value)
+                    {
+                        if (cube.GetComponent<GenericDisplayNameProvider>()?.displayToken == displayToken)
+                        {
+                            if (!cube.networkUIPromptController.currentParticipantMaster) //prevents recursion and theft
+                            {
+                                Debug.Log("Cube is available");
+                                cube.SubmitChoice(choiceIndex);
+                            }
+                        }
+                    }
+                }
+            }
+            orig(self, choiceIndex);
         }
 
         private void PickupPickerController_SubmitChoice(On.RoR2.PickupPickerController.orig_SubmitChoice orig, PickupPickerController self, int choiceIndex)
