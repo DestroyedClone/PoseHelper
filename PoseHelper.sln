@@ -47,9 +47,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TwistedBadMedicine", "Twist
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShopTextPoC", "ShopTextPoC\ShopTextPoC.csproj", "{FC729E09-AAD7-4FC8-8DC2-1E6A6535353A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RadiusCommand", "RadiusCommand\RadiusCommand.csproj", "{D4533B56-3D50-4755-B8B8-7192B0C9FC5B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RadiusCommand", "RadiusCommand\RadiusCommand.csproj", "{D4533B56-3D50-4755-B8B8-7192B0C9FC5B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NoQuitMainMenu", "NoQuitMainMenu\NoQuitMainMenu.csproj", "{46289BA8-5C53-41F2-9599-F7F6A64203E9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NoQuitMainMenu", "NoQuitMainMenu\NoQuitMainMenu.csproj", "{46289BA8-5C53-41F2-9599-F7F6A64203E9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ViewAllViewables", "ViewAllViewables\ViewAllViewables.csproj", "{0729A495-DCFF-44E4-A2F3-8F919957F481}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -153,6 +155,10 @@ Global
 		{46289BA8-5C53-41F2-9599-F7F6A64203E9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{46289BA8-5C53-41F2-9599-F7F6A64203E9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{46289BA8-5C53-41F2-9599-F7F6A64203E9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0729A495-DCFF-44E4-A2F3-8F919957F481}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0729A495-DCFF-44E4-A2F3-8F919957F481}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0729A495-DCFF-44E4-A2F3-8F919957F481}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0729A495-DCFF-44E4-A2F3-8F919957F481}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

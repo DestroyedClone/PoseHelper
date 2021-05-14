@@ -50,7 +50,7 @@ namespace RadiusCommand
             var isModifying = Input.GetKey(ModifierKey.Value);
 
             
-            if (isModifying && self.networkUIPromptController.currentParticipantMaster)
+            if (isModifying && self.networkUIPromptController.currentParticipantMaster) //2nd check to prevent recursion from the forloop
             {
                 foreach (var cube in CommandCubes.ToList())
                 {
@@ -58,9 +58,10 @@ namespace RadiusCommand
                     {
                         if (cube.GetComponent<GenericDisplayNameProvider>()?.displayToken == displayToken)
                         {
-                            if (!cube.networkUIPromptController.currentParticipantMaster) //prevents recursion and theft
+                            var network = cube.networkUIPromptController;
+                            if (!network.currentParticipantMaster) //prevents recursion and theft
                             {
-                                Debug.Log("Cube is available");
+                                network.currentParticipantMaster = self.networkUIPromptController.currentParticipantMaster;
                                 cube.SubmitChoice(choiceIndex);
                             }
                         }
