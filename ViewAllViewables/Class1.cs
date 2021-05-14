@@ -4,6 +4,7 @@ using UnityEngine;
 using System.Linq;
 using System.Security;
 using System.Security.Permissions;
+using R2API.Utils;
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -14,6 +15,7 @@ namespace ViewAllViewables
 {
     [BepInPlugin("com.DestroyedClone.ViewAllViewables", "View All Viewables", "1.0.0")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
+    [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
     public class Plugin : BaseUnityPlugin
     {
         public void Awake()
