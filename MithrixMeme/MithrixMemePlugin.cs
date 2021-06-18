@@ -47,6 +47,7 @@ namespace MithrixMeme
         {
             orig();
             HonoredItem = ItemCatalog.FindItemIndex(HonoredItemString.Value);
+            Debug.Log("Index: "+HonoredItem);
         }
 
         private void ItemStealController_RpcOnStealFinishClient(On.RoR2.ItemStealController.orig_RpcOnStealFinishClient orig, ItemStealController self)

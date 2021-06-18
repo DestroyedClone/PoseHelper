@@ -53,6 +53,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NoQuitMainMenu", "NoQuitMai
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ViewAllViewables", "ViewAllViewables\ViewAllViewables.csproj", "{0729A495-DCFF-44E4-A2F3-8F919957F481}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FasterPickupText", "FasterPickupText\FasterPickupText.csproj", "{A014DBE9-AE23-4DCF-A062-BD401C3935EC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Spectator", "Spectator\Spectator.csproj", "{8719BCA3-5C06-4889-9578-6A60003EC935}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -159,6 +163,14 @@ Global
 		{0729A495-DCFF-44E4-A2F3-8F919957F481}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0729A495-DCFF-44E4-A2F3-8F919957F481}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0729A495-DCFF-44E4-A2F3-8F919957F481}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A014DBE9-AE23-4DCF-A062-BD401C3935EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A014DBE9-AE23-4DCF-A062-BD401C3935EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A014DBE9-AE23-4DCF-A062-BD401C3935EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A014DBE9-AE23-4DCF-A062-BD401C3935EC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8719BCA3-5C06-4889-9578-6A60003EC935}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8719BCA3-5C06-4889-9578-6A60003EC935}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8719BCA3-5C06-4889-9578-6A60003EC935}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8719BCA3-5C06-4889-9578-6A60003EC935}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
