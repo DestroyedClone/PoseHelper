@@ -1,11 +1,15 @@
 ﻿using BepInEx;
+using BepInEx.Configuration;
 using UnityEngine;
 using RoR2;
 using R2API.Utils;
 using System.Security;
 using System.Security.Permissions;
+using System;
+using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using UnityEngine.Networking;
+using UnityEngine.Events;
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -18,12 +22,52 @@ namespace CloakBuff
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
     public class CloakBuffPlugin : BaseUnityPlugin
-    {
-        public void Awake()
+	{
+		public static ConfigEntry<bool> DisableProximityMine { get; set; }
+
+		public void Awake()
         {
             On.RoR2.UI.CombatHealthBarViewer.VictimIsValid += CombatHealthBarViewer_VictimIsValid;
             On.RoR2.Util.HandleCharacterPhysicsCastResults += Util_HandleCharacterPhysicsCastResults;
 
+            //Projectile Stuff
+            On.RoR2.Projectile.MineProximityDetonator.OnTriggerEnter += MineProximityDetonator_OnTriggerEnter;
+		}
+
+        private void MineProximityDetonator_OnTriggerEnter(On.RoR2.Projectile.MineProximityDetonator.orig_OnTriggerEnter orig, RoR2.Projectile.MineProximityDetonator self, Collider collider)
+        {
+			if (NetworkServer.active)
+			{
+				if (collider)
+				{
+					HurtBox component = collider.GetComponent<HurtBox>();
+					if (component)
+					{
+						HealthComponent healthComponent = component.healthComponent;
+						if (healthComponent)
+						{
+							TeamComponent teamComponent = healthComponent.GetComponent<TeamComponent>();
+							if (teamComponent && teamComponent.teamIndex == self.myTeamFilter.teamIndex)
+							{
+								return;
+							}
+							// FUTURE IL
+							if (healthComponent.body.hasCloakBuff)
+                            {
+								return;
+                            }
+							//
+							UnityEvent unityEvent = self.triggerEvents;
+							if (unityEvent == null)
+							{
+								return;
+							}
+							unityEvent.Invoke();
+						}
+					}
+				}
+				return;
+			}
 		}
 
         private bool Util_HandleCharacterPhysicsCastResults(On.RoR2.Util.orig_HandleCharacterPhysicsCastResults orig, GameObject bodyObject, Ray ray, RaycastHit[] hits, out RaycastHit hitInfo)
