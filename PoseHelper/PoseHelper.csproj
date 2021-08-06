@@ -11,9 +11,6 @@
     <Reference Include="Assembly-CSharp">
       <HintPath>lib\Assembly-CSharp.dll</HintPath>
     </Reference>
-    <Reference Include="Assembly-CSharp.R2API.mm">
-      <HintPath>lib\Assembly-CSharp.R2API.mm.dll</HintPath>
-    </Reference>
     <Reference Include="BepInEx">
       <HintPath>lib\BepInEx.dll</HintPath>
     </Reference>
