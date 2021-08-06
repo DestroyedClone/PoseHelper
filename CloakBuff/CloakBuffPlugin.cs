@@ -34,6 +34,36 @@ namespace CloakBuff
             //Projectile Stuff
             On.RoR2.Projectile.MineProximityDetonator.OnTriggerEnter += MineProximityDetonator_OnTriggerEnter;
             On.RoR2.Projectile.MissileController.FindTarget += MissileController_FindTarget;
+
+            On.RoR2.HuntressTracker.SearchForTarget += HuntressTracker_SearchForTarget;
+		}
+
+        private void HuntressTracker_SearchForTarget(On.RoR2.HuntressTracker.orig_SearchForTarget orig, HuntressTracker self, Ray aimRay)
+        {
+			self.search.teamMaskFilter = TeamMask.GetUnprotectedTeams(self.teamComponent.teamIndex);
+			self.search.filterByLoS = true;
+			self.search.searchOrigin = aimRay.origin;
+			self.search.searchDirection = aimRay.direction;
+			self.search.sortMode = BullseyeSearch.SortMode.Distance;
+			self.search.maxDistanceFilter = self.maxTrackingDistance;
+			self.search.maxAngleFilter = self.maxTrackingAngle;
+			self.search.RefreshCandidates();
+			self.search.FilterOutGameObject(self.gameObject);
+			var listOfTargets = self.search.GetResults();
+			HurtBox hurtBox = listOfTargets.FirstOrDefault<HurtBox>();
+
+			int index = 0;
+			while (hurtBox != null)
+			{
+				if ((bool)hurtBox.healthComponent?.body?.hasCloakBuff)
+				{
+					index++;
+					hurtBox = listOfTargets.ElementAtOrDefault(index);
+					continue;
+				}
+			}
+
+			self.trackingTarget = hurtBox;
 		}
 
         private Transform MissileController_FindTarget(On.RoR2.Projectile.MissileController.orig_FindTarget orig, RoR2.Projectile.MissileController self)
