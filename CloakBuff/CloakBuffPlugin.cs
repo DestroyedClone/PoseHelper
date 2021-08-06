@@ -10,6 +10,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using UnityEngine.Networking;
 using UnityEngine.Events;
+using System.Linq;
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -32,6 +33,34 @@ namespace CloakBuff
 
             //Projectile Stuff
             On.RoR2.Projectile.MineProximityDetonator.OnTriggerEnter += MineProximityDetonator_OnTriggerEnter;
+            On.RoR2.Projectile.MissileController.FindTarget += MissileController_FindTarget;
+		}
+
+        private Transform MissileController_FindTarget(On.RoR2.Projectile.MissileController.orig_FindTarget orig, RoR2.Projectile.MissileController self)
+        {
+			self.search.searchOrigin = self.transform.position;
+			self.search.searchDirection = self.transform.forward;
+			self.search.teamMaskFilter.RemoveTeam(self.teamFilter.teamIndex);
+			self.search.RefreshCandidates();
+			// IL
+			var listOfTargets = self.search.GetResults();
+			HurtBox hurtBox = listOfTargets.FirstOrDefault<HurtBox>();
+
+			int index = 0;
+			while (hurtBox != null)
+            {
+				if ((bool)hurtBox.healthComponent?.body?.hasCloakBuff)
+                {
+					index++;
+					hurtBox = listOfTargets.ElementAtOrDefault(index);
+					continue;
+                }
+			}
+			if (hurtBox == null)
+			{
+				return null;
+			}
+			return hurtBox.transform;
 		}
 
         private void MineProximityDetonator_OnTriggerEnter(On.RoR2.Projectile.MineProximityDetonator.orig_OnTriggerEnter orig, RoR2.Projectile.MineProximityDetonator self, Collider collider)
