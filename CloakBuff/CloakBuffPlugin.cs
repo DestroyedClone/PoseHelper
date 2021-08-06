@@ -33,7 +33,7 @@ namespace CloakBuff
 
             //Projectile Stuff
             On.RoR2.Projectile.MineProximityDetonator.OnTriggerEnter += MineProximityDetonator_OnTriggerEnter;
-            On.RoR2.Projectile.MissileController.FindTarget += MissileController_FindTarget;
+            //On.RoR2.Projectile.MissileController.FindTarget += MissileController_FindTarget;
 
             On.RoR2.HuntressTracker.SearchForTarget += HuntressTracker_SearchForTarget;
 		}
@@ -49,6 +49,7 @@ namespace CloakBuff
 			self.search.maxAngleFilter = self.maxTrackingAngle;
 			self.search.RefreshCandidates();
 			self.search.FilterOutGameObject(self.gameObject);
+			
 			var listOfTargets = self.search.GetResults();
 			HurtBox hurtBox = listOfTargets.FirstOrDefault<HurtBox>();
 
@@ -61,7 +62,9 @@ namespace CloakBuff
 					hurtBox = listOfTargets.ElementAtOrDefault(index);
 					continue;
 				}
+				break;
 			}
+			//Debug.Log("target chosen: "+(hurtBox != null ? hurtBox.healthComponent.body.GetDisplayName() : "None"));
 
 			self.trackingTarget = hurtBox;
 		}
@@ -105,17 +108,19 @@ namespace CloakBuff
 						HealthComponent healthComponent = component.healthComponent;
 						if (healthComponent)
 						{
+							// FUTURE IL
+							Debug.Log("Mine checking for cloak buff");
+							if (healthComponent.body.hasCloakBuff)
+							{
+								Debug.Log("Mine fail");
+								return;
+							}
+							//
 							TeamComponent teamComponent = healthComponent.GetComponent<TeamComponent>();
 							if (teamComponent && teamComponent.teamIndex == self.myTeamFilter.teamIndex)
 							{
 								return;
 							}
-							// FUTURE IL
-							if (healthComponent.body.hasCloakBuff)
-                            {
-								return;
-                            }
-							//
 							UnityEvent unityEvent = self.triggerEvents;
 							if (unityEvent == null)
 							{
