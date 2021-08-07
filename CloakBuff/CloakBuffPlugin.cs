@@ -11,6 +11,8 @@ using System.Collections.Generic;
 using UnityEngine.Networking;
 using UnityEngine.Events;
 using System.Linq;
+using Mono.Cecil.Cil;
+using MonoMod.Cil;
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -25,32 +27,59 @@ namespace CloakBuff
     public class CloakBuffPlugin : BaseUnityPlugin
 	{
 		public static ConfigEntry<bool> DisableProximityMine { get; set; }
+		public GameObject DoppelgangerEffect = Resources.Load<GameObject>("prefabs/temporaryvisualeffects/DoppelgangerEffect");
+		public static float evisMaxRange = EntityStates.Merc.Evis.maxRadius;
 
 		public void Awake()
         {
+			// Umbra
+			ModifyDoppelGangerEffect();
+
+			// Healthbar
             On.RoR2.UI.CombatHealthBarViewer.VictimIsValid += CombatHealthBarViewer_VictimIsValid;
+
+			// Pinging
             On.RoR2.Util.HandleCharacterPhysicsCastResults += Util_HandleCharacterPhysicsCastResults;
 
-            //Projectile Stuff
-            On.RoR2.Projectile.MineProximityDetonator.OnTriggerEnter += MineProximityDetonator_OnTriggerEnter;
-            //On.RoR2.Projectile.MissileController.FindTarget += MissileController_FindTarget;
+			//Projectile Stuff
+            On.RoR2.Projectile.MissileController.FindTarget += MissileController_FindTarget;
 
-            On.RoR2.HuntressTracker.SearchForTarget += HuntressTracker_SearchForTarget;
+			// Character Specific
+				// Huntress
+            On.RoR2.HuntressTracker.SearchForTarget += HuntressTracker_SearchForTarget; //Aiming
+                                                                                        // LightningOrb.PickNextTarget for glaive
+                                                                                        // Merc
+            On.EntityStates.Merc.Evis.SearchForTarget += Evis_SearchForTarget;
+
 		}
 
-        private void HuntressTracker_SearchForTarget(On.RoR2.HuntressTracker.orig_SearchForTarget orig, HuntressTracker self, Ray aimRay)
+        private HurtBox Evis_SearchForTarget(On.EntityStates.Merc.Evis.orig_SearchForTarget orig, EntityStates.Merc.Evis self)
         {
-			self.search.teamMaskFilter = TeamMask.GetUnprotectedTeams(self.teamComponent.teamIndex);
-			self.search.filterByLoS = true;
-			self.search.searchOrigin = aimRay.origin;
-			self.search.searchDirection = aimRay.direction;
-			self.search.sortMode = BullseyeSearch.SortMode.Distance;
-			self.search.maxDistanceFilter = self.maxTrackingDistance;
-			self.search.maxAngleFilter = self.maxTrackingAngle;
-			self.search.RefreshCandidates();
-			self.search.FilterOutGameObject(self.gameObject);
-			
-			var listOfTargets = self.search.GetResults();
+			BullseyeSearch bullseyeSearch = new BullseyeSearch();
+			bullseyeSearch.searchOrigin = base.transform.position;
+			bullseyeSearch.searchDirection = UnityEngine.Random.onUnitSphere;
+			bullseyeSearch.maxDistanceFilter = evisMaxRange;
+			bullseyeSearch.teamMaskFilter = TeamMask.GetUnprotectedTeams(self.GetTeam());
+			bullseyeSearch.sortMode = BullseyeSearch.SortMode.Distance;
+			bullseyeSearch.RefreshCandidates();
+			bullseyeSearch.FilterOutGameObject(base.gameObject);
+			return bullseyeSearch.GetResults().FirstOrDefault<HurtBox>();
+		}
+
+        private void ModifyDoppelGangerEffect()
+        {
+			if (!DoppelgangerEffect) return;
+
+			var comp = DoppelgangerEffect.GetComponent<HideShadowIfCloaked>();
+			if (!comp)
+            {
+				comp = DoppelgangerEffect.AddComponent<HideShadowIfCloaked>();
+            }
+			comp.particles = DoppelgangerEffect.transform.Find("Particles").gameObject;
+		}
+
+		private HurtBox FilterMethod(IEnumerable<HurtBox> listOfTargets)
+        {
 			HurtBox hurtBox = listOfTargets.FirstOrDefault<HurtBox>();
 
 			int index = 0;
@@ -64,9 +93,21 @@ namespace CloakBuff
 				}
 				break;
 			}
-			//Debug.Log("target chosen: "+(hurtBox != null ? hurtBox.healthComponent.body.GetDisplayName() : "None"));
+			return hurtBox;
+		}
 
-			self.trackingTarget = hurtBox;
+        private void HuntressTracker_SearchForTarget(On.RoR2.HuntressTracker.orig_SearchForTarget orig, HuntressTracker self, Ray aimRay)
+        {
+			self.search.teamMaskFilter = TeamMask.GetUnprotectedTeams(self.teamComponent.teamIndex);
+			self.search.filterByLoS = true;
+			self.search.searchOrigin = aimRay.origin;
+			self.search.searchDirection = aimRay.direction;
+			self.search.sortMode = BullseyeSearch.SortMode.Distance;
+			self.search.maxDistanceFilter = self.maxTrackingDistance;
+			self.search.maxAngleFilter = self.maxTrackingAngle;
+			self.search.RefreshCandidates();
+			self.search.FilterOutGameObject(self.gameObject);
+			self.trackingTarget = FilterMethod(self.search.GetResults());
 		}
 
         private Transform MissileController_FindTarget(On.RoR2.Projectile.MissileController.orig_FindTarget orig, RoR2.Projectile.MissileController self)
@@ -75,63 +116,13 @@ namespace CloakBuff
 			self.search.searchDirection = self.transform.forward;
 			self.search.teamMaskFilter.RemoveTeam(self.teamFilter.teamIndex);
 			self.search.RefreshCandidates();
-			// IL
-			var listOfTargets = self.search.GetResults();
-			HurtBox hurtBox = listOfTargets.FirstOrDefault<HurtBox>();
+			HurtBox hurtBox = FilterMethod(self.search.GetResults());
 
-			int index = 0;
-			while (hurtBox != null)
-            {
-				if ((bool)hurtBox.healthComponent?.body?.hasCloakBuff)
-                {
-					index++;
-					hurtBox = listOfTargets.ElementAtOrDefault(index);
-					continue;
-                }
-			}
 			if (hurtBox == null)
 			{
 				return null;
 			}
 			return hurtBox.transform;
-		}
-
-        private void MineProximityDetonator_OnTriggerEnter(On.RoR2.Projectile.MineProximityDetonator.orig_OnTriggerEnter orig, RoR2.Projectile.MineProximityDetonator self, Collider collider)
-        {
-			if (NetworkServer.active)
-			{
-				if (collider)
-				{
-					HurtBox component = collider.GetComponent<HurtBox>();
-					if (component)
-					{
-						HealthComponent healthComponent = component.healthComponent;
-						if (healthComponent)
-						{
-							// FUTURE IL
-							Debug.Log("Mine checking for cloak buff");
-							if (healthComponent.body.hasCloakBuff)
-							{
-								Debug.Log("Mine fail");
-								return;
-							}
-							//
-							TeamComponent teamComponent = healthComponent.GetComponent<TeamComponent>();
-							if (teamComponent && teamComponent.teamIndex == self.myTeamFilter.teamIndex)
-							{
-								return;
-							}
-							UnityEvent unityEvent = self.triggerEvents;
-							if (unityEvent == null)
-							{
-								return;
-							}
-							unityEvent.Invoke();
-						}
-					}
-				}
-				return;
-			}
 		}
 
         private bool Util_HandleCharacterPhysicsCastResults(On.RoR2.Util.orig_HandleCharacterPhysicsCastResults orig, GameObject bodyObject, Ray ray, RaycastHit[] hits, out RaycastHit hitInfo)
@@ -179,9 +170,22 @@ namespace CloakBuff
 
 		private bool CombatHealthBarViewer_VictimIsValid(On.RoR2.UI.CombatHealthBarViewer.orig_VictimIsValid orig, RoR2.UI.CombatHealthBarViewer self, HealthComponent victim)
         {
-            return victim && victim.alive && (self.victimToHealthBarInfo[victim].endTime > Time.time || victim == self.crosshairTarget) && !victim.body.hasCloakBuff;
+            
+			return victim && victim.alive && (self.victimToHealthBarInfo[victim].endTime > Time.time || victim == self.crosshairTarget) && !victim.body.hasCloakBuff;
         }
 
+		private class HideShadowIfCloaked : MonoBehaviour
+        {
+			public CharacterBody body;
+			public GameObject particles;
 
+			public void FixedUpdate()
+            {
+				if (body)
+				{
+					particles.SetActive(body.hasCloakBuff);
+				}
+            }
+        }
 	}
 }
