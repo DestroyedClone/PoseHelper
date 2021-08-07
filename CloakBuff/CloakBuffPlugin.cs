@@ -77,13 +77,15 @@ namespace CloakBuff
 
         private HurtBox Evis_SearchForTarget(On.EntityStates.Merc.Evis.orig_SearchForTarget orig, EntityStates.Merc.Evis self)
         {
-			BullseyeSearch bullseyeSearch = new BullseyeSearch();
-			bullseyeSearch.searchOrigin = base.transform.position;
-			bullseyeSearch.searchDirection = UnityEngine.Random.onUnitSphere;
-			bullseyeSearch.maxDistanceFilter = evisMaxRange;
-			bullseyeSearch.teamMaskFilter = TeamMask.GetUnprotectedTeams(self.GetTeam());
-			bullseyeSearch.sortMode = BullseyeSearch.SortMode.Distance;
-			bullseyeSearch.RefreshCandidates();
+            BullseyeSearch bullseyeSearch = new BullseyeSearch
+            {
+                searchOrigin = base.transform.position,
+                searchDirection = UnityEngine.Random.onUnitSphere,
+                maxDistanceFilter = evisMaxRange,
+                teamMaskFilter = TeamMask.GetUnprotectedTeams(self.GetTeam()),
+                sortMode = BullseyeSearch.SortMode.Distance
+            };
+            bullseyeSearch.RefreshCandidates();
 			bullseyeSearch.FilterOutGameObject(base.gameObject);
 			return bullseyeSearch.GetResults().FirstOrDefault<HurtBox>();
 		}
@@ -98,6 +100,7 @@ namespace CloakBuff
 				comp = DoppelgangerEffect.AddComponent<HideShadowIfCloaked>();
             }
 			comp.particles = DoppelgangerEffect.transform.Find("Particles").gameObject;
+			comp.visEfx = DoppelgangerEffect.GetComponent<TemporaryVisualEffect>();
 		}
 
 		private HurtBox FilterMethod(IEnumerable<HurtBox> listOfTargets)
@@ -200,12 +203,18 @@ namespace CloakBuff
         {
 			public CharacterBody body;
 			public GameObject particles;
+			public TemporaryVisualEffect visEfx;
+
+			public void Start()
+            {
+				body = visEfx.healthComponent.body;
+			}
 
 			public void FixedUpdate()
             {
 				if (body)
 				{
-					particles.SetActive(body.hasCloakBuff);
+					particles.SetActive(!body.hasCloakBuff);
 				}
             }
         }
