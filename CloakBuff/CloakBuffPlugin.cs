@@ -51,6 +51,23 @@ namespace CloakBuff
                                                                                         // Merc
             On.EntityStates.Merc.Evis.SearchForTarget += Evis_SearchForTarget;
 
+            // Shock thing
+            On.RoR2.SetStateOnHurt.SetShock += SetStateOnHurt_SetShock;
+
+		}
+
+        private void SetStateOnHurt_SetShock(On.RoR2.SetStateOnHurt.orig_SetShock orig, SetStateOnHurt self, float duration)
+        {
+			orig(self, duration);
+			// only continues if they can be shocked, so we can skip an if statement
+			// ... i think
+			var body = self.transform.parent.gameObject.GetComponent<CharacterBody>();
+			body.RemoveBuff(RoR2Content.Buffs.Cloak);
+			if (body.HasBuff(RoR2Content.Buffs.CloakSpeed)) //todo: add config for removing cloak speed if disrupted
+			{
+				body.RemoveBuff(RoR2Content.Buffs.CloakSpeed);
+			}
+
 		}
 
         private HurtBox Evis_SearchForTarget(On.EntityStates.Merc.Evis.orig_SearchForTarget orig, EntityStates.Merc.Evis self)
