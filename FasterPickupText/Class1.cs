@@ -21,9 +21,12 @@ namespace FasterPickupText
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
     public class FasterPickupTextPlugin : BaseUnityPlugin
     {
+        public GameObject Notification = Resources.Load<GameObject>("prefabs/NotificationPanel2");
         public void Awake()
         {
             On.RoR2.UI.NotificationQueue.OnPickup += NotificationQueue_OnPickup;
+
+            Notification.transform.Find("Flash").GetComponent<AnimateUIAlpha>().timeMax = 0f;
         }
 
         private void NotificationQueue_OnPickup(On.RoR2.UI.NotificationQueue.orig_OnPickup orig, RoR2.UI.NotificationQueue self, CharacterMaster characterMaster, PickupIndex pickupIndex)
