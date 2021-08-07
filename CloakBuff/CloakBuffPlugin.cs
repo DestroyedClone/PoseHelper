@@ -48,7 +48,7 @@ namespace CloakBuff
 				// Huntress
             On.RoR2.HuntressTracker.SearchForTarget += HuntressTracker_SearchForTarget; //Aiming
                                                                                         // LightningOrb.PickNextTarget for glaive
-                                                                                        // Merc
+            // Merc
             On.EntityStates.Merc.Evis.SearchForTarget += Evis_SearchForTarget;
 
             // Shock thing
@@ -61,7 +61,12 @@ namespace CloakBuff
 			orig(self, duration);
 			// only continues if they can be shocked, so we can skip an if statement
 			// ... i think
-			var body = self.transform.parent.gameObject.GetComponent<CharacterBody>();
+			var body = self.gameObject.GetComponent<CharacterBody>();
+			if (!body)
+            {
+				Debug.Log("Couldnt find body");
+				return;
+            }
 			body.RemoveBuff(RoR2Content.Buffs.Cloak);
 			if (body.HasBuff(RoR2Content.Buffs.CloakSpeed)) //todo: add config for removing cloak speed if disrupted
 			{
