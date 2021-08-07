@@ -64,14 +64,12 @@ namespace CloakBuff
 			var body = self.gameObject.GetComponent<CharacterBody>();
 			if (!body)
             {
-				Debug.Log("Couldnt find body");
 				return;
             }
-			body.RemoveBuff(RoR2Content.Buffs.Cloak);
-			if (body.HasBuff(RoR2Content.Buffs.CloakSpeed)) //todo: add config for removing cloak speed if disrupted
-			{
-				body.RemoveBuff(RoR2Content.Buffs.CloakSpeed);
-			}
+			if (body.HasBuff(RoR2Content.Buffs.Cloak))
+            {
+				body.ClearTimedBuffs(RoR2Content.Buffs.Cloak);
+            }
 
 		}
 
