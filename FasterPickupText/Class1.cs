@@ -29,7 +29,7 @@ namespace FasterPickupText
         public void Awake()
         {
             RemoveFlash = Config.Bind("", "Removes Flash", true);
-            NotificationDurationDefault = Config.Bind("", "Initial Duration of Pickup Notification (Default: 6 seconds)", 6f);
+            NotificationDurationDefault = Config.Bind("", "Initial Duration of Pickup Notification", 6f);
             FadeDurationDefault = Config.Bind("", "Default Duration of the Fade Out", 0.5f);
             ClearTopNotification = Config.Bind("", "Immediately replaces the topmost pickup notification when picking up", true);
 
