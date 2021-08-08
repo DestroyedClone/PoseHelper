@@ -5,9 +5,7 @@ using RoR2.UI;
 using R2API.Utils;
 using System.Security;
 using System.Security.Permissions;
-using System.Linq;
-using System.Collections.Generic;
-using UnityEngine.Networking;
+using BepInEx.Configuration;
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -21,12 +19,26 @@ namespace FasterPickupText
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
     public class FasterPickupTextPlugin : BaseUnityPlugin
     {
+        public static ConfigEntry<bool> RemoveFlash { get; set; }
+        public static ConfigEntry<float> NotificationDurationDefault { get; set; }
+        public static ConfigEntry<float> FadeDurationDefault { get; set; }
+        public static ConfigEntry<bool> ClearTopNotification { get; set; }
+
         public GameObject Notification = Resources.Load<GameObject>("prefabs/NotificationPanel2");
+
         public void Awake()
         {
-            On.RoR2.UI.NotificationQueue.OnPickup += NotificationQueue_OnPickup;
+            RemoveFlash = Config.Bind("", "Removes Flash", true);
+            NotificationDurationDefault = Config.Bind("", "Initial Duration of Pickup Notification (Default: 6 seconds)", 6f);
+            FadeDurationDefault = Config.Bind("", "Default Duration of the Fade Out", 0.5f);
+            ClearTopNotification = Config.Bind("", "Immediately replaces the topmost pickup notification when picking up", true);
 
-            Notification.transform.Find("Flash").GetComponent<AnimateUIAlpha>().timeMax = 0f;
+            if (RemoveFlash.Value) Notification.transform.Find("Flash").GetComponent<AnimateUIAlpha>().timeMax = 0f;
+
+            Notification.GetComponent<GenericNotification>().duration = NotificationDurationDefault.Value;
+
+            if (ClearTopNotification.Value)
+                On.RoR2.UI.NotificationQueue.OnPickup += NotificationQueue_OnPickup;
         }
 
         private void NotificationQueue_OnPickup(On.RoR2.UI.NotificationQueue.orig_OnPickup orig, RoR2.UI.NotificationQueue self, CharacterMaster characterMaster, PickupIndex pickupIndex)
