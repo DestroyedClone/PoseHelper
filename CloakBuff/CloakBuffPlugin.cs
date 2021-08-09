@@ -45,6 +45,9 @@ namespace CloakBuff
 		// 0 = No hook, 1 = All, 2 = Whitelist
 		public static ConfigEntry<bool> DevilOrbIncludesSprintWisp { get; set; }
 		public static ConfigEntry<bool> DevilOrbIncludesNovaOnHeal { get; set; }
+		public static ConfigEntry<int> ProjectileDirectionalTargetFinderFilterType { get; set; }
+		// 0 = No hook, 1 = All, 2 = Whitelist
+		public static ConfigEntry<bool> ProjectileDirectionalTargetFinderDagger { get; set; }
 		public static ConfigEntry<bool> MiredUrn { get; set; }
 		public static ConfigEntry<bool> HuntressCantAim { get; set; }
 		public static ConfigEntry<bool> MercCantFind { get; set; }
@@ -78,7 +81,11 @@ namespace CloakBuff
 			// Items
 			// DML + ATG
 			if (MissileIncludesFilterType.Value != 0)
+			{
 				On.RoR2.Projectile.MissileController.FindTarget += MissileController_FindTarget;
+				if (MissileIncludesHarpoons.Value)
+                    On.EntityStates.Engi.EngiMissilePainter.Paint.GetCurrentTargetInfo += Paint_GetCurrentTargetInfo;
+			}
 			// BFG / Huntress' Glaive / Ukulele / Razorwire / CrocoDisease / Tesla
 			if (LightningOrbIncludesFilterType.Value != 0)
 				On.RoR2.Orbs.LightningOrb.PickNextTarget += LightningOrb_PickNextTarget;
@@ -87,9 +94,44 @@ namespace CloakBuff
 				On.RoR2.Orbs.DevilOrb.PickNextTarget += DevilOrb_PickNextTarget;
 			if (MiredUrn.Value)
 				On.RoR2.SiphonNearbyController.SearchForTargets += SiphonNearbyController_SearchForTargets;
+			// Ceremonial Dagger
+			if (ProjectileDirectionalTargetFinderFilterType.Value != 0)
+                On.RoR2.Projectile.ProjectileDirectionalTargetFinder.SearchForTarget += ProjectileDirectionalTargetFinder_SearchForTarget;
 
 		}
-		public void SetupConfig()
+
+        private void Paint_GetCurrentTargetInfo(On.EntityStates.Engi.EngiMissilePainter.Paint.orig_GetCurrentTargetInfo orig, EntityStates.Engi.EngiMissilePainter.Paint self, out HurtBox currentTargetHurtBox, out HealthComponent currentTargetHealthComponent)
+        {
+			orig(self, out currentTargetHurtBox, out currentTargetHealthComponent);
+			foreach (HurtBox hurtBox in self.search.GetResults())
+			{
+				if ((bool)hurtBox.healthComponent?.alive && hurtBox.healthComponent.body && !hurtBox.healthComponent.body.hasCloakBuff)
+				{
+					currentTargetHurtBox = hurtBox;
+					currentTargetHealthComponent = hurtBox.healthComponent;
+					return;
+				}
+			}
+			currentTargetHurtBox = null;
+			currentTargetHealthComponent = null;
+		}
+
+        private void ProjectileDirectionalTargetFinder_SearchForTarget(On.RoR2.Projectile.ProjectileDirectionalTargetFinder.orig_SearchForTarget orig, RoR2.Projectile.ProjectileDirectionalTargetFinder self)
+		{
+			orig(self);
+			var type = self.gameObject.name;
+			if (DevilOrbIncludesFilterType.Value == 2)
+			{
+				var daggerCheck = (type == "DaggerProjectile(Clone)" && ProjectileDirectionalTargetFinderDagger.Value);
+				if (!daggerCheck)
+				{
+					IEnumerable<HurtBox> source = self.bullseyeSearch.GetResults().Where(new Func<HurtBox, bool>(self.PassesFilters));
+					self.SetTarget(FilterMethod(source));
+				}
+			}
+		}
+
+        public void SetupConfig()
 		{
 			HideDoppelgangerEffect = Config.Bind("Visual", "Umbra", true, "Hides the Umbra's swirling particle effects");
 			EnableHealthbar = Config.Bind("Visual", "Healthbar", true, "Become unable to see the enemy's healthbar");
@@ -102,8 +144,9 @@ namespace CloakBuff
 			LightningOrbIncludesTesla = Config.Bind("Items", "Unstable Tesla Coil", true, "");
 			DevilOrbIncludesNovaOnHeal = Config.Bind("Items", "N'kuhana's Opinion", true, "");
 			DevilOrbIncludesSprintWisp = Config.Bind("Items", "Little Disciple", true, "");
+			ProjectileDirectionalTargetFinderDagger = Config.Bind("Items", "Ceremonial Dagger", true, "");
 			MiredUrn = Config.Bind("Items", "Little Disciple", true, "");
-			MissileIncludesFilterType = Config.Bind("Filtering", "Missiles", 2, "It's safe to ignore the options in this category." +
+			MissileIncludesFilterType = Config.Bind("Filtering", "MissileController", 2, "It's safe to ignore the options in this category." +
 				"\n 0 = Disabled," +
 				"\n 1 = All missiles are affected" +
 				"\n 2 = Only the following options");
@@ -113,11 +156,14 @@ namespace CloakBuff
 			DevilOrbIncludesFilterType = Config.Bind("Filtering", "Devil Orbs", 2, "0 = Disabled," +
 				"\n 1 = All Devil Orbs are affected" +
 				"\n 2 = Only the following options");
+			ProjectileDirectionalTargetFinderFilterType = Config.Bind("Filtering", "ProjectileDirectionalTargetFinder", 2, "0 = Disabled," +
+				"\n 1 = All Lightning Orbs are affected" +
+				"\n 2 = Only the following options");
 
 			LightningOrbIncludesCrocoDisease = Config.Bind("Survivors", "Acrid's Epidemic", true, "Affects Acrid's special Epidemic's spreading");
 			MissileIncludesHarpoons = Config.Bind("Survivors", "Engineer's Harpoons+Targeting", true, "Affects the Engineer's Utility Thermal Harpoons. Also prevents the user from painting cloaked enemies as targets.");
-			HuntressCantAim = Config.Bind("Survivors", "Huntress Aiming", true, "This adjustment will make Huntress unable to target cloaked enemies with her primary and secondary abilities");
-			MercCantFind = Config.Bind("Survivors", "Little Disciple", true, "The adjustment will prevent Mercernary's Eviscerate from targeting cloaked enemies");
+			HuntressCantAim = Config.Bind("Survivors", "Huntress' Aiming", true, "This adjustment will make Huntress unable to target cloaked enemies with her primary and secondary abilities");
+			MercCantFind = Config.Bind("Survivors", "Mercernary's Eviscerate", true, "The adjustment will prevent Mercernary's Eviscerate from targeting cloaked enemies");
 
 			ShockKillsCloak = Config.Bind("Nerfs", "Shocking disrupts cloak", true, "Setting this value to true will allow shocking attacks (Captain's M2 and Shocking Beacon) to clear cloak on hit.");
 		}
