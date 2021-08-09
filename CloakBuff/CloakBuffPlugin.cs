@@ -166,15 +166,7 @@ namespace CloakBuff
 		}
 		private void HuntressTracker_SearchForTarget(On.RoR2.HuntressTracker.orig_SearchForTarget orig, HuntressTracker self, Ray aimRay)
 		{
-			self.search.teamMaskFilter = TeamMask.GetUnprotectedTeams(self.teamComponent.teamIndex);
-			self.search.filterByLoS = true;
-			self.search.searchOrigin = aimRay.origin;
-			self.search.searchDirection = aimRay.direction;
-			self.search.sortMode = BullseyeSearch.SortMode.Distance;
-			self.search.maxDistanceFilter = self.maxTrackingDistance;
-			self.search.maxAngleFilter = self.maxTrackingAngle;
-			self.search.RefreshCandidates();
-			self.search.FilterOutGameObject(self.gameObject);
+			orig(self, aimRay);
 			self.trackingTarget = FilterMethod(self.search.GetResults());
 		}
 		private HurtBox Evis_SearchForTarget(On.EntityStates.Merc.Evis.orig_SearchForTarget orig, EntityStates.Merc.Evis self)
