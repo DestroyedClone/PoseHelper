@@ -200,22 +200,17 @@ namespace CloakBuff
 		}
         private void SiphonNearbyController_SearchForTargets(On.RoR2.SiphonNearbyController.orig_SearchForTargets orig, SiphonNearbyController self, List<HurtBox> dest)
         {
-			self.sphereSearch.mask = LayerIndex.entityPrecise.mask;
-			self.sphereSearch.origin = self.transform.position;
-			self.sphereSearch.radius = self.radius;
-			self.sphereSearch.queryTriggerInteraction = QueryTriggerInteraction.UseGlobal;
+			orig(self, dest);
 			self.sphereSearch.RefreshCandidates();
 			self.sphereSearch.FilterCandidatesByHurtBoxTeam(TeamMask.GetEnemyTeams(self.networkedBodyAttachment.attachedBody.teamComponent.teamIndex));
 			self.sphereSearch.OrderCandidatesByDistance();
 			self.sphereSearch.FilterCandidatesByDistinctHurtBoxEntities();
-
 			var destCopy = new List<HurtBox>(dest);
 			foreach (var hurtBox in destCopy)
 				if ((bool)hurtBox.healthComponent?.body?.hasCloakBuff)
 					dest.Remove(hurtBox);
 			self.sphereSearch.GetHurtBoxes(dest);
 			self.sphereSearch.ClearCandidates();
-			self.sphereSearch.GetHurtBoxes();
 		}
         private HurtBox DevilOrb_PickNextTarget(On.RoR2.Orbs.DevilOrb.orig_PickNextTarget orig, RoR2.Orbs.DevilOrb self, Vector3 position, float range)
         {
