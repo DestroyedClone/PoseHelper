@@ -181,7 +181,7 @@ namespace CloakBuff
 			};
 			bullseyeSearch.RefreshCandidates();
 			bullseyeSearch.FilterOutGameObject(base.gameObject);
-			return bullseyeSearch.GetResults().FirstOrDefault<HurtBox>();
+			return FilterMethod(bullseyeSearch.GetResults());
 		}
 		// Targeting
 		private void ProjectileDirectionalTargetFinder_SearchForTarget(On.RoR2.Projectile.ProjectileDirectionalTargetFinder.orig_SearchForTarget orig, RoR2.Projectile.ProjectileDirectionalTargetFinder self)
@@ -265,10 +265,9 @@ namespace CloakBuff
 					return orig(self, position);
 				}
 			}
+
 			if (self.search == null)
-			{
-				self.search = new BullseyeSearch();
-			}
+				return orig(self, position);
 			self.search.searchOrigin = position;
 			self.search.searchDirection = Vector3.zero;
 			self.search.teamMaskFilter = TeamMask.allButNeutral;
@@ -284,7 +283,10 @@ namespace CloakBuff
 			{
 				self.bouncedObjects.Add(hurtBox.healthComponent);
 			}
-			return hurtBox;
+			//return hurtBox;
+
+			var target = orig(self, position);
+
 		}
         private Transform MissileController_FindTarget(On.RoR2.Projectile.MissileController.orig_FindTarget orig, RoR2.Projectile.MissileController self)
         {
