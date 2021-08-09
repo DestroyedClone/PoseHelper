@@ -99,39 +99,7 @@ namespace CloakBuff
                 On.RoR2.Projectile.ProjectileDirectionalTargetFinder.SearchForTarget += ProjectileDirectionalTargetFinder_SearchForTarget;
 
 		}
-
-        private void Paint_GetCurrentTargetInfo(On.EntityStates.Engi.EngiMissilePainter.Paint.orig_GetCurrentTargetInfo orig, EntityStates.Engi.EngiMissilePainter.Paint self, out HurtBox currentTargetHurtBox, out HealthComponent currentTargetHealthComponent)
-        {
-			orig(self, out currentTargetHurtBox, out currentTargetHealthComponent);
-			foreach (HurtBox hurtBox in self.search.GetResults())
-			{
-				if ((bool)hurtBox.healthComponent?.alive && hurtBox.healthComponent.body && !hurtBox.healthComponent.body.hasCloakBuff)
-				{
-					currentTargetHurtBox = hurtBox;
-					currentTargetHealthComponent = hurtBox.healthComponent;
-					return;
-				}
-			}
-			currentTargetHurtBox = null;
-			currentTargetHealthComponent = null;
-		}
-
-        private void ProjectileDirectionalTargetFinder_SearchForTarget(On.RoR2.Projectile.ProjectileDirectionalTargetFinder.orig_SearchForTarget orig, RoR2.Projectile.ProjectileDirectionalTargetFinder self)
-		{
-			orig(self);
-			var type = self.gameObject.name;
-			if (DevilOrbIncludesFilterType.Value == 2)
-			{
-				var daggerCheck = (type == "DaggerProjectile(Clone)" && ProjectileDirectionalTargetFinderDagger.Value);
-				if (!daggerCheck)
-				{
-					IEnumerable<HurtBox> source = self.bullseyeSearch.GetResults().Where(new Func<HurtBox, bool>(self.PassesFilters));
-					self.SetTarget(FilterMethod(source));
-				}
-			}
-		}
-
-        public void SetupConfig()
+		public void SetupConfig()
 		{
 			HideDoppelgangerEffect = Config.Bind("Visual", "Umbra", true, "Hides the Umbra's swirling particle effects");
 			EnableHealthbar = Config.Bind("Visual", "Healthbar", true, "Become unable to see the enemy's healthbar");
@@ -167,7 +135,77 @@ namespace CloakBuff
 
 			ShockKillsCloak = Config.Bind("Nerfs", "Shocking disrupts cloak", true, "Setting this value to true will allow shocking attacks (Captain's M2 and Shocking Beacon) to clear cloak on hit.");
 		}
+		private void ModifyDoppelGangerEffect()
+		{
+			if (!DoppelgangerEffect) return;
 
+			var comp = DoppelgangerEffect.GetComponent<HideShadowIfCloaked>();
+			if (!comp)
+			{
+				comp = DoppelgangerEffect.AddComponent<HideShadowIfCloaked>();
+			}
+			comp.particles = DoppelgangerEffect.transform.Find("Particles").gameObject;
+			comp.visEfx = DoppelgangerEffect.GetComponent<TemporaryVisualEffect>();
+		}
+
+		// SurvivorSpecific
+		private void Paint_GetCurrentTargetInfo(On.EntityStates.Engi.EngiMissilePainter.Paint.orig_GetCurrentTargetInfo orig, EntityStates.Engi.EngiMissilePainter.Paint self, out HurtBox currentTargetHurtBox, out HealthComponent currentTargetHealthComponent)
+		{
+			orig(self, out currentTargetHurtBox, out currentTargetHealthComponent);
+			foreach (HurtBox hurtBox in self.search.GetResults())
+			{
+				if ((bool)hurtBox.healthComponent?.alive && hurtBox.healthComponent.body && !hurtBox.healthComponent.body.hasCloakBuff)
+				{
+					currentTargetHurtBox = hurtBox;
+					currentTargetHealthComponent = hurtBox.healthComponent;
+					return;
+				}
+			}
+			currentTargetHurtBox = null;
+			currentTargetHealthComponent = null;
+		}
+		private void HuntressTracker_SearchForTarget(On.RoR2.HuntressTracker.orig_SearchForTarget orig, HuntressTracker self, Ray aimRay)
+		{
+			self.search.teamMaskFilter = TeamMask.GetUnprotectedTeams(self.teamComponent.teamIndex);
+			self.search.filterByLoS = true;
+			self.search.searchOrigin = aimRay.origin;
+			self.search.searchDirection = aimRay.direction;
+			self.search.sortMode = BullseyeSearch.SortMode.Distance;
+			self.search.maxDistanceFilter = self.maxTrackingDistance;
+			self.search.maxAngleFilter = self.maxTrackingAngle;
+			self.search.RefreshCandidates();
+			self.search.FilterOutGameObject(self.gameObject);
+			self.trackingTarget = FilterMethod(self.search.GetResults());
+		}
+		private HurtBox Evis_SearchForTarget(On.EntityStates.Merc.Evis.orig_SearchForTarget orig, EntityStates.Merc.Evis self)
+		{
+			BullseyeSearch bullseyeSearch = new BullseyeSearch
+			{
+				searchOrigin = base.transform.position,
+				searchDirection = UnityEngine.Random.onUnitSphere,
+				maxDistanceFilter = evisMaxRange,
+				teamMaskFilter = TeamMask.GetUnprotectedTeams(self.GetTeam()),
+				sortMode = BullseyeSearch.SortMode.Distance
+			};
+			bullseyeSearch.RefreshCandidates();
+			bullseyeSearch.FilterOutGameObject(base.gameObject);
+			return bullseyeSearch.GetResults().FirstOrDefault<HurtBox>();
+		}
+		// Targeting
+		private void ProjectileDirectionalTargetFinder_SearchForTarget(On.RoR2.Projectile.ProjectileDirectionalTargetFinder.orig_SearchForTarget orig, RoR2.Projectile.ProjectileDirectionalTargetFinder self)
+		{
+			orig(self);
+			var type = self.gameObject.name;
+			if (ProjectileDirectionalTargetFinderFilterType.Value == 2)
+			{
+				var daggerCheck = (type == "DaggerProjectile(Clone)" && ProjectileDirectionalTargetFinderDagger.Value);
+				if (!daggerCheck)
+				{
+					IEnumerable<HurtBox> source = self.bullseyeSearch.GetResults().Where(new Func<HurtBox, bool>(self.PassesFilters));
+					self.SetTarget(FilterMethod(source));
+				}
+			}
+		}
         private void SiphonNearbyController_SearchForTargets(On.RoR2.SiphonNearbyController.orig_SearchForTargets orig, SiphonNearbyController self, List<HurtBox> dest)
         {
 			self.sphereSearch.mask = LayerIndex.entityPrecise.mask;
@@ -187,7 +225,6 @@ namespace CloakBuff
 			self.sphereSearch.ClearCandidates();
 			self.sphereSearch.GetHurtBoxes();
 		}
-
         private HurtBox DevilOrb_PickNextTarget(On.RoR2.Orbs.DevilOrb.orig_PickNextTarget orig, RoR2.Orbs.DevilOrb self, Vector3 position, float range)
         {
 			var type = self.effectType;
@@ -225,20 +262,6 @@ namespace CloakBuff
 			}
 			return hurtBox;
 		}
-
-        private void ModifyDoppelGangerEffect()
-		{
-			if (!DoppelgangerEffect) return;
-
-			var comp = DoppelgangerEffect.GetComponent<HideShadowIfCloaked>();
-			if (!comp)
-			{
-				comp = DoppelgangerEffect.AddComponent<HideShadowIfCloaked>();
-			}
-			comp.particles = DoppelgangerEffect.transform.Find("Particles").gameObject;
-			comp.visEfx = DoppelgangerEffect.GetComponent<TemporaryVisualEffect>();
-		}
-
 		private HurtBox LightningOrb_PickNextTarget(On.RoR2.Orbs.LightningOrb.orig_PickNextTarget orig, RoR2.Orbs.LightningOrb self, Vector3 position)
 		{
 			var type = self.lightningType;
@@ -276,69 +299,6 @@ namespace CloakBuff
 			}
 			return hurtBox;
 		}
-
-        private void SetStateOnHurt_SetShock(On.RoR2.SetStateOnHurt.orig_SetShock orig, SetStateOnHurt self, float duration)
-        {
-			orig(self, duration);
-			var body = self.gameObject.GetComponent<CharacterBody>();
-			if (!body)
-            {
-				return;
-            }
-			if (body.HasBuff(RoR2Content.Buffs.Cloak))
-            {
-				body.ClearTimedBuffs(RoR2Content.Buffs.Cloak);
-            }
-
-		}
-
-        private HurtBox Evis_SearchForTarget(On.EntityStates.Merc.Evis.orig_SearchForTarget orig, EntityStates.Merc.Evis self)
-        {
-            BullseyeSearch bullseyeSearch = new BullseyeSearch
-            {
-                searchOrigin = base.transform.position,
-                searchDirection = UnityEngine.Random.onUnitSphere,
-                maxDistanceFilter = evisMaxRange,
-                teamMaskFilter = TeamMask.GetUnprotectedTeams(self.GetTeam()),
-                sortMode = BullseyeSearch.SortMode.Distance
-            };
-            bullseyeSearch.RefreshCandidates();
-			bullseyeSearch.FilterOutGameObject(base.gameObject);
-			return bullseyeSearch.GetResults().FirstOrDefault<HurtBox>();
-		}
-
-		private HurtBox FilterMethod(IEnumerable<HurtBox> listOfTargets)
-        {
-			HurtBox hurtBox = listOfTargets.FirstOrDefault<HurtBox>();
-
-			int index = 0;
-			while (hurtBox != null)
-			{
-				if ((bool)hurtBox.healthComponent?.body?.hasCloakBuff)
-				{
-					index++;
-					hurtBox = listOfTargets.ElementAtOrDefault(index);
-					continue;
-				}
-				break;
-			}
-			return hurtBox;
-		}
-
-        private void HuntressTracker_SearchForTarget(On.RoR2.HuntressTracker.orig_SearchForTarget orig, HuntressTracker self, Ray aimRay)
-        {
-			self.search.teamMaskFilter = TeamMask.GetUnprotectedTeams(self.teamComponent.teamIndex);
-			self.search.filterByLoS = true;
-			self.search.searchOrigin = aimRay.origin;
-			self.search.searchDirection = aimRay.direction;
-			self.search.sortMode = BullseyeSearch.SortMode.Distance;
-			self.search.maxDistanceFilter = self.maxTrackingDistance;
-			self.search.maxAngleFilter = self.maxTrackingAngle;
-			self.search.RefreshCandidates();
-			self.search.FilterOutGameObject(self.gameObject);
-			self.trackingTarget = FilterMethod(self.search.GetResults());
-		}
-
         private Transform MissileController_FindTarget(On.RoR2.Projectile.MissileController.orig_FindTarget orig, RoR2.Projectile.MissileController self)
         {
 			var objName = self.gameObject.name;
@@ -412,7 +372,38 @@ namespace CloakBuff
             
 			return victim && victim.alive && (self.victimToHealthBarInfo[victim].endTime > Time.time || victim == self.crosshairTarget) && !victim.body.hasCloakBuff;
         }
+		private void SetStateOnHurt_SetShock(On.RoR2.SetStateOnHurt.orig_SetShock orig, SetStateOnHurt self, float duration)
+		{
+			orig(self, duration);
+			var body = self.gameObject.GetComponent<CharacterBody>();
+			if (!body)
+			{
+				return;
+			}
+			if (body.HasBuff(RoR2Content.Buffs.Cloak))
+			{
+				body.ClearTimedBuffs(RoR2Content.Buffs.Cloak);
+			}
 
+		}
+
+		private HurtBox FilterMethod(IEnumerable<HurtBox> listOfTargets)
+		{
+			HurtBox hurtBox = listOfTargets.FirstOrDefault<HurtBox>();
+
+			int index = 0;
+			while (hurtBox != null)
+			{
+				if ((bool)hurtBox.healthComponent?.body?.hasCloakBuff)
+				{
+					index++;
+					hurtBox = listOfTargets.ElementAtOrDefault(index);
+					continue;
+				}
+				break;
+			}
+			return hurtBox;
+		}
 		private class HideShadowIfCloaked : MonoBehaviour
         {
 			public CharacterBody body;
@@ -432,7 +423,6 @@ namespace CloakBuff
 				}
             }
         }
-
 		private enum MissileTypes
         {
 			None,
