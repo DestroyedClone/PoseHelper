@@ -241,14 +241,24 @@ namespace CloakBuff
         private void SiphonNearbyController_SearchForTargets(On.RoR2.SiphonNearbyController.orig_SearchForTargets orig, SiphonNearbyController self, List<HurtBox> dest)
         {
             orig(self, dest);
+            self.sphereSearch.ClearCandidates();
             self.sphereSearch.RefreshCandidates();
             self.sphereSearch.FilterCandidatesByHurtBoxTeam(TeamMask.GetEnemyTeams(self.networkedBodyAttachment.attachedBody.teamComponent.teamIndex));
             self.sphereSearch.OrderCandidatesByDistance();
             self.sphereSearch.FilterCandidatesByDistinctHurtBoxEntities();
             var destCopy = new List<HurtBox>(dest);
             foreach (var hurtBox in destCopy)
+            {
+                Debug.Log("Mired Urn: Checking " + hurtBox.healthComponent.body.GetDisplayName());
                 if ((bool)hurtBox.healthComponent?.body?.hasCloakBuff)
+                {
                     dest.Remove(hurtBox);
+                    Debug.Log("Removed");
+                } else
+                {
+                    Debug.Log("Kept");
+                }
+            }
             self.sphereSearch.GetHurtBoxes(dest);
             self.sphereSearch.ClearCandidates();
         }
@@ -256,6 +266,7 @@ namespace CloakBuff
         private HurtBox DevilOrb_PickNextTarget(On.RoR2.Orbs.DevilOrb.orig_PickNextTarget orig, RoR2.Orbs.DevilOrb self, Vector3 position, float range)
         {
             var type = self.effectType;
+            Debug.Log("Devil Orb: "+type.ToString());
             if (DevilOrbIncludesFilterType.Value == 2)
             {
                 var novaOnHealCheck = (type == RoR2.Orbs.DevilOrb.EffectType.Skull && DevilOrbIncludesNovaOnHeal.Value);
@@ -295,6 +306,7 @@ namespace CloakBuff
         {
             var type = self.lightningType;
             var original = orig(self, position);
+            Debug.Log("Lightning Orb: "+type.ToString());
 
             if (LightningOrbIncludesFilterType.Value == 2)
             {
@@ -419,16 +431,23 @@ namespace CloakBuff
         private HurtBox FilterMethod(IEnumerable<HurtBox> listOfTargets)
         {
             HurtBox hurtBox = listOfTargets.FirstOrDefault<HurtBox>();
-
+            if (hurtBox == null)
+                Debug.Log("Evis chose target: None");
+            else
+                Debug.Log("Evis chose target: "+hurtBox.healthComponent.body.GetDisplayName());
+            Debug.Log("Attempting Iteration with list of length: "+listOfTargets.Count());
             int index = 0;
             while (hurtBox != null)
             {
                 if ((bool)hurtBox.healthComponent?.body?.hasCloakBuff)
                 {
+                    Debug.Log("Target was cloaked, moving on to");
                     index++;
                     hurtBox = listOfTargets.ElementAtOrDefault(index);
+                    Debug.Log("NEW Target: " + hurtBox.healthComponent.body.GetDisplayName());
                     continue;
                 }
+                Debug.Log("Chosen target works!");
                 break;
             }
             return hurtBox;
