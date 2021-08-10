@@ -139,7 +139,7 @@ namespace CloakBuff
             EnableHealthbar = Config.Bind("Visual", "Healthbar", true, "Become unable to see the enemy's healthbar");
             EnablePinging = Config.Bind("Visual", "Pinging", true, "Attempts to mislead pinging by pinging the enemy behind the cloaked enemy");
             MissileIncludesDMLATG = Config.Bind("Items", "Disposable Missile Launcher and AtG Missile Mk. 1", true, "");
-            LightningOrbIncludesBFG = Config.Bind("Items", "Preon Accumulator", true, "Affects the Engineer's Utility Thermal Harpoons. Also prevents the user from painting cloaked enemies as targets.");
+            LightningOrbIncludesBFG = Config.Bind("Items", "Preon Accumulator", true, "");
             LightningOrbIncludesUkulele = Config.Bind("Items", "Ukulele", true, "");
             LightningOrbIncludesRazorwire = Config.Bind("Items", "Razorwire", true, "");
             LightningOrbIncludesTesla = Config.Bind("Items", "Unstable Tesla Coil", true, "");
