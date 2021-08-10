@@ -65,6 +65,7 @@ namespace CloakBuff
 				On.RoR2.UI.CombatHealthBarViewer.VictimIsValid += CombatHealthBarViewer_VictimIsValid;
 			if (EnablePinging.Value)
 				On.RoR2.Util.HandleCharacterPhysicsCastResults += Util_HandleCharacterPhysicsCastResults;
+            IL.RoR2.Util.HandleCharacterPhysicsCastResults += Util_HandleCharacterPhysicsCastResults1;
 
 			// Character Specific
 			if (HuntressCantAim.Value)
@@ -99,7 +100,35 @@ namespace CloakBuff
                 On.RoR2.Projectile.ProjectileDirectionalTargetFinder.SearchForTarget += ProjectileDirectionalTargetFinder_SearchForTarget;
 
 		}
-		public void SetupConfig()
+
+        private void Util_HandleCharacterPhysicsCastResults1(ILContext il)
+        {
+			ILCursor c = new ILCursor(il);
+			int healthComponentLocal = -1;
+			c.GotoNext(
+			  x => x.MatchLdfld("HealthComponent", "healthComponent"),
+		  
+			  x => x.MatchLdloc(out healthComponentLocal)
+			);
+			ILLabel continLabel;
+			c.GotoNext(MoveType.After,
+				x => x.MatchLdarg(0),
+				x => x.MatchCall("op_Equality"),
+				x => x.MatchBrtrue(out continLabel)
+			);
+			c.Emit(OpCodes.Ldloc, healthComponentLocal);
+			c.EmitDelegate<>(
+				(HealthComponent hc) => 
+				{ 
+					return hc.body.hasCloakBuff; 
+				}
+				);
+			c.Emit(OpCodes.Brtrue, continLabel);
+
+			c.Emit(OpCodes.Add);
+		}
+
+        public void SetupConfig()
 		{
 			HideDoppelgangerEffect = Config.Bind("Visual", "Umbra", true, "Hides the Umbra's swirling particle effects");
 			EnableHealthbar = Config.Bind("Visual", "Healthbar", true, "Become unable to see the enemy's healthbar");
