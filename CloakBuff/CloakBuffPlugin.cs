@@ -252,6 +252,8 @@ namespace CloakBuff
 		private HurtBox LightningOrb_PickNextTarget(On.RoR2.Orbs.LightningOrb.orig_PickNextTarget orig, RoR2.Orbs.LightningOrb self, Vector3 position)
 		{
 			var type = self.lightningType;
+			var original = orig(self, position);
+
 			if (LightningOrbIncludesFilterType.Value == 2)
 			{
 				var bfgCheck = (type == RoR2.Orbs.LightningOrb.LightningType.BFG && LightningOrbIncludesBFG.Value);
@@ -262,12 +264,11 @@ namespace CloakBuff
 				var teslaCheck = (type == RoR2.Orbs.LightningOrb.LightningType.Tesla && LightningOrbIncludesTesla.Value);
 				if (!(bfgCheck || glaiveCheck || ukuleleCheck || razorwireCheck || crocoDiseaseCheck || teslaCheck))
 				{
-					return orig(self, position);
+					return original;
 				}
 			}
-
 			if (self.search == null)
-				return orig(self, position);
+				self.search = new BullseyeSearch();
 			self.search.searchOrigin = position;
 			self.search.searchDirection = Vector3.zero;
 			self.search.teamMaskFilter = TeamMask.allButNeutral;
@@ -283,10 +284,7 @@ namespace CloakBuff
 			{
 				self.bouncedObjects.Add(hurtBox.healthComponent);
 			}
-			//return hurtBox;
-
-			var target = orig(self, position);
-
+			return hurtBox;
 		}
         private Transform MissileController_FindTarget(On.RoR2.Projectile.MissileController.orig_FindTarget orig, RoR2.Projectile.MissileController self)
         {
