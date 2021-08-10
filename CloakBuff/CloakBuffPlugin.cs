@@ -209,6 +209,11 @@ namespace CloakBuff
 
         private HurtBox Evis_SearchForTarget(On.EntityStates.Merc.Evis.orig_SearchForTarget orig, EntityStates.Merc.Evis self)
         {
+            var original = orig(self);
+            if (!original.healthComponent.body.hasCloakBuff)
+            {
+                return original;
+            }
             BullseyeSearch bullseyeSearch = new BullseyeSearch
             {
                 searchOrigin = self.transform.position,
