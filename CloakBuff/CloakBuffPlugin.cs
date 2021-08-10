@@ -70,7 +70,7 @@ namespace CloakBuff
                 On.RoR2.UI.CombatHealthBarViewer.VictimIsValid += CombatHealthBarViewer_VictimIsValid;
             if (EnablePinging.Value)
                 On.RoR2.Util.HandleCharacterPhysicsCastResults += Util_HandleCharacterPhysicsCastResults;
-            IL.RoR2.Util.HandleCharacterPhysicsCastResults += Util_HandleCharacterPhysicsCastResults1;
+            //IL.RoR2.Util.HandleCharacterPhysicsCastResults += Util_HandleCharacterPhysicsCastResults1;
 
             // Character Specific
             if (HuntressCantAim.Value)
@@ -105,7 +105,7 @@ namespace CloakBuff
                 On.RoR2.Projectile.ProjectileDirectionalTargetFinder.SearchForTarget += ProjectileDirectionalTargetFinder_SearchForTarget;
         }
 
-        private void Util_HandleCharacterPhysicsCastResults1(ILContext il)
+        private void Util_HandleCharacterPhysicsCastResults1(ILContext il) //harb
         {
             ILCursor c = new ILCursor(il);
             int healthComponentLocal = -1;
@@ -114,18 +114,16 @@ namespace CloakBuff
 
               x => x.MatchLdloc(out healthComponentLocal)
             );
-            ILLabel continLabel;
+            ILLabel continLabel = null;
             c.GotoNext(MoveType.After,
                 x => x.MatchLdarg(0),
-                x => x.MatchCall("op_Equality"),
+                //x => x.MatchCall("op_Equality"),
                 x => x.MatchBrtrue(out continLabel)
             );
             c.Emit(OpCodes.Ldloc, healthComponentLocal);
-            c.EmitDelegate<>(
+            c.EmitDelegate<Func<HealthComponent,bool>>(
                 (HealthComponent hc) =>
-                {
-                    return hc.body.hasCloakBuff;
-                }
+                {return hc.body.hasCloakBuff;}
                 );
             c.Emit(OpCodes.Brtrue, continLabel);
 
