@@ -283,7 +283,7 @@ namespace CloakBuff
 
             HurtBox hurtBox = list[UnityEngine.Random.Range(0, list.Count)];
 
-            while ((bool)hurtBox.healthComponent?.body.hasCloakBuff)
+            while ((bool)hurtBox.healthComponent?.body.hasCloakBuff && list.Count > 0)
             {
                 list.Remove(hurtBox);
                 hurtBox = list[UnityEngine.Random.Range(0, list.Count)];
