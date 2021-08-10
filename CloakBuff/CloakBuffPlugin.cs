@@ -211,14 +211,14 @@ namespace CloakBuff
         {
             BullseyeSearch bullseyeSearch = new BullseyeSearch
             {
-                searchOrigin = base.transform.position,
+                searchOrigin = self.transform.position,
                 searchDirection = UnityEngine.Random.onUnitSphere,
                 maxDistanceFilter = evisMaxRange,
                 teamMaskFilter = TeamMask.GetUnprotectedTeams(self.GetTeam()),
                 sortMode = BullseyeSearch.SortMode.Distance
             };
             bullseyeSearch.RefreshCandidates();
-            bullseyeSearch.FilterOutGameObject(base.gameObject);
+            bullseyeSearch.FilterOutGameObject(self.gameObject);
             return FilterMethod(bullseyeSearch.GetResults());
         }
 
