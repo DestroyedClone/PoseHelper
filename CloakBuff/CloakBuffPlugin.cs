@@ -10,7 +10,6 @@ using System.Linq;
 using System.Security;
 using System.Security.Permissions;
 using UnityEngine;
-using EntityStates.Merc;
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -53,6 +52,7 @@ namespace CloakBuff
 
         // 0 = No hook, 1 = All, 2 = Whitelist
         public static ConfigEntry<bool> ProjectileDirectionalTargetFinderDagger { get; set; }
+
         public static ConfigEntry<int> ProjectileSphereTargetFinderFilterType { get; set; }
 
         // 0 = No hook, 1 = All, 2 = Whitelist
@@ -150,7 +150,7 @@ namespace CloakBuff
             MercCantFind = Config.Bind("Survivors", "Mercernary Eviscerate", true, "Finnicky. Fails if an invalid enemy is within the same range of a valid enemy. The adjustment will prevent Mercernary's Eviscerate from targeting cloaked enemies");
 
             ShockKillsCloak = Config.Bind("Nerfs", "Shocking disrupts cloak", true, "Setting this value to true will allow shocking attacks (Captain's M2 and Shocking Beacon) to clear cloak on hit. Note that Survivors are immune to this damagetype.");
-            
+
             MissileIncludesFilterType = Config.Bind("zFiltering", "MissileController", 2, "Its safe to ignore the options in this category." +
                 "\n 0 = Disabled," +
                 "\n 1 = All missiles are affected" +
