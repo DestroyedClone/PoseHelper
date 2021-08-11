@@ -53,11 +53,18 @@ namespace CloakBuff
 
         // 0 = No hook, 1 = All, 2 = Whitelist
         public static ConfigEntry<bool> ProjectileDirectionalTargetFinderDagger { get; set; }
+        public static ConfigEntry<int> ProjectileSphereTargetFinderFilterType { get; set; }
+
+        // 0 = No hook, 1 = All, 2 = Whitelist
 
         public static ConfigEntry<bool> MiredUrn { get; set; }
+        public static ConfigEntry<bool> RoyalCap { get; set; }
         public static ConfigEntry<bool> HuntressCantAim { get; set; }
         public static ConfigEntry<bool> MercCantFind { get; set; }
         public static ConfigEntry<bool> ShockKillsCloak { get; set; }
+        public static ConfigEntry<bool> EngiChargeMine { get; set; }
+        public static ConfigEntry<bool> EngiSpiderMine { get; set; }
+        public static ConfigEntry<bool> EngiSpiderMineCanExplodeOnImpaled { get; set; }
 
         public GameObject DoppelgangerEffect = Resources.Load<GameObject>("prefabs/temporaryvisualeffects/DoppelgangerEffect");
         public static float evisMaxRange = EntityStates.Merc.Evis.maxRadius;
@@ -82,6 +89,13 @@ namespace CloakBuff
             }
             // Squid
             //On.EntityStates.Squid.SquidWeapon.FireSpine.
+            if (ProjectileSphereTargetFinderFilterType.Value != 0)
+            {
+                if (EngiChargeMine.Value || EngiSpiderMine.Value)
+                {
+                    On.RoR2.Projectile.ProjectileSphereTargetFinder.PassesFilters += ProjectileSphereTargetFinder_PassesFilters;
+                }
+            }
 
             // Shock thing
             if (ShockKillsCloak.Value)
@@ -106,31 +120,8 @@ namespace CloakBuff
             // Ceremonial Dagger
             if (ProjectileDirectionalTargetFinderFilterType.Value != 0)
                 On.RoR2.Projectile.ProjectileDirectionalTargetFinder.SearchForTarget += ProjectileDirectionalTargetFinder_SearchForTarget;
-        }
-
-        private void Util_HandleCharacterPhysicsCastResults1(ILContext il) //harb
-        {
-            ILCursor c = new ILCursor(il);
-            int healthComponentLocal = -1;
-            c.GotoNext(
-              x => x.MatchLdfld("HealthComponent", "healthComponent"),
-
-              x => x.MatchLdloc(out healthComponentLocal)
-            );
-            ILLabel continLabel = null;
-            c.GotoNext(MoveType.After,
-                x => x.MatchLdarg(0),
-                //x => x.MatchCall("op_Equality"),
-                x => x.MatchBrtrue(out continLabel)
-            );
-            c.Emit(OpCodes.Ldloc, healthComponentLocal);
-            c.EmitDelegate<Func<HealthComponent,bool>>(
-                (HealthComponent hc) =>
-                {return hc.body.hasCloakBuff;}
-                );
-            c.Emit(OpCodes.Brtrue, continLabel);
-
-            c.Emit(OpCodes.Add);
+            if (RoyalCap.Value)
+                On.RoR2.EquipmentSlot.ConfigureTargetFinderForEnemies += EquipmentSlot_ConfigureTargetFinderForEnemies;
         }
 
         public void SetupConfig()
@@ -139,34 +130,42 @@ namespace CloakBuff
             EnableHealthbar = Config.Bind("Visual", "Healthbar", true, "Become unable to see the enemy's healthbar");
             EnablePinging = Config.Bind("Visual", "Pinging", true, "Attempts to mislead pinging by pinging the enemy behind the cloaked enemy");
             MissileIncludesDMLATG = Config.Bind("Items", "Disposable Missile Launcher and AtG Missile Mk. 1", true, "");
-            LightningOrbIncludesBFG = Config.Bind("Items", "Preon Accumulator", true, "");
+            LightningOrbIncludesBFG = Config.Bind("Items", "Preon Accumulator", false, "Currently Broken");
             LightningOrbIncludesUkulele = Config.Bind("Items", "Ukulele", true, "");
-            LightningOrbIncludesRazorwire = Config.Bind("Items", "Razorwire", true, "");
+            LightningOrbIncludesRazorwire = Config.Bind("Items", "Razorwire", false, "Currently Broken");
             LightningOrbIncludesTesla = Config.Bind("Items", "Unstable Tesla Coil", true, "");
             DevilOrbIncludesNovaOnHeal = Config.Bind("Items", "Nkuhanas Opinion", true, "");
             DevilOrbIncludesSprintWisp = Config.Bind("Items", "Little Disciple", true, "");
             ProjectileDirectionalTargetFinderDagger = Config.Bind("Items", "Ceremonial Dagger", true, "");
-            MiredUrn = Config.Bind("Items", "Mired Urn", true, "");
+            MiredUrn = Config.Bind("Items", "Mired Urn", true, "Finnicky. Prioritizes noncloaked enemies, but will target a cloaked enemy if they are the only target.");
+            RoyalCap = Config.Bind("Items", "Royal Capacitator", true, "");
 
-            LightningOrbIncludesCrocoDisease = Config.Bind("Survivors", "Acrid Epidemic", true, "Affects Acrid's special Epidemic's spreading");
+            LightningOrbIncludesCrocoDisease = Config.Bind("Survivors", "Acrid Epidemic", false, "Currently Broken. Affects Acrid's special Epidemic's spreading");
             MissileIncludesHarpoons = Config.Bind("Survivors", "Engineer Harpoons+Targeting", true, "Affects the Engineer's Utility Thermal Harpoons. Also prevents the user from painting cloaked enemies as targets.");
+            EngiChargeMine = Config.Bind("Survivors", "Engineer Pressure Mines", true, "Affects the Engineer's Secondary Pressure Mines. Prevents exploding when cloaked enemies are in proximity.");
+            EngiSpiderMine = Config.Bind("Survivors", "Engineer Spider Mines", true, "Affects the Engineer's Secondary Spider Mines. Prevents exploding when cloaked enemies are in proximity.");
+            EngiSpiderMineCanExplodeOnImpaled = Config.Bind("Survivors", "Engineer Spider Mines Single Target", true, "Affects the Engineer's Secondary Spider Mines, requires the previous option to be enabled. If true, then it will explode when armed if it is stuck on a cloaked target.");
             HuntressCantAim = Config.Bind("Survivors", "Huntress Aiming", true, "This adjustment will make Huntress unable to target cloaked enemies with her primary and secondary abilities");
             LightningOrbIncludesGlaive = Config.Bind("Survivors", "Huntress Glaive", true, "Affects the Huntress' Secondary Laser Glaive");
-            MercCantFind = Config.Bind("Survivors", "Mercernary Eviscerate", true, "The adjustment will prevent Mercernary's Eviscerate from targeting cloaked enemies");
+            MercCantFind = Config.Bind("Survivors", "Mercernary Eviscerate", true, "Finnicky. Fails if an invalid enemy is within the same range of a valid enemy. The adjustment will prevent Mercernary's Eviscerate from targeting cloaked enemies");
 
-            ShockKillsCloak = Config.Bind("Nerfs", "Shocking disrupts cloak", true, "Setting this value to true will allow shocking attacks (Captain's M2 and Shocking Beacon) to clear cloak on hit.");
+            ShockKillsCloak = Config.Bind("Nerfs", "Shocking disrupts cloak", true, "Setting this value to true will allow shocking attacks (Captain's M2 and Shocking Beacon) to clear cloak on hit. Note that Survivors are immune to this damagetype.");
             
-            MissileIncludesFilterType = Config.Bind("Filtering", "MissileController", 2, "Its safe to ignore the options in this category." +
+            MissileIncludesFilterType = Config.Bind("zFiltering", "MissileController", 2, "Its safe to ignore the options in this category." +
                 "\n 0 = Disabled," +
                 "\n 1 = All missiles are affected" +
                 "\n 2 = Only the following options");
-            LightningOrbIncludesFilterType = Config.Bind("Filtering", "Lightning Orbs", 2, "0 = Disabled," +
+            LightningOrbIncludesFilterType = Config.Bind("zFiltering", "Lightning Orbs", 2, "0 = Disabled," +
                 "\n 1 = All Lightning Orbs are affected" +
                 "\n 2 = Only the following options");
-            DevilOrbIncludesFilterType = Config.Bind("Filtering", "Devil Orbs", 2, "0 = Disabled," +
+            DevilOrbIncludesFilterType = Config.Bind("zFiltering", "Devil Orbs", 2, "0 = Disabled," +
                 "\n 1 = All Devil Orbs are affected" +
                 "\n 2 = Only the following options");
-            ProjectileDirectionalTargetFinderFilterType = Config.Bind("Filtering", "ProjectileDirectionalTargetFinder", 2, "0 = Disabled," +
+            ProjectileDirectionalTargetFinderFilterType = Config.Bind("zFiltering", "ProjectileDirectionalTargetFinder", 2, "0 = Disabled," +
+                "\n 1 = All Lightning Orbs are affected" +
+                "\n 2 = Only the following options");
+            ProjectileSphereTargetFinderFilterType = Config.Bind("zFiltering", "ProjectileSphereTargetFinder", 2, "#NG!M!N#S" +
+                "\n 0 = Disabled," +
                 "\n 1 = All Lightning Orbs are affected" +
                 "\n 2 = Only the following options");
         }
@@ -249,21 +248,22 @@ namespace CloakBuff
             self.sphereSearch.ClearCandidates();
             self.sphereSearch.RefreshCandidates();
             self.sphereSearch.FilterCandidatesByHurtBoxTeam(TeamMask.GetEnemyTeams(self.networkedBodyAttachment.attachedBody.teamComponent.teamIndex));
-            self.sphereSearch.OrderCandidatesByDistance();
-            self.sphereSearch.FilterCandidatesByDistinctHurtBoxEntities();
             var destCopy = new List<HurtBox>(dest);
             foreach (var hurtBox in destCopy)
             {
-                Debug.Log("Mired Urn: Checking " + hurtBox.healthComponent.body.GetDisplayName());
+                //Debug.Log("Mired Urn: Checking " + hurtBox.healthComponent.body.GetDisplayName());
                 if ((bool)hurtBox.healthComponent?.body?.hasCloakBuff)
                 {
                     dest.Remove(hurtBox);
-                    Debug.Log("Removed");
-                } else
+                    //Debug.Log("Removed");
+                }
+                else
                 {
-                    Debug.Log("Kept");
+                    //Debug.Log("Kept");
                 }
             }
+            self.sphereSearch.OrderCandidatesByDistance();
+            self.sphereSearch.FilterCandidatesByDistinctHurtBoxEntities();
             self.sphereSearch.GetHurtBoxes(dest);
             self.sphereSearch.ClearCandidates();
         }
@@ -271,7 +271,7 @@ namespace CloakBuff
         private HurtBox DevilOrb_PickNextTarget(On.RoR2.Orbs.DevilOrb.orig_PickNextTarget orig, RoR2.Orbs.DevilOrb self, Vector3 position, float range)
         {
             var type = self.effectType;
-            Debug.Log("Devil Orb: "+type.ToString());
+            //Debug.Log("Devil Orb: "+type.ToString());
             if (DevilOrbIncludesFilterType.Value == 2)
             {
                 var novaOnHealCheck = (type == RoR2.Orbs.DevilOrb.EffectType.Skull && DevilOrbIncludesNovaOnHeal.Value);
@@ -311,7 +311,7 @@ namespace CloakBuff
         {
             var type = self.lightningType;
             var original = orig(self, position);
-            Debug.Log("Lightning Orb: "+type.ToString());
+            //Debug.Log("Lightning Orb: "+type.ToString());
 
             if (LightningOrbIncludesFilterType.Value == 2)
             {
@@ -433,26 +433,95 @@ namespace CloakBuff
             }
         }
 
+        private void EquipmentSlot_ConfigureTargetFinderForEnemies(On.RoR2.EquipmentSlot.orig_ConfigureTargetFinderForEnemies orig, EquipmentSlot self)
+        {
+            orig(self);
+            foreach (var target in self.targetFinder.GetResults())
+            {
+                if ((bool)target.healthComponent?.body?.hasCloakBuff)
+                    self.targetFinder.FilterOutGameObject(target.gameObject);
+            }
+        }
+
+        private void Util_HandleCharacterPhysicsCastResults1(ILContext il) //harb
+        {
+            ILCursor c = new ILCursor(il);
+            int healthComponentLocal = -1;
+            c.GotoNext(
+              x => x.MatchLdfld("HealthComponent", "healthComponent"),
+
+              x => x.MatchLdloc(out healthComponentLocal)
+            );
+            ILLabel continLabel = null;
+            c.GotoNext(MoveType.After,
+                x => x.MatchLdarg(0),
+                //x => x.MatchCall("op_Equality"),
+                x => x.MatchBrtrue(out continLabel)
+            );
+            c.Emit(OpCodes.Ldloc, healthComponentLocal);
+            c.EmitDelegate<Func<HealthComponent, bool>>(
+                (HealthComponent hc) =>
+                { return hc.body.hasCloakBuff; }
+                );
+            c.Emit(OpCodes.Brtrue, continLabel);
+
+            c.Emit(OpCodes.Add);
+        }
+
+        private bool ProjectileSphereTargetFinder_PassesFilters(On.RoR2.Projectile.ProjectileSphereTargetFinder.orig_PassesFilters orig, RoR2.Projectile.ProjectileSphereTargetFinder self, HurtBox result)
+        {
+            var original = orig(self, result);
+            var objName = self.gameObject.name;
+            var spiderCheck = (objName == "SpiderMine(Clone)" && EngiSpiderMine.Value);
+            CharacterBody body = result.healthComponent.body;
+            if (ProjectileSphereTargetFinderFilterType.Value == 2)
+            {
+                var mineCheck = (objName == "EngiMine(Clone)" && EngiChargeMine.Value);
+                if (!(mineCheck || spiderCheck))
+                {
+                    Debug.Log("Neither type of mine");
+                    return original;
+                }
+                if (spiderCheck)
+                {
+                    if (EngiSpiderMineCanExplodeOnImpaled.Value)
+                    {
+                        var stickOnImpact = self.gameObject.GetComponent<RoR2.Projectile.ProjectileStickOnImpact>();
+                        if (stickOnImpact?.victim == body.gameObject)
+                        {
+                            Debug.Log("Spidermine is attached, so we're exploding it");
+                            return original;
+                        }
+                    }
+                }
+            }
+            return original && !body.hasCloakBuff;
+        }
+
         private HurtBox FilterMethod(IEnumerable<HurtBox> listOfTargets)
         {
             HurtBox hurtBox = listOfTargets.FirstOrDefault<HurtBox>();
             if (hurtBox == null)
-                Debug.Log("Evis chose target: None");
+            {
+                //Debug.Log("Evis chose target: None");
+            }
             else
-                Debug.Log("Evis chose target: "+hurtBox.healthComponent.body.GetDisplayName());
-            Debug.Log("Attempting Iteration with list of length: "+listOfTargets.Count());
+            {
+                //Debug.Log("Evis chose target: " + hurtBox.healthComponent.body.GetDisplayName());
+            }
+            //Debug.Log("Attempting Iteration with list of length: "+listOfTargets.Count());
             int index = 0;
             while (hurtBox != null)
             {
                 if ((bool)hurtBox.healthComponent?.body?.hasCloakBuff)
                 {
-                    Debug.Log("Target was cloaked, moving on to");
+                    //Debug.Log("Target was cloaked, moving on to");
                     index++;
                     hurtBox = listOfTargets.ElementAtOrDefault(index);
-                    Debug.Log("NEW Target: " + hurtBox.healthComponent.body.GetDisplayName());
+                    //Debug.Log("NEW Target: " + hurtBox.healthComponent.body.GetDisplayName());
                     continue;
                 }
-                Debug.Log("Chosen target works!");
+                //Debug.Log("Chosen target works!");
                 break;
             }
             return hurtBox;
