@@ -59,6 +59,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Spectator", "Spectator\Spec
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CursorFreedEarlier", "CursorFreedEarlier\CursorFreedEarlier.csproj", "{3DCF8FEF-F46D-45B6-AE63-365FF6E601A9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatEdit", "ChatEdit\ChatEdit.csproj", "{3FB360B8-313B-4CF6-9280-4D8542119A3D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -177,6 +179,10 @@ Global
 		{3DCF8FEF-F46D-45B6-AE63-365FF6E601A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3DCF8FEF-F46D-45B6-AE63-365FF6E601A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3DCF8FEF-F46D-45B6-AE63-365FF6E601A9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3FB360B8-313B-4CF6-9280-4D8542119A3D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3FB360B8-313B-4CF6-9280-4D8542119A3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3FB360B8-313B-4CF6-9280-4D8542119A3D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3FB360B8-313B-4CF6-9280-4D8542119A3D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
