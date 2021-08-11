@@ -26,12 +26,20 @@ namespace CursorFreedEarlier
         public void Awake()
         {
             On.RoR2.SplashScreenController.Start += SplashScreenController_Start;
+            On.RoR2.SceneDirector.Start += SceneDirector_Start;
+        }
+
+        private void SceneDirector_Start(On.RoR2.SceneDirector.orig_Start orig, SceneDirector self)
+        {
+            orig(self);
+            if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "loadingbasic")
+                self.gameObject.AddComponent<RoR2.UI.CursorOpener>();
         }
 
         private void SplashScreenController_Start(On.RoR2.SplashScreenController.orig_Start orig, SplashScreenController self)
         {
-            self.gameObject.AddComponent<RoR2.UI.CursorOpener>();
             orig(self);
+            self.gameObject.AddComponent<RoR2.UI.CursorOpener>();
         }
     }
 }

@@ -143,7 +143,6 @@ namespace CloakBuff
             {
                 if ((bool)hc.body?.hasCloakBuff)
                 {
-                    c.Index += 2;
                     return false;
                 }
                 return true;
