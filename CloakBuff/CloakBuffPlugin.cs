@@ -131,22 +131,22 @@ namespace CloakBuff
             EnablePinging = Config.Bind("Visual", "Pinging", true, "Attempts to mislead pinging by pinging the enemy behind the cloaked enemy");
             MissileIncludesDMLATG = Config.Bind("Items", "Disposable Missile Launcher and AtG Missile Mk. 1", true, "");
             LightningOrbIncludesBFG = Config.Bind("Items", "Preon Accumulator", false, "Currently Broken");
-            LightningOrbIncludesUkulele = Config.Bind("Items", "Ukulele", true, "");
+            LightningOrbIncludesUkulele = Config.Bind("Items", "Ukulele", true, "Ukulele electricity no longer arcs to cloaked targets.");
             LightningOrbIncludesRazorwire = Config.Bind("Items", "Razorwire", false, "Currently Broken");
-            LightningOrbIncludesTesla = Config.Bind("Items", "Unstable Tesla Coil", true, "");
-            DevilOrbIncludesNovaOnHeal = Config.Bind("Items", "Nkuhanas Opinion", true, "");
-            DevilOrbIncludesSprintWisp = Config.Bind("Items", "Little Disciple", true, "");
-            ProjectileDirectionalTargetFinderDagger = Config.Bind("Items", "Ceremonial Dagger", true, "");
+            LightningOrbIncludesTesla = Config.Bind("Items", "Unstable Tesla Coil", true, "Tesla electricity no longer arcs to cloaked targets.");
+            DevilOrbIncludesNovaOnHeal = Config.Bind("Items", "Nkuhanas Opinion", true, "No longer seeks out cloaked targets.");
+            DevilOrbIncludesSprintWisp = Config.Bind("Items", "Little Disciple", true, "No longer seeks out cloaked targets.");
+            ProjectileDirectionalTargetFinderDagger = Config.Bind("Items", "Ceremonial Dagger", true, "No longer seeks out cloaked targets.");
             MiredUrn = Config.Bind("Items", "Mired Urn", true, "Finnicky. Prioritizes noncloaked enemies, but will target a cloaked enemy if they are the only target.");
-            RoyalCap = Config.Bind("Items", "Royal Capacitator", true, "");
+            RoyalCap = Config.Bind("Items", "Royal Capacitator", true, "Prevents the aiming reticle from targeting cloaked targets.");
 
             LightningOrbIncludesCrocoDisease = Config.Bind("Survivors", "Acrid Epidemic", false, "Currently Broken. Affects Acrid's special Epidemic's spreading");
             MissileIncludesHarpoons = Config.Bind("Survivors", "Engineer Harpoons+Targeting", true, "Affects the Engineer's Utility Thermal Harpoons. Also prevents the user from painting cloaked enemies as targets.");
-            EngiChargeMine = Config.Bind("Survivors", "Engineer Pressure Mines", true, "Affects the Engineer's Secondary Pressure Mines. Prevents exploding when cloaked enemies are in proximity.");
+            EngiChargeMine = Config.Bind("Survivors", "Engineer Pressure Mines", true, "Finnicky. Affects the Engineer's Secondary Pressure Mines. Prevents exploding when cloaked enemies are in proximity.");
             EngiSpiderMine = Config.Bind("Survivors", "Engineer Spider Mines", true, "Affects the Engineer's Secondary Spider Mines. Prevents exploding when cloaked enemies are in proximity.");
             EngiSpiderMineCanExplodeOnImpaled = Config.Bind("Survivors", "Engineer Spider Mines Single Target", true, "Affects the Engineer's Secondary Spider Mines, requires the previous option to be enabled. If true, then it will explode when armed if it is stuck on a cloaked target.");
             HuntressCantAim = Config.Bind("Survivors", "Huntress Aiming", true, "This adjustment will make Huntress unable to target cloaked enemies with her primary and secondary abilities");
-            LightningOrbIncludesGlaive = Config.Bind("Survivors", "Huntress Glaive", true, "Affects the Huntress' Secondary Laser Glaive");
+            LightningOrbIncludesGlaive = Config.Bind("Survivors", "Huntress Glaive", true, "Affects the Huntress' Secondary Laser Glaive.");
             MercCantFind = Config.Bind("Survivors", "Mercernary Eviscerate", true, "Finnicky. Fails if an invalid enemy is within the same range of a valid enemy. The adjustment will prevent Mercernary's Eviscerate from targeting cloaked enemies");
 
             ShockKillsCloak = Config.Bind("Nerfs", "Shocking disrupts cloak", true, "Setting this value to true will allow shocking attacks (Captain's M2 and Shocking Beacon) to clear cloak on hit. Note that Survivors are immune to this damagetype.");
@@ -162,11 +162,11 @@ namespace CloakBuff
                 "\n 1 = All Devil Orbs are affected" +
                 "\n 2 = Only the following options");
             ProjectileDirectionalTargetFinderFilterType = Config.Bind("zFiltering", "ProjectileDirectionalTargetFinder", 2, "0 = Disabled," +
-                "\n 1 = All Lightning Orbs are affected" +
+                "\n 1 = All ProjectileDirectionalTargetFinderFilterType are affected" +
                 "\n 2 = Only the following options");
             ProjectileSphereTargetFinderFilterType = Config.Bind("zFiltering", "ProjectileSphereTargetFinder", 2, "#NG!M!N#S" +
                 "\n 0 = Disabled," +
-                "\n 1 = All Lightning Orbs are affected" +
+                "\n 1 = All ProjectileSphereTargetFinderFilterType are affected" +
                 "\n 2 = Only the following options");
         }
 
@@ -416,7 +416,7 @@ namespace CloakBuff
 
         private bool CombatHealthBarViewer_VictimIsValid(On.RoR2.UI.CombatHealthBarViewer.orig_VictimIsValid orig, RoR2.UI.CombatHealthBarViewer self, HealthComponent victim)
         {
-            return victim && victim.alive && (self.victimToHealthBarInfo[victim].endTime > Time.time || victim == self.crosshairTarget) && !victim.body.hasCloakBuff;
+            return orig(self, victim) && !victim.body.hasCloakBuff;
         }
 
         private void SetStateOnHurt_SetShock(On.RoR2.SetStateOnHurt.orig_SetShock orig, SetStateOnHurt self, float duration)
