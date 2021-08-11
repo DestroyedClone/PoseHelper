@@ -26,6 +26,7 @@ namespace CloakBuff
         public static ConfigEntry<bool> HideDoppelgangerEffect { get; set; }
         public static ConfigEntry<bool> EnableHealthbar { get; set; }
         public static ConfigEntry<bool> EnablePinging { get; set; }
+        public static ConfigEntry<bool> EnableDamageNumbers { get; set; }
         public static ConfigEntry<int> MissileIncludesFilterType { get; set; }
 
         // 0 = No hook, 1 = All, 2 = Whitelist
@@ -78,6 +79,8 @@ namespace CloakBuff
                 On.RoR2.UI.CombatHealthBarViewer.VictimIsValid += CombatHealthBarViewer_VictimIsValid;
             if (EnablePinging.Value)
                 On.RoR2.Util.HandleCharacterPhysicsCastResults += Util_HandleCharacterPhysicsCastResults;
+            if (EnableDamageNumbers.Value)
+                IL.RoR2.HealthComponent.HandleDamageDealt += HealthComponent_HandleDamageDealt1;
             //IL.RoR2.Util.HandleCharacterPhysicsCastResults += Util_HandleCharacterPhysicsCastResults1;
 
             // Character Specific
@@ -124,12 +127,37 @@ namespace CloakBuff
                 On.RoR2.EquipmentSlot.ConfigureTargetFinderForEnemies += EquipmentSlot_ConfigureTargetFinderForEnemies;
         }
 
+        private void HealthComponent_HandleDamageDealt1(ILContext il)
+        {
+            ILCursor c = new ILCursor(il);
+            c.GotoNext(
+                x => x.MatchLdloc(2),
+                x => x.MatchCallvirt<TeamComponent>("get_teamIndex"),
+                x => x.MatchLdloc(0),
+                x => x.MatchLdfld<DamageDealtMessage>("damageColorIndex"),
+                x => x.MatchCallvirt<DamageNumberManager>("SpawnDamageNumber")
+                );
+            c.Index += 4;
+            c.Emit(OpCodes.Ldloc);
+            c.EmitDelegate<Func<HealthComponent, bool>>((hc) =>
+            {
+                if ((bool)hc.body?.hasCloakBuff)
+                {
+                    c.Index += 2;
+                    return false;
+                }
+                return true;
+            });
+        }
+
         public void SetupConfig()
         {
             HideDoppelgangerEffect = Config.Bind("Visual", "Umbra", true, "Hides the Umbra's swirling particle effects");
             EnableHealthbar = Config.Bind("Visual", "Healthbar", true, "Become unable to see the enemy's healthbar");
-            EnablePinging = Config.Bind("Visual", "Pinging", true, "Attempts to mislead pinging by pinging the enemy behind the cloaked enemy");
-            MissileIncludesDMLATG = Config.Bind("Items", "Disposable Missile Launcher and AtG Missile Mk. 1", true, "");
+            EnablePinging = Config.Bind("Visual", "Pinging", true, "Attempts to mislead pinging by pinging the enemy behind the cloaked target.");
+            EnableDamageNumbers = Config.Bind("Visual", "Damage Numbers", true, "Hides damage numbers from appearing on cloaked targets.");
+            
+            MissileIncludesDMLATG = Config.Bind("Items", "Disposable Missile Launcher and AtG Missile Mk. 1", true, "Missiles no longer consider cloaked targets valid.");
             LightningOrbIncludesBFG = Config.Bind("Items", "Preon Accumulator", false, "Currently Broken");
             LightningOrbIncludesUkulele = Config.Bind("Items", "Ukulele", true, "Ukulele electricity no longer arcs to cloaked targets.");
             LightningOrbIncludesRazorwire = Config.Bind("Items", "Razorwire", false, "Currently Broken");
