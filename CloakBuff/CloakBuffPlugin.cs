@@ -138,15 +138,25 @@ namespace CloakBuff
                 x => x.MatchCallvirt<DamageNumberManager>("SpawnDamageNumber")
                 );
             c.Index += 4;
-            c.Emit(OpCodes.Ldloc);
-            c.EmitDelegate<Func<HealthComponent, bool>>((hc) =>
+            c.Emit(OpCodes.Ldloc_0);
+            c.EmitDelegate<Func<DamageDealtMessage, bool>>((ddm) =>
             {
-                if ((bool)hc.body?.hasCloakBuff)
+                if ((bool)ddm.victim.GetComponent<HealthComponent>()?.body?.hasCloakBuff)
                 {
+                    Debug.Log("body has cloak");
                     return false;
                 }
+                Debug.Log("body does not have cloak");
                 return true;
             });
+            var ind = c.Index;
+            c.GotoNext(
+                x => x.MatchLdloc(0),
+                x => x.MatchCall<GlobalEventManager>("ClientDamageNotified")
+                );
+            var br = c.Prev;
+            c.Index = ind;
+            c.Emit(OpCodes.Brtrue, br);
         }
 
         public void SetupConfig()
