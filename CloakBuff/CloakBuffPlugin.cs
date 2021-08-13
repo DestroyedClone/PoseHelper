@@ -1,5 +1,6 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
+using EntityStates;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using R2API.Utils;
@@ -10,7 +11,6 @@ using System.Linq;
 using System.Security;
 using System.Security.Permissions;
 using UnityEngine;
-using EntityStates;
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -95,7 +95,7 @@ namespace CloakBuff
                 ModifyShockVfx();
             //IL.RoR2.Util.HandleCharacterPhysicsCastResults += Util_HandleCharacterPhysicsCastResults1;
 
-                // Character Specific
+            // Character Specific
             if (HuntressCantAim.Value)
                 On.RoR2.HuntressTracker.SearchForTarget += HuntressTracker_SearchForTarget;
             if (MercCantFind.Value)
@@ -157,8 +157,6 @@ namespace CloakBuff
 
         private void BuffWard_BuffTeam(On.RoR2.BuffWard.orig_BuffTeam orig, BuffWard self, IEnumerable<TeamComponent> recipients, float radiusSqr, Vector3 currentPosition)
         {
-            var isHauntedAffix = false;
-
             if ((self.buffDef == RoR2Content.Buffs.AffixHauntedRecipient)
                 && (self.gameObject.name == "AffixHauntedWard" || self.gameObject.name == "AffixHauntedWard(Clone)"))
             {
@@ -226,6 +224,7 @@ namespace CloakBuff
                 "\n 1 = All ProjectileSphereTargetFinderFilterType are affected" +
                 "\n 2 = Only the following options");
         }
+
         // Visual
 
         public void ModifyStunVfx()
@@ -238,6 +237,7 @@ namespace CloakBuff
             comp.obj1 = StunStateVfx.transform.Find("Ring").gameObject;
             comp.obj2 = StunStateVfx.transform.Find("Stars").gameObject;
         }
+
         public void ModifyShockVfx()
         {
             var comp = ShockStateVfx.GetComponent<HideVfxIfCloaked>();
@@ -282,6 +282,7 @@ namespace CloakBuff
             c.Emit(OpCodes.Brfalse, br); // Brfalse is the correct behaviour given the return values from the delegate
                                          //Debug.Log("Cursor after emit: \n" + c);
         }
+
         private bool Util_HandleCharacterPhysicsCastResults(On.RoR2.Util.orig_HandleCharacterPhysicsCastResults orig, GameObject bodyObject, Ray ray, RaycastHit[] hits, out RaycastHit hitInfo)
         {
             int num = -1;
@@ -531,7 +532,6 @@ namespace CloakBuff
             return hurtBox.transform;
         }
 
-
         private void SetStateOnHurt_SetShock(On.RoR2.SetStateOnHurt.orig_SetShock orig, SetStateOnHurt self, float duration)
         {
             orig(self, duration);
@@ -659,6 +659,7 @@ namespace CloakBuff
                 }
             }
         }
+
         private class HideVfxIfCloaked : MonoBehaviour
         {
             public CharacterBody body;
