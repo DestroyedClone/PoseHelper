@@ -142,7 +142,6 @@ namespace CloakBuff
                 On.RoR2.EquipmentSlot.ConfigureTargetFinderForEnemies += EquipmentSlot_ConfigureTargetFinderForEnemies;
         }
 
-
         public void SetupConfig()
         {
             HideDoppelgangerEffect = Config.Bind("Visual", "Umbra", true, "Enable to hide the Umbra's swirling particle effects on cloaked targets.");
@@ -502,7 +501,6 @@ namespace CloakBuff
             return hurtBox.transform;
         }
 
-
         private void EquipmentSlot_ConfigureTargetFinderForEnemies(On.RoR2.EquipmentSlot.orig_ConfigureTargetFinderForEnemies orig, EquipmentSlot self)
         {
             orig(self);
@@ -568,35 +566,6 @@ namespace CloakBuff
             return original && !body.hasCloakBuff;
         }
 
-        private HurtBox FilterMethod(IEnumerable<HurtBox> listOfTargets)
-        {
-            HurtBox hurtBox = listOfTargets.FirstOrDefault<HurtBox>();
-            if (hurtBox == null)
-            {
-                //Debug.Log("Evis chose target: None");
-            }
-            else
-            {
-                //Debug.Log("Evis chose target: " + hurtBox.healthComponent.body.GetDisplayName());
-            }
-            //Debug.Log("Attempting Iteration with list of length: "+listOfTargets.Count());
-            int index = 0;
-            while (hurtBox != null)
-            {
-                if ((bool)hurtBox.healthComponent?.body?.hasCloakBuff)
-                {
-                    //Debug.Log("Target was cloaked, moving on to");
-                    index++;
-                    hurtBox = listOfTargets.ElementAtOrDefault(index);
-                    //Debug.Log("NEW Target: " + hurtBox.healthComponent.body.GetDisplayName());
-                    continue;
-                }
-                //Debug.Log("Chosen target works!");
-                break;
-            }
-            return hurtBox;
-        }
-
         // Extra
         private void AddShockOrStunToSurvivors(On.RoR2.SurvivorCatalog.orig_Init orig)
         {
@@ -644,6 +613,35 @@ namespace CloakBuff
             }
         }
 
+        // Plugin
+        private HurtBox FilterMethod(IEnumerable<HurtBox> listOfTargets)
+        {
+            HurtBox hurtBox = listOfTargets.FirstOrDefault<HurtBox>();
+            if (hurtBox == null)
+            {
+                //Debug.Log("Evis chose target: None");
+            }
+            else
+            {
+                //Debug.Log("Evis chose target: " + hurtBox.healthComponent.body.GetDisplayName());
+            }
+            //Debug.Log("Attempting Iteration with list of length: "+listOfTargets.Count());
+            int index = 0;
+            while (hurtBox != null)
+            {
+                if ((bool)hurtBox.healthComponent?.body?.hasCloakBuff)
+                {
+                    //Debug.Log("Target was cloaked, moving on to");
+                    index++;
+                    hurtBox = listOfTargets.ElementAtOrDefault(index);
+                    //Debug.Log("NEW Target: " + hurtBox.healthComponent.body.GetDisplayName());
+                    continue;
+                }
+                //Debug.Log("Chosen target works!");
+                break;
+            }
+            return hurtBox;
+        }
 
         private class HideShadowIfCloaked : MonoBehaviour
         {
