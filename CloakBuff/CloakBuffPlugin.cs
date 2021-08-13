@@ -66,7 +66,6 @@ namespace CloakBuff
         public static ConfigEntry<bool> ShockKillsCloak { get; set; }
         public static ConfigEntry<bool> ShockPausesCelestine { get; set; }
         public static ConfigEntry<bool> AllowSurvivorsToStickForkInOutlet { get; set; }
-        public static ConfigEntry<bool> AllowSurvivorsToGetStunned { get; set; }
         public static ConfigEntry<bool> HuntressCantAim { get; set; }
         public static ConfigEntry<bool> MercCantFind { get; set; }
         public static ConfigEntry<bool> EngiChargeMine { get; set; }
@@ -117,10 +116,8 @@ namespace CloakBuff
                 On.RoR2.SetStateOnHurt.SetShock += SetStateOnHurt_SetShock;
             if (ShockPausesCelestine.Value)
                 On.RoR2.BuffWard.BuffTeam += BuffWard_BuffTeam;
-            if (AllowSurvivorsToGetStunned.Value)
-                On.RoR2.SurvivorCatalog.Init += AddStunToSurvivors;
             if (AllowSurvivorsToStickForkInOutlet.Value)
-                On.RoR2.SurvivorCatalog.Init += AddShockToSurvivors;
+                On.RoR2.SurvivorCatalog.Init += AddShockOrStunToSurvivors;
 
             // Items
             // DML + ATG
@@ -145,31 +142,6 @@ namespace CloakBuff
                 On.RoR2.EquipmentSlot.ConfigureTargetFinderForEnemies += EquipmentSlot_ConfigureTargetFinderForEnemies;
         }
 
-        private void AddShockToSurvivors(On.RoR2.SurvivorCatalog.orig_Init orig)
-        {
-            throw new NotImplementedException();
-        }
-
-        private void AddStunToSurvivors(On.RoR2.SurvivorCatalog.orig_Init orig)
-        {
-            throw new NotImplementedException();
-        }
-
-        private void BuffWard_BuffTeam(On.RoR2.BuffWard.orig_BuffTeam orig, BuffWard self, IEnumerable<TeamComponent> recipients, float radiusSqr, Vector3 currentPosition)
-        {
-            if (self.buffDef == RoR2Content.Buffs.AffixHauntedRecipient && self.gameObject.name.StartsWith("AffixedHauntedWard"))
-            {
-                var newList = recipients.ToList();
-                foreach (var recipient in recipients)
-                {
-                    var comp = recipient.GetComponent<SetStateOnHurt>();
-                    if (comp && comp.targetStateMachine && comp.targetStateMachine.state is ShockState)
-                        newList.Remove(recipient);
-                }
-                recipients = newList;
-            }
-            orig(self, recipients, radiusSqr, currentPosition);
-        }
 
         public void SetupConfig()
         {
@@ -202,8 +174,7 @@ namespace CloakBuff
 
             ShockKillsCloak = Config.Bind("Extra", "Shocking disrupts cloak", true, "Setting this value to true will make shocked targets (usually via Captain's M2 and Shocking Beacon) to clear cloak on hit. Note that Survivors are immune to this damagetype, so umbras can't be shocked...");
             ShockPausesCelestine = Config.Bind("Extra", "Celestines cant buff shocked targets", true, "Enabling will make shocked targets unable to be cloaked via Celestine Elites.");
-            AllowSurvivorsToGetStunned = Config.Bind("Extra", "Survivors Can Get Stunned", true, "Enabling will allow all survivors to get stunned.");
-            AllowSurvivorsToStickForkInOutlet = Config.Bind("Extra", "Survivors Can Get Shocked", true, "Enabling will allow all survivors to get shocked. Useful for fighting umbras w/ Shocking disrupts cloak.");
+            AllowSurvivorsToStickForkInOutlet = Config.Bind("Extra", "Enable Shocking and Stunning for Survivors", true, "Enabling will allow all survivors to get shocked and/or stunned. Useful for fighting umbras w/ Shocking disrupts cloak.");
 
             MissileIncludesFilterType = Config.Bind("zFiltering", "MissileController", 2, "Its safe to ignore the options in this category." +
                 "\n 0 = Disabled," +
@@ -531,19 +502,6 @@ namespace CloakBuff
             return hurtBox.transform;
         }
 
-        private void SetStateOnHurt_SetShock(On.RoR2.SetStateOnHurt.orig_SetShock orig, SetStateOnHurt self, float duration)
-        {
-            orig(self, duration);
-            var body = self.gameObject.GetComponent<CharacterBody>();
-            if (!body)
-            {
-                return;
-            }
-            if (body.HasBuff(RoR2Content.Buffs.Cloak))
-            {
-                body.ClearTimedBuffs(RoR2Content.Buffs.Cloak);
-            }
-        }
 
         private void EquipmentSlot_ConfigureTargetFinderForEnemies(On.RoR2.EquipmentSlot.orig_ConfigureTargetFinderForEnemies orig, EquipmentSlot self)
         {
@@ -591,7 +549,7 @@ namespace CloakBuff
                 var mineCheck = (objName == "EngiMine(Clone)" && EngiChargeMine.Value);
                 if (!(mineCheck || spiderCheck))
                 {
-                    Debug.Log("Neither type of mine");
+                    //Debug.Log("Neither type of mine");
                     return original;
                 }
                 if (spiderCheck)
@@ -601,7 +559,7 @@ namespace CloakBuff
                         var stickOnImpact = self.gameObject.GetComponent<RoR2.Projectile.ProjectileStickOnImpact>();
                         if (stickOnImpact?.victim == body.gameObject)
                         {
-                            Debug.Log("Spidermine is attached, so we're exploding it");
+                            //Debug.Log("Spidermine is attached, so we're exploding it");
                             return original;
                         }
                     }
@@ -638,6 +596,54 @@ namespace CloakBuff
             }
             return hurtBox;
         }
+
+        // Extra
+        private void AddShockOrStunToSurvivors(On.RoR2.SurvivorCatalog.orig_Init orig)
+        {
+            orig();
+            foreach (var survivor in SurvivorCatalog.allSurvivorDefs)
+            {
+                if (survivor.bodyPrefab)
+                {
+                    var comp = survivor.bodyPrefab.GetComponent<SetStateOnHurt>();
+                    if (comp)
+                    {
+                        comp.canBeStunned = true;
+                    }
+                }
+            }
+        }
+
+        private void BuffWard_BuffTeam(On.RoR2.BuffWard.orig_BuffTeam orig, BuffWard self, IEnumerable<TeamComponent> recipients, float radiusSqr, Vector3 currentPosition)
+        {
+            if (self.buffDef == RoR2Content.Buffs.AffixHauntedRecipient && self.gameObject.name.StartsWith("AffixedHauntedWard"))
+            {
+                var newList = recipients.ToList();
+                foreach (var recipient in recipients)
+                {
+                    var comp = recipient.GetComponent<SetStateOnHurt>();
+                    if (comp && comp.targetStateMachine && comp.targetStateMachine.state is ShockState)
+                        newList.Remove(recipient);
+                }
+                recipients = newList;
+            }
+            orig(self, recipients, radiusSqr, currentPosition);
+        }
+
+        private void SetStateOnHurt_SetShock(On.RoR2.SetStateOnHurt.orig_SetShock orig, SetStateOnHurt self, float duration)
+        {
+            orig(self, duration);
+            var body = self.gameObject.GetComponent<CharacterBody>();
+            if (!body)
+            {
+                return;
+            }
+            if (body.HasBuff(RoR2Content.Buffs.Cloak))
+            {
+                body.ClearTimedBuffs(RoR2Content.Buffs.Cloak);
+            }
+        }
+
 
         private class HideShadowIfCloaked : MonoBehaviour
         {
