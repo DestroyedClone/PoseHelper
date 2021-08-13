@@ -10,6 +10,7 @@ using System.Linq;
 using System.Security;
 using System.Security.Permissions;
 using UnityEngine;
+using EntityStates;
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -27,6 +28,8 @@ namespace CloakBuff
         public static ConfigEntry<bool> EnableHealthbar { get; set; }
         public static ConfigEntry<bool> EnablePinging { get; set; }
         public static ConfigEntry<bool> EnableDamageNumbers { get; set; }
+        public static ConfigEntry<bool> EnableStunEffect { get; set; }
+        public static ConfigEntry<bool> EnableShockEffect { get; set; }
         public static ConfigEntry<int> MissileIncludesFilterType { get; set; }
 
         // 0 = No hook, 1 = All, 2 = Whitelist
@@ -60,15 +63,20 @@ namespace CloakBuff
 
         public static ConfigEntry<bool> MiredUrn { get; set; }
         public static ConfigEntry<bool> RoyalCap { get; set; }
+        public static ConfigEntry<bool> ShockKillsCloak { get; set; }
+        public static ConfigEntry<bool> ShockPausesCelestine { get; set; }
+        public static ConfigEntry<bool> AllowSurvivorsToStickForkInOutlet { get; set; }
+        public static ConfigEntry<bool> AllowSurvivorsToGetStunned { get; set; }
         public static ConfigEntry<bool> HuntressCantAim { get; set; }
         public static ConfigEntry<bool> MercCantFind { get; set; }
-        public static ConfigEntry<bool> ShockKillsCloak { get; set; }
         public static ConfigEntry<bool> EngiChargeMine { get; set; }
         public static ConfigEntry<bool> EngiSpiderMine { get; set; }
         public static ConfigEntry<bool> EngiSpiderMineCanExplodeOnImpaled { get; set; }
 
         public GameObject DoppelgangerEffect = Resources.Load<GameObject>("prefabs/temporaryvisualeffects/DoppelgangerEffect");
         public static float evisMaxRange = EntityStates.Merc.Evis.maxRadius;
+        public static GameObject StunStateVfx = StunState.stunVfxPrefab;
+        public static GameObject ShockStateVfx = ShockState.stunVfxPrefab;
 
         public void Awake()
         {
@@ -81,9 +89,13 @@ namespace CloakBuff
                 On.RoR2.Util.HandleCharacterPhysicsCastResults += Util_HandleCharacterPhysicsCastResults;
             if (EnableDamageNumbers.Value)
                 IL.RoR2.HealthComponent.HandleDamageDealt += HealthComponent_HandleDamageDealt1;
+            if (EnableStunEffect.Value)
+                ModifyStunVfx();
+            if (EnableShockEffect.Value)
+                ModifyShockVfx();
             //IL.RoR2.Util.HandleCharacterPhysicsCastResults += Util_HandleCharacterPhysicsCastResults1;
 
-            // Character Specific
+                // Character Specific
             if (HuntressCantAim.Value)
                 On.RoR2.HuntressTracker.SearchForTarget += HuntressTracker_SearchForTarget;
             if (MercCantFind.Value)
@@ -100,9 +112,15 @@ namespace CloakBuff
                 }
             }
 
-            // Shock thing
+            // Extra
             if (ShockKillsCloak.Value)
                 On.RoR2.SetStateOnHurt.SetShock += SetStateOnHurt_SetShock;
+            if (ShockPausesCelestine.Value)
+                On.RoR2.BuffWard.BuffTeam += BuffWard_BuffTeam;
+            if (AllowSurvivorsToGetStunned.Value)
+                On.RoR2.SurvivorCatalog.Init += AddStunToSurvivors;
+            if (AllowSurvivorsToStickForkInOutlet.Value)
+                On.RoR2.SurvivorCatalog.Init += AddShockToSurvivors;
 
             // Items
             // DML + ATG
@@ -127,55 +145,54 @@ namespace CloakBuff
                 On.RoR2.EquipmentSlot.ConfigureTargetFinderForEnemies += EquipmentSlot_ConfigureTargetFinderForEnemies;
         }
 
-        private void HealthComponent_HandleDamageDealt1(ILContext il)
+        private void AddShockToSurvivors(On.RoR2.SurvivorCatalog.orig_Init orig)
         {
-            ILCursor c = new ILCursor(il);
-            c.GotoNext(
-                x => x.MatchLdloc(2),
-                x => x.MatchCallvirt<TeamComponent>("get_teamIndex"),
-                x => x.MatchLdloc(0),
-                x => x.MatchLdfld<DamageDealtMessage>("damageColorIndex"),
-                x => x.MatchCallvirt<DamageNumberManager>("SpawnDamageNumber")
-                );
-            c.Index += 4;
-            c.Emit(OpCodes.Ldloc_0);
-            c.EmitDelegate<Func<DamageDealtMessage, bool>>((ddm) =>
+            throw new NotImplementedException();
+        }
+
+        private void AddStunToSurvivors(On.RoR2.SurvivorCatalog.orig_Init orig)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void BuffWard_BuffTeam(On.RoR2.BuffWard.orig_BuffTeam orig, BuffWard self, IEnumerable<TeamComponent> recipients, float radiusSqr, Vector3 currentPosition)
+        {
+            var isHauntedAffix = false;
+
+            if ((self.buffDef == RoR2Content.Buffs.AffixHauntedRecipient)
+                && (self.gameObject.name == "AffixHauntedWard" || self.gameObject.name == "AffixHauntedWard(Clone)"))
             {
-                if ((bool)ddm.victim.GetComponent<HealthComponent>()?.body?.hasCloakBuff)
+                var newList = recipients.ToList();
+                foreach (var recipient in recipients)
                 {
-                    Debug.Log("body has cloak");
-                    return false;
+                    var comp = recipient.GetComponent<SetStateOnHurt>();
+                    if (comp && comp.targetStateMachine && comp.targetStateMachine.state is ShockState)
+                        newList.Remove(recipient);
                 }
-                Debug.Log("body does not have cloak");
-                return true;
-            });
-            var ind = c.Index;
-            c.GotoNext(
-                x => x.MatchLdloc(0),
-                x => x.MatchCall<GlobalEventManager>("ClientDamageNotified")
-                );
-            var br = c.Prev;
-            c.Index = ind;
-            c.Emit(OpCodes.Brtrue, br);
+                recipients = newList;
+            }
+            orig(self, recipients, radiusSqr, currentPosition);
         }
 
         public void SetupConfig()
         {
-            HideDoppelgangerEffect = Config.Bind("Visual", "Umbra", true, "Hides the Umbra's swirling particle effects");
-            EnableHealthbar = Config.Bind("Visual", "Healthbar", true, "Become unable to see the enemy's healthbar");
-            EnablePinging = Config.Bind("Visual", "Pinging", true, "Attempts to mislead pinging by pinging the enemy behind the cloaked target.");
-            EnableDamageNumbers = Config.Bind("Visual", "Damage Numbers", true, "Hides damage numbers from appearing on cloaked targets.");
-            
-            MissileIncludesDMLATG = Config.Bind("Items", "Disposable Missile Launcher and AtG Missile Mk. 1", true, "Missiles no longer consider cloaked targets valid.");
-            LightningOrbIncludesBFG = Config.Bind("Items", "Preon Accumulator", false, "Currently Broken");
-            LightningOrbIncludesUkulele = Config.Bind("Items", "Ukulele", true, "Ukulele electricity no longer arcs to cloaked targets.");
-            LightningOrbIncludesRazorwire = Config.Bind("Items", "Razorwire", false, "Currently Broken");
-            LightningOrbIncludesTesla = Config.Bind("Items", "Unstable Tesla Coil", true, "Tesla electricity no longer arcs to cloaked targets.");
-            DevilOrbIncludesNovaOnHeal = Config.Bind("Items", "Nkuhanas Opinion", true, "No longer seeks out cloaked targets.");
-            DevilOrbIncludesSprintWisp = Config.Bind("Items", "Little Disciple", true, "No longer seeks out cloaked targets.");
-            ProjectileDirectionalTargetFinderDagger = Config.Bind("Items", "Ceremonial Dagger", true, "No longer seeks out cloaked targets.");
+            HideDoppelgangerEffect = Config.Bind("Visual", "Umbra", true, "Enable to hide the Umbra's swirling particle effects on cloaked targets.");
+            EnableHealthbar = Config.Bind("Visual", "Healthbar", true, "Enable to hide the healthbar on cloaked targets.");
+            EnablePinging = Config.Bind("Visual", "Pinging", true, "Attempts to mislead pinging by pinging the enemy behind the cloaked target. If things get messed up, this is the first option to likely disable.");
+            EnableDamageNumbers = Config.Bind("Visual", "Damage Numbers", true, "Enable to hide damage numbers from appearing on cloaked targets.");
+            EnableStunEffect = Config.Bind("Visual", "Stun Overhead Effect", true, "Enable to hide the overhead stun effect from appearing on cloaked targets.");
+            EnableShockEffect = Config.Bind("Visual", "Shock Overhead Effect", true, "Enable to hide the overhead shock effects from appearing on cloaked targets.");
+
+            MissileIncludesDMLATG = Config.Bind("Items", "Disposable Missile Launcher and AtG Missile Mk. 1", true, "Enable to make missiles from these items to ignore cloaked targets..");
+            LightningOrbIncludesBFG = Config.Bind("Items", "Preon Accumulator", false, "Currently Broken. Enable to make Preon Accumulator's traveling tendrils ignore cloaked targets.");
+            LightningOrbIncludesUkulele = Config.Bind("Items", "Ukulele", true, "Enable to make Ukulele's electricity to no longer arc to cloaked targets.");
+            LightningOrbIncludesRazorwire = Config.Bind("Items", "Razorwire", false, "Currently Broken. Enable to make Razorwire unable to go to cloaked targets.");
+            LightningOrbIncludesTesla = Config.Bind("Items", "Unstable Tesla Coil", true, "Enable to make Tesla electricity to no longer arc to cloaked targets.");
+            DevilOrbIncludesNovaOnHeal = Config.Bind("Items", "Nkuhanas Opinion", true, "Enable to make the attack no longer seek out cloaked targets.");
+            DevilOrbIncludesSprintWisp = Config.Bind("Items", "Little Disciple", true, "Enable to make the attack no longer seek out cloaked targets.");
+            ProjectileDirectionalTargetFinderDagger = Config.Bind("Items", "Ceremonial Dagger", true, "Enable to make the spawned daggers no longer seek out cloaked targets.");
             MiredUrn = Config.Bind("Items", "Mired Urn", true, "Finnicky. Prioritizes noncloaked enemies, but will target a cloaked enemy if they are the only target.");
-            RoyalCap = Config.Bind("Items", "Royal Capacitator", true, "Prevents the aiming reticle from targeting cloaked targets.");
+            RoyalCap = Config.Bind("Items", "Royal Capacitator", true, "Enable to prevent the aiming reticle from appearing on cloaked targets.");
 
             LightningOrbIncludesCrocoDisease = Config.Bind("Survivors", "Acrid Epidemic", false, "Currently Broken. Affects Acrid's special Epidemic's spreading");
             MissileIncludesHarpoons = Config.Bind("Survivors", "Engineer Harpoons+Targeting", true, "Affects the Engineer's Utility Thermal Harpoons. Also prevents the user from painting cloaked enemies as targets.");
@@ -186,7 +203,10 @@ namespace CloakBuff
             LightningOrbIncludesGlaive = Config.Bind("Survivors", "Huntress Glaive", true, "Affects the Huntress' Secondary Laser Glaive.");
             MercCantFind = Config.Bind("Survivors", "Mercernary Eviscerate", true, "Finnicky. Fails if an invalid enemy is within the same range of a valid enemy. The adjustment will prevent Mercernary's Eviscerate from targeting cloaked enemies");
 
-            ShockKillsCloak = Config.Bind("Nerfs", "Shocking disrupts cloak", true, "Setting this value to true will allow shocking attacks (Captain's M2 and Shocking Beacon) to clear cloak on hit. Note that Survivors are immune to this damagetype.");
+            ShockKillsCloak = Config.Bind("Extra", "Shocking disrupts cloak", true, "Setting this value to true will make shocked targets (usually via Captain's M2 and Shocking Beacon) to clear cloak on hit. Note that Survivors are immune to this damagetype, so umbras can't be shocked...");
+            ShockPausesCelestine = Config.Bind("Extra", "Celestines cant buff shocked targets", true, "Enabling will make shocked targets unable to be cloaked via Celestine Elites.");
+            AllowSurvivorsToGetStunned = Config.Bind("Extra", "Survivors Can Get Stunned", true, "Enabling will allow all survivors to get stunned.");
+            AllowSurvivorsToStickForkInOutlet = Config.Bind("Extra", "Survivors Can Get Shocked", true, "Enabling will allow all survivors to get shocked. Useful for fighting umbras w/ Shocking disrupts cloak.");
 
             MissileIncludesFilterType = Config.Bind("zFiltering", "MissileController", 2, "Its safe to ignore the options in this category." +
                 "\n 0 = Disabled," +
@@ -205,6 +225,109 @@ namespace CloakBuff
                 "\n 0 = Disabled," +
                 "\n 1 = All ProjectileSphereTargetFinderFilterType are affected" +
                 "\n 2 = Only the following options");
+        }
+        // Visual
+
+        public void ModifyStunVfx()
+        {
+            var comp = StunStateVfx.GetComponent<HideVfxIfCloaked>();
+            if (!comp)
+            {
+                comp = StunStateVfx.AddComponent<HideVfxIfCloaked>();
+            }
+            comp.obj1 = StunStateVfx.transform.Find("Ring").gameObject;
+            comp.obj2 = StunStateVfx.transform.Find("Stars").gameObject;
+        }
+        public void ModifyShockVfx()
+        {
+            var comp = ShockStateVfx.GetComponent<HideVfxIfCloaked>();
+            if (!comp)
+            {
+                comp = ShockStateVfx.AddComponent<HideVfxIfCloaked>();
+            }
+            comp.obj1 = ShockStateVfx.transform.Find("Stun").gameObject;
+            comp.obj2 = ShockStateVfx.transform.Find("SphereChainEffect").gameObject;
+        }
+
+        private static void HealthComponent_HandleDamageDealt1(ILContext il) //ty bubbet
+        {
+            var c = new ILCursor(il);
+            c.GotoNext(
+                x => x.MatchCall<DamageNumberManager>("get_instance"),
+                x => x.MatchLdloc(0),
+                x => x.MatchLdfld<DamageDealtMessage>("damage"),
+                x => x.MatchLdloc(0),
+                x => x.MatchLdfld<DamageDealtMessage>("position")
+            );
+            //Debug.Log("Cursor before emit: \n" + c);
+            c.Emit(OpCodes.Ldloc_0);
+            c.EmitDelegate<Func<DamageDealtMessage, bool>>(ddm =>
+            {
+                if ((bool)ddm.victim.GetComponent<HealthComponent>()?.body?.hasCloakBuff)
+                {
+                    //Debug.Log("body has cloak");
+                    return false;
+                }
+
+                //Debug.Log("body does not have cloak");
+                return true;
+            });
+            var ind = c.Index;
+            c.GotoNext(
+                x => x.MatchLdloc(0),
+                x => x.MatchCall<GlobalEventManager>("ClientDamageNotified")
+            );
+            var br = c.Next; // Next was correct nre was caused by jumping to spawnDamagenumbers and it not having the arguments it needs
+            c.Index = ind;
+            c.Emit(OpCodes.Brfalse, br); // Brfalse is the correct behaviour given the return values from the delegate
+                                         //Debug.Log("Cursor after emit: \n" + c);
+        }
+        private bool Util_HandleCharacterPhysicsCastResults(On.RoR2.Util.orig_HandleCharacterPhysicsCastResults orig, GameObject bodyObject, Ray ray, RaycastHit[] hits, out RaycastHit hitInfo)
+        {
+            int num = -1;
+            float num2 = float.PositiveInfinity;
+            for (int i = 0; i < hits.Length; i++)
+            {
+                float distance = hits[i].distance;
+                if (distance < num2)
+                {
+                    HurtBox component = hits[i].collider.GetComponent<HurtBox>();
+                    if (component)
+                    {
+                        HealthComponent healthComponent = component.healthComponent;
+                        if (healthComponent)
+                        {
+                            if (healthComponent.gameObject == bodyObject)
+                                goto IL_82;
+                            else if (healthComponent.body.hasCloakBuff) // This is where you would put IL if you were smart (not me)
+                            {
+                                continue;
+                            }
+                        }
+                    }
+                    if (distance == 0f)
+                    {
+                        hitInfo = hits[i];
+                        hitInfo.point = ray.origin;
+                        return true;
+                    }
+                    num = i;
+                    num2 = distance;
+                }
+            IL_82:;
+            }
+            if (num == -1)
+            {
+                hitInfo = default;
+                return false;
+            }
+            hitInfo = hits[num];
+            return true;
+        }
+
+        private bool CombatHealthBarViewer_VictimIsValid(On.RoR2.UI.CombatHealthBarViewer.orig_VictimIsValid orig, RoR2.UI.CombatHealthBarViewer self, HealthComponent victim)
+        {
+            return orig(self, victim) && !victim.body.hasCloakBuff;
         }
 
         private void ModifyDoppelGangerEffect()
@@ -408,53 +531,6 @@ namespace CloakBuff
             return hurtBox.transform;
         }
 
-        private bool Util_HandleCharacterPhysicsCastResults(On.RoR2.Util.orig_HandleCharacterPhysicsCastResults orig, GameObject bodyObject, Ray ray, RaycastHit[] hits, out RaycastHit hitInfo)
-        {
-            int num = -1;
-            float num2 = float.PositiveInfinity;
-            for (int i = 0; i < hits.Length; i++)
-            {
-                float distance = hits[i].distance;
-                if (distance < num2)
-                {
-                    HurtBox component = hits[i].collider.GetComponent<HurtBox>();
-                    if (component)
-                    {
-                        HealthComponent healthComponent = component.healthComponent;
-                        if (healthComponent)
-                        {
-                            if (healthComponent.gameObject == bodyObject)
-                                goto IL_82;
-                            else if (healthComponent.body.hasCloakBuff) // This is where you would put IL if you were smart (not me)
-                            {
-                                continue;
-                            }
-                        }
-                    }
-                    if (distance == 0f)
-                    {
-                        hitInfo = hits[i];
-                        hitInfo.point = ray.origin;
-                        return true;
-                    }
-                    num = i;
-                    num2 = distance;
-                }
-            IL_82:;
-            }
-            if (num == -1)
-            {
-                hitInfo = default;
-                return false;
-            }
-            hitInfo = hits[num];
-            return true;
-        }
-
-        private bool CombatHealthBarViewer_VictimIsValid(On.RoR2.UI.CombatHealthBarViewer.orig_VictimIsValid orig, RoR2.UI.CombatHealthBarViewer self, HealthComponent victim)
-        {
-            return orig(self, victim) && !victim.body.hasCloakBuff;
-        }
 
         private void SetStateOnHurt_SetShock(On.RoR2.SetStateOnHurt.orig_SetShock orig, SetStateOnHurt self, float duration)
         {
@@ -480,7 +556,7 @@ namespace CloakBuff
             }
         }
 
-        private void Util_HandleCharacterPhysicsCastResults1(ILContext il) //harb
+        private void Util_HandleCharacterPhysicsCastResults1(ILContext il) //harb help wip
         {
             ILCursor c = new ILCursor(il);
             int healthComponentLocal = -1;
@@ -580,6 +656,26 @@ namespace CloakBuff
                 if (body)
                 {
                     particles.SetActive(!body.hasCloakBuff);
+                }
+            }
+        }
+        private class HideVfxIfCloaked : MonoBehaviour
+        {
+            public CharacterBody body;
+            public GameObject obj1;
+            public GameObject obj2;
+
+            public void Start()
+            {
+                body = gameObject.transform.parent.gameObject.GetComponent<CharacterBody>();
+            }
+
+            public void FixedUpdate()
+            {
+                if (body)
+                {
+                    obj1.SetActive(!body.hasCloakBuff);
+                    obj2.SetActive(!body.hasCloakBuff);
                 }
             }
         }
