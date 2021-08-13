@@ -157,8 +157,7 @@ namespace CloakBuff
 
         private void BuffWard_BuffTeam(On.RoR2.BuffWard.orig_BuffTeam orig, BuffWard self, IEnumerable<TeamComponent> recipients, float radiusSqr, Vector3 currentPosition)
         {
-            if ((self.buffDef == RoR2Content.Buffs.AffixHauntedRecipient)
-                && (self.gameObject.name == "AffixHauntedWard" || self.gameObject.name == "AffixHauntedWard(Clone)"))
+            if (self.buffDef == RoR2Content.Buffs.AffixHauntedRecipient && self.gameObject.name.StartsWith("AffixedHauntedWard"))
             {
                 var newList = recipients.ToList();
                 foreach (var recipient in recipients)
