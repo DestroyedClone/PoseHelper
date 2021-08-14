@@ -157,7 +157,6 @@ namespace CloakBuff
                 comp.obj2 = StunStateVfx.transform.Find("Stars").gameObject;
             }
 
-
             if (EnableShockEffect.Value)
             {
                 var comp = ShockStateVfx.GetComponent<HideVfxIfCloaked>();
@@ -599,7 +598,6 @@ namespace CloakBuff
                                 umbraComp.characterBody = bodyPrefab.GetComponent<CharacterBody>();
                             }
                         }
-                        
                     }
                 }
             }
@@ -706,34 +704,6 @@ namespace CloakBuff
                     obj2.SetActive(!body.hasCloakBuff);
                 }
             }
-        }
-
-        private enum MissileTypes
-        {
-            None,
-            All,
-            Harpoons,
-            DMLATG
-        }
-
-        private enum LightningOrbTypes
-        {
-            None,
-            All,
-            BFG,
-            Glaive,
-            Ukulele,
-            Razorwire,
-            CrocoDisease,
-            Tesla
-        }
-
-        private enum DevilOrbTypes
-        {
-            None,
-            All,
-            SprintWisp,
-            NovaOnHeal
         }
 
         public enum OutletForkEnum
