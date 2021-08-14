@@ -31,6 +31,7 @@ namespace CloakBuff
         public static ConfigEntry<bool> EnableDamageNumbers { get; set; }
         public static ConfigEntry<bool> EnableStunEffect { get; set; }
         public static ConfigEntry<bool> EnableShockEffect { get; set; }
+        public static ConfigEntry<bool> HideBossIndicator { get; set; }
         public static ConfigEntry<int> MissileIncludesFilterType { get; set; }
 
         // 0 = No hook, 1 = All, 2 = Whitelist
@@ -90,6 +91,8 @@ namespace CloakBuff
                 On.RoR2.Util.HandleCharacterPhysicsCastResults += MisleadPinging;
             if (EnableDamageNumbers.Value)
                 IL.RoR2.HealthComponent.HandleDamageDealt += HideDamageNumbers;
+            if (HideBossIndicator.Value)
+                On.RoR2.PositionIndicator.Start += PositionIndicator_HideIndicator;
             //IL.RoR2.Util.HandleCharacterPhysicsCastResults += Util_HandleCharacterPhysicsCastResults1;
 
             // Character Specific
@@ -140,6 +143,18 @@ namespace CloakBuff
                 On.RoR2.EquipmentSlot.ConfigureTargetFinderForEnemies += EquipmentSlot_ConfigureTargetFinderForEnemies;
         }
 
+        private void PositionIndicator_HideIndicator(On.RoR2.PositionIndicator.orig_Start orig, PositionIndicator self)
+        {
+            orig(self);
+            if (self.name.StartsWith("BossPositionIndicator"))
+            {
+                var comp = self.gameObject.GetComponent<HideVfxIfCloaked>();
+                if (!comp)
+                    comp = self.gameObject.AddComponent<HideVfxIfCloaked>();
+                comp.obj1 = self.gameObject.transform.Find("OutsideFrameArrow/Sprite").gameObject;
+                comp.obj2 = self.gameObject.transform.Find("InsideFrameMarker/Sprite").gameObject;
+            }
+        }
 
         public void SetupConfig()
         {
@@ -149,6 +164,7 @@ namespace CloakBuff
             EnableDamageNumbers = Config.Bind("Visual", "Disable Damage Numbers", true, "Enable to hide damage numbers from appearing on cloaked targets.");
             EnableStunEffect = Config.Bind("Visual", "Disable Stun Overhead Effect", true, "Enable to hide the overhead stun effect from appearing on cloaked targets.");
             EnableShockEffect = Config.Bind("Visual", "Disable Shock Overhead Effect", true, "Enable to hide the overhead shock effects from appearing on cloaked targets.");
+            HideBossIndicator = Config.Bind("Visual", "Disable Boss Indicator", true, "Enable to hide the boss indicator from appearing on cloaked targets.");
 
             MissileIncludesDMLATG = Config.Bind("Items", "Disposable Missile Launcher and AtG Missile Mk. 1", true, "Enable to make missiles from these items to ignore cloaked targets..");
             LightningOrbIncludesBFG = Config.Bind("Items", "Preon Accumulator", false, "Currently Broken. Enable to make Preon Accumulator's traveling tendrils ignore cloaked targets.");
@@ -289,7 +305,6 @@ namespace CloakBuff
             }
             comp2.obj1 = DoppelgangerEffect.transform.Find("Particles").gameObject;
             comp2.shadowVisEfx = DoppelgangerEffect.GetComponent<TemporaryVisualEffect>();
-
         }
 
         [RoR2.SystemInitializer(dependencies: typeof(RoR2.EntityStateCatalog))]
