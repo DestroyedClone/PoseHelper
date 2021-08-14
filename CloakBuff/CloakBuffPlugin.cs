@@ -282,13 +282,14 @@ namespace CloakBuff
         {
             if (!DoppelgangerEffect) return;
 
-            var comp = DoppelgangerEffect.GetComponent<HideShadowIfCloaked>();
-            if (!comp)
+            var comp2 = DoppelgangerEffect.GetComponent<HideVfxIfCloaked>();
+            if (!comp2)
             {
-                comp = DoppelgangerEffect.AddComponent<HideShadowIfCloaked>();
+                comp2 = DoppelgangerEffect.AddComponent<HideVfxIfCloaked>();
             }
-            comp.particles = DoppelgangerEffect.transform.Find("Particles").gameObject;
-            comp.visEfx = DoppelgangerEffect.GetComponent<TemporaryVisualEffect>();
+            comp2.obj1 = DoppelgangerEffect.transform.Find("Particles").gameObject;
+            comp2.shadowVisEfx = DoppelgangerEffect.GetComponent<TemporaryVisualEffect>();
+
         }
 
         [RoR2.SystemInitializer(dependencies: typeof(RoR2.EntityStateCatalog))]
@@ -661,43 +662,32 @@ namespace CloakBuff
             return hurtBox;
         }
 
-        private class HideShadowIfCloaked : MonoBehaviour
-        {
-            public CharacterBody body;
-            public GameObject particles;
-            public TemporaryVisualEffect visEfx;
-
-            public void Start()
-            {
-                body = visEfx.healthComponent.body;
-            }
-
-            public void FixedUpdate()
-            {
-                if (body)
-                {
-                    particles.SetActive(!body.hasCloakBuff);
-                }
-            }
-        }
-
         private class HideVfxIfCloaked : MonoBehaviour
         {
             public CharacterBody body;
             public GameObject obj1;
             public GameObject obj2;
 
+            public TemporaryVisualEffect shadowVisEfx = null;
+
             public void Start()
             {
-                body = gameObject.transform.parent.gameObject.GetComponent<CharacterBody>();
+                if (shadowVisEfx)
+                {
+                    body = shadowVisEfx.healthComponent.body;
+                } else
+                {
+                    body = gameObject.transform.parent.gameObject.GetComponent<CharacterBody>();
+                }
             }
 
             public void FixedUpdate()
             {
                 if (body)
                 {
-                    obj1.SetActive(!body.hasCloakBuff);
-                    obj2.SetActive(!body.hasCloakBuff);
+                    var isVisible = !body.hasCloakBuff;
+                    if (obj1) obj1.SetActive(isVisible);
+                    if (obj2) obj2.SetActive(isVisible);
                 }
             }
         }
