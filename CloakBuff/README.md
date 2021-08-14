@@ -1,4 +1,5 @@
-﻿# CloakBuff
+﻿
+# CloakBuff
 This mod aims to enhance the effects of cloaking in Risk of Rain 2 to become more useful than just "monsters can't see you".  If you felt that cloaked enemies hidden by Celestines or holding Old War Stealthkits were barely a threat, then this mod is for you.
 
 Nearly all methods of homing attacks will become unable to target cloaked enemies. Of course, this applies to you as well, particularly for those Bandit players with phobias of Scavengers with Disposable Missile Launchers.
@@ -23,7 +24,7 @@ Make sure to check the config.
 ## Extra
 * **Shock Disrupts Cloak:** Targets that are shocked are unable to be cloaked. Celestine elites will briefly give them the cloak buff, which will get immediately removed.
 * **Shock Pauses Celestine:** Shocked targets can't be given cloak at all from Celestine elites.
-* **Enable Stuns/Shocks:** By default, it allows *Umbra Survivors* to be shocked. Can be configured to both Survivors and Umbras, Umbras only, or neither.
+* **Enable Stuns/Shocks:** It's disabled by default as stuns are a very easy way to shut down enemies, but if you want it enabled I recommend `UmbraOnly`. Can be configured to both Survivors and Umbras, Umbras only, or neither.
 
 ## ToDo:
 * Revision: Prevent pinging cloaked enemies entirely

@@ -189,7 +189,7 @@ namespace CloakBuff
 
             ShockKillsCloak = Config.Bind("Extra", "Shocking disrupts cloak", true, "Setting this value to true will make shocked targets (usually via Captain's M2 and Shocking Beacon) to clear cloak on hit. Note that Survivors are immune to this damagetype, so umbras can't normally be shocked...");
             ShockPausesCelestine = Config.Bind("Extra", "Celestines cant buff shocked targets", true, "Enabling will make shocked targets unable to be cloaked via Celestine Elites.");
-            IdiotsAllowedNearOutlets = Config.Bind("Extra", "Enable Shocking and Stunning for Survivors Or Umbras", OutletForkEnum.UmbraOnly, "0 = Disabled" +
+            IdiotsAllowedNearOutlets = Config.Bind("Extra", "Enable Shocking and Stunning for Survivors Or Umbras", OutletForkEnum.None, "0 = Disabled" +
                 "\nUmbraOnly = Umbras can get shocked and stunned." +
                 "\nSurvivorsAndUmbras = Both Survivors and Umbras can get shocked and stunned.");
 
