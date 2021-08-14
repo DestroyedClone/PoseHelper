@@ -85,11 +85,11 @@ namespace CloakBuff
             if (HideDoppelgangerEffect.Value)
                 ModifyDoppelGangerEffect();
             if (EnableHealthbar.Value)
-                On.RoR2.UI.CombatHealthBarViewer.VictimIsValid += CombatHealthBarViewer_VictimIsValid;
+                On.RoR2.UI.CombatHealthBarViewer.VictimIsValid += HideHealthbar;
             if (EnablePinging.Value)
-                On.RoR2.Util.HandleCharacterPhysicsCastResults += Util_HandleCharacterPhysicsCastResults;
+                On.RoR2.Util.HandleCharacterPhysicsCastResults += MisleadPinging;
             if (EnableDamageNumbers.Value)
-                IL.RoR2.HealthComponent.HandleDamageDealt += HealthComponent_HandleDamageDealt1;
+                IL.RoR2.HealthComponent.HandleDamageDealt += HideDamageNumbers;
             //IL.RoR2.Util.HandleCharacterPhysicsCastResults += Util_HandleCharacterPhysicsCastResults1;
 
             // Character Specific
@@ -105,13 +105,13 @@ namespace CloakBuff
             {
                 if (EngiChargeMine.Value || EngiSpiderMine.Value)
                 {
-                    On.RoR2.Projectile.ProjectileSphereTargetFinder.PassesFilters += ProjectileSphereTargetFinder_PassesFilters;
+                    On.RoR2.Projectile.ProjectileSphereTargetFinder.PassesFilters += ModifyEngiMines;
                 }
             }
 
             // Extra
             if (ShockKillsCloak.Value)
-                On.RoR2.SetStateOnHurt.SetShock += SetStateOnHurt_SetShock;
+                On.EntityStates.ShockState.PlayShockAnimation += ShockState_StopCloak;
             if (ShockPausesCelestine.Value)
                 On.RoR2.BuffWard.BuffTeam += BuffWard_BuffTeam;
             if (IdiotsAllowedNearOutlets.Value > OutletForkEnum.None)
@@ -140,43 +140,15 @@ namespace CloakBuff
                 On.RoR2.EquipmentSlot.ConfigureTargetFinderForEnemies += EquipmentSlot_ConfigureTargetFinderForEnemies;
         }
 
-        [RoR2.SystemInitializer(dependencies: typeof(RoR2.EntityStateCatalog))]
-        public static void SetupStunAndShockStateVfx()
-        {
-            StunStateVfx = StunState.stunVfxPrefab;
-            ShockStateVfx = ShockState.stunVfxPrefab;
-
-            if (EnableStunEffect.Value)
-            {
-                var comp = StunStateVfx.GetComponent<HideVfxIfCloaked>();
-                if (!comp)
-                {
-                    comp = StunStateVfx.AddComponent<HideVfxIfCloaked>();
-                }
-                comp.obj1 = StunStateVfx.transform.Find("Ring").gameObject;
-                comp.obj2 = StunStateVfx.transform.Find("Stars").gameObject;
-            }
-
-            if (EnableShockEffect.Value)
-            {
-                var comp = ShockStateVfx.GetComponent<HideVfxIfCloaked>();
-                if (!comp)
-                {
-                    comp = ShockStateVfx.AddComponent<HideVfxIfCloaked>();
-                }
-                comp.obj1 = ShockStateVfx.transform.Find("Stun").gameObject;
-                comp.obj2 = ShockStateVfx.transform.Find("SphereChainEffect").gameObject;
-            }
-        }
 
         public void SetupConfig()
         {
-            HideDoppelgangerEffect = Config.Bind("Visual", "Umbra", true, "Enable to hide the Umbra's swirling particle effects on cloaked targets.");
-            EnableHealthbar = Config.Bind("Visual", "Healthbar", true, "Enable to hide the healthbar on cloaked targets.");
-            EnablePinging = Config.Bind("Visual", "Pinging", true, "Attempts to mislead pinging by pinging the enemy behind the cloaked target. If things get messed up, this is the first option to likely disable.");
-            EnableDamageNumbers = Config.Bind("Visual", "Damage Numbers", true, "Enable to hide damage numbers from appearing on cloaked targets.");
-            EnableStunEffect = Config.Bind("Visual", "Stun Overhead Effect", true, "Enable to hide the overhead stun effect from appearing on cloaked targets.");
-            EnableShockEffect = Config.Bind("Visual", "Shock Overhead Effect", true, "Enable to hide the overhead shock effects from appearing on cloaked targets.");
+            HideDoppelgangerEffect = Config.Bind("Visual", "Disable Umbra Effect", true, "Enable to hide the Umbra's swirling particle effects on cloaked targets.");
+            EnableHealthbar = Config.Bind("Visual", "Disable Healthbar", true, "Enable to hide the healthbar on cloaked targets.");
+            EnablePinging = Config.Bind("Visual", "Mislead Pinging", true, "Attempts to mislead pinging by pinging the enemy behind the cloaked target. If things get messed up, this is the first option to likely disable.");
+            EnableDamageNumbers = Config.Bind("Visual", "Disable Damage Numbers", true, "Enable to hide damage numbers from appearing on cloaked targets.");
+            EnableStunEffect = Config.Bind("Visual", "Disable Stun Overhead Effect", true, "Enable to hide the overhead stun effect from appearing on cloaked targets.");
+            EnableShockEffect = Config.Bind("Visual", "Disable Shock Overhead Effect", true, "Enable to hide the overhead shock effects from appearing on cloaked targets.");
 
             MissileIncludesDMLATG = Config.Bind("Items", "Disposable Missile Launcher and AtG Missile Mk. 1", true, "Enable to make missiles from these items to ignore cloaked targets..");
             LightningOrbIncludesBFG = Config.Bind("Items", "Preon Accumulator", false, "Currently Broken. Enable to make Preon Accumulator's traveling tendrils ignore cloaked targets.");
@@ -195,15 +167,14 @@ namespace CloakBuff
             EngiSpiderMine = Config.Bind("Survivors", "Engineer Spider Mines", true, "Affects the Engineer's Secondary Spider Mines. Prevents exploding when cloaked enemies are in proximity.");
             EngiSpiderMineCanExplodeOnImpaled = Config.Bind("Survivors", "Engineer Spider Mines Single Target", true, "Affects the Engineer's Secondary Spider Mines, requires the previous option to be enabled. If true, then it will explode when armed if it is stuck on a cloaked target.");
             HuntressCantAim = Config.Bind("Survivors", "Huntress Aiming", true, "This adjustment will make Huntress unable to target cloaked enemies with her primary and secondary abilities");
-            LightningOrbIncludesGlaive = Config.Bind("Survivors", "Huntress Glaive", true, "Affects the Huntress' Secondary Laser Glaive.");
-            MercCantFind = Config.Bind("Survivors", "Mercernary Eviscerate", true, "Finnicky. Fails if an invalid enemy is within the same range of a valid enemy. The adjustment will prevent Mercernary's Eviscerate from targeting cloaked enemies");
+            LightningOrbIncludesGlaive = Config.Bind("Survivors", "Huntress Glaive", true, "Affects the Huntress' Secondary Laser Glaive from bouncing to cloaked targets.");
+            MercCantFind = Config.Bind("Survivors", "Mercernary Eviscerate", false, "Finnicky. Fails if an invalid enemy is within the same range of a valid enemy. The adjustment will prevent Mercernary's Eviscerate from targeting cloaked enemies");
 
             ShockKillsCloak = Config.Bind("Extra", "Shocking disrupts cloak", true, "Setting this value to true will make shocked targets (usually via Captain's M2 and Shocking Beacon) to clear cloak on hit. Note that Survivors are immune to this damagetype, so umbras can't normally be shocked...");
             ShockPausesCelestine = Config.Bind("Extra", "Celestines cant buff shocked targets", false, "Enabling will make shocked targets unable to be cloaked via Celestine Elites.");
             IdiotsAllowedNearOutlets = Config.Bind("Extra", "Enable Shocking and Stunning for Survivors Or Umbras", OutletForkEnum.UmbraOnly, "0 = Disabled" +
-                "\n 1 = Umbras can get shocked and stunned." +
-                "\n 2 = Survivors, but not umbras, can get shocked and stunned. Why even choose this option?" +
-                "\n 3 = Both Survivors and Umbras can get shocked and stunned.");
+                "\nUmbraOnly = Umbras can get shocked and stunned." +
+                "\nSurvivorsAndUmbras = Both Survivors and Umbras can get shocked and stunned.");
 
             MissileIncludesFilterType = Config.Bind("zFiltering", "MissileController", 2, "Its safe to ignore the options in this category." +
                 "\n 0 = Disabled," +
@@ -224,9 +195,8 @@ namespace CloakBuff
                 "\n 2 = Only the following options");
         }
 
-        // Visual
-
-        private static void HealthComponent_HandleDamageDealt1(ILContext il) //ty bubbet
+        #region Visual Modifications
+        private static void HideDamageNumbers(ILContext il) //ty bubbet
         {
             var c = new ILCursor(il);
             c.GotoNext(
@@ -260,7 +230,7 @@ namespace CloakBuff
                                          //Debug.Log("Cursor after emit: \n" + c);
         }
 
-        private bool Util_HandleCharacterPhysicsCastResults(On.RoR2.Util.orig_HandleCharacterPhysicsCastResults orig, GameObject bodyObject, Ray ray, RaycastHit[] hits, out RaycastHit hitInfo)
+        private bool MisleadPinging(On.RoR2.Util.orig_HandleCharacterPhysicsCastResults orig, GameObject bodyObject, Ray ray, RaycastHit[] hits, out RaycastHit hitInfo)
         {
             int num = -1;
             float num2 = float.PositiveInfinity;
@@ -303,7 +273,7 @@ namespace CloakBuff
             return true;
         }
 
-        private bool CombatHealthBarViewer_VictimIsValid(On.RoR2.UI.CombatHealthBarViewer.orig_VictimIsValid orig, RoR2.UI.CombatHealthBarViewer self, HealthComponent victim)
+        private bool HideHealthbar(On.RoR2.UI.CombatHealthBarViewer.orig_VictimIsValid orig, RoR2.UI.CombatHealthBarViewer self, HealthComponent victim)
         {
             return orig(self, victim) && !victim.body.hasCloakBuff;
         }
@@ -321,7 +291,36 @@ namespace CloakBuff
             comp.visEfx = DoppelgangerEffect.GetComponent<TemporaryVisualEffect>();
         }
 
-        // SurvivorSpecific
+        [RoR2.SystemInitializer(dependencies: typeof(RoR2.EntityStateCatalog))]
+        public static void SetupStunAndShockStateVfx()
+        {
+            StunStateVfx = StunState.stunVfxPrefab;
+            ShockStateVfx = ShockState.stunVfxPrefab;
+
+            if (EnableStunEffect.Value)
+            {
+                var comp = StunStateVfx.GetComponent<HideVfxIfCloaked>();
+                if (!comp)
+                {
+                    comp = StunStateVfx.AddComponent<HideVfxIfCloaked>();
+                }
+                comp.obj1 = StunStateVfx.transform.Find("Ring").gameObject;
+                comp.obj2 = StunStateVfx.transform.Find("Stars").gameObject;
+            }
+
+            if (EnableShockEffect.Value)
+            {
+                var comp = ShockStateVfx.GetComponent<HideVfxIfCloaked>();
+                if (!comp)
+                {
+                    comp = ShockStateVfx.AddComponent<HideVfxIfCloaked>();
+                }
+                comp.obj1 = ShockStateVfx.transform.Find("Stun").gameObject;
+                comp.obj2 = ShockStateVfx.transform.Find("SphereChainEffect").gameObject;
+            }
+        }
+        #endregion
+        #region Survivor Specific Modifications
         private void Paint_GetCurrentTargetInfo(On.EntityStates.Engi.EngiMissilePainter.Paint.orig_GetCurrentTargetInfo orig, EntityStates.Engi.EngiMissilePainter.Paint self, out HurtBox currentTargetHurtBox, out HealthComponent currentTargetHealthComponent)
         {
             orig(self, out currentTargetHurtBox, out currentTargetHealthComponent);
@@ -363,8 +362,8 @@ namespace CloakBuff
             bullseyeSearch.FilterOutGameObject(self.gameObject);
             return FilterMethod(bullseyeSearch.GetResults());
         }
-
-        // Targeting
+        #endregion
+        #region Nonspecific Modifications
         private void ProjectileDirectionalTargetFinder_SearchForTarget(On.RoR2.Projectile.ProjectileDirectionalTargetFinder.orig_SearchForTarget orig, RoR2.Projectile.ProjectileDirectionalTargetFinder self)
         {
             orig(self);
@@ -544,7 +543,7 @@ namespace CloakBuff
             c.Emit(OpCodes.Add);
         }
 
-        private bool ProjectileSphereTargetFinder_PassesFilters(On.RoR2.Projectile.ProjectileSphereTargetFinder.orig_PassesFilters orig, RoR2.Projectile.ProjectileSphereTargetFinder self, HurtBox result)
+        private bool ModifyEngiMines(On.RoR2.Projectile.ProjectileSphereTargetFinder.orig_PassesFilters orig, RoR2.Projectile.ProjectileSphereTargetFinder self, HurtBox result)
         {
             var original = orig(self, result);
             var objName = self.gameObject.name;
@@ -573,8 +572,9 @@ namespace CloakBuff
             }
             return original && !body.hasCloakBuff;
         }
+        #endregion
 
-        // Extra
+        #region Extra Modifications
         private void AddShockOrStunToSurvivors(On.RoR2.SurvivorCatalog.orig_Init orig)
         {
             orig();
@@ -621,20 +621,16 @@ namespace CloakBuff
             orig(self, recipients, radiusSqr, currentPosition);
         }
 
-        private void SetStateOnHurt_SetShock(On.RoR2.SetStateOnHurt.orig_SetShock orig, SetStateOnHurt self, float duration)
+        private void ShockState_StopCloak(On.EntityStates.ShockState.orig_PlayShockAnimation orig, ShockState self)
         {
-            orig(self, duration);
-            var body = self.gameObject.GetComponent<CharacterBody>();
-            if (!body)
+            orig(self);
+            if (self.characterBody)
             {
-                return;
-            }
-            if (body.HasBuff(RoR2Content.Buffs.Cloak))
-            {
-                body.ClearTimedBuffs(RoR2Content.Buffs.Cloak);
+                self.characterBody.ClearTimedBuffs(RoR2Content.Buffs.Cloak);
+                self.characterBody.ClearTimedBuffs(RoR2Content.Buffs.AffixHauntedRecipient);
             }
         }
-
+        #endregion
         // Plugin
         private HurtBox FilterMethod(IEnumerable<HurtBox> listOfTargets)
         {
