@@ -311,13 +311,13 @@ namespace CloakBuff
 
             if (EnableShockEffect.Value)
             {
-                var comp = ShockStateVfx.GetComponent<HideVfxIfCloaked>();
-                if (!comp)
+                var comp2 = ShockStateVfx.GetComponent<HideVfxIfCloaked>();
+                if (!comp2)
                 {
-                    comp = ShockStateVfx.AddComponent<HideVfxIfCloaked>();
+                    comp2 = ShockStateVfx.AddComponent<HideVfxIfCloaked>();
                 }
-                comp.obj1 = ShockStateVfx.transform.Find("Stun").gameObject;
-                comp.obj2 = ShockStateVfx.transform.Find("SphereChainEffect").gameObject;
+                comp2.obj1 = ShockStateVfx.transform.Find("Stun").gameObject;
+                comp2.obj2 = ShockStateVfx.transform.Find("SphereChainEffect").gameObject;
             }
         }
         #endregion
