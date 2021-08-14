@@ -166,7 +166,7 @@ namespace CloakBuff
             EnableShockEffect = Config.Bind("Visual", "Disable Shock Overhead Effect", true, "Enable to hide the overhead shock effects from appearing on cloaked targets.");
             HideBossIndicator = Config.Bind("Visual", "Disable Boss Indicator", true, "Enable to hide the boss indicator from appearing on cloaked targets.");
 
-            MissileIncludesDMLATG = Config.Bind("Items", "Disposable Missile Launcher and AtG Missile Mk. 1", true, "Enable to make missiles from these items to ignore cloaked targets..");
+            MissileIncludesDMLATG = Config.Bind("Items", "Disposable Missile Launcher and AtG Missile Mk. 1", true, "Enable to make missiles from these items to ignore cloaked targets.");
             LightningOrbIncludesBFG = Config.Bind("Items", "Preon Accumulator", false, "Currently Broken. Enable to make Preon Accumulator's traveling tendrils ignore cloaked targets.");
             LightningOrbIncludesUkulele = Config.Bind("Items", "Ukulele", true, "Enable to make Ukulele's electricity to no longer arc to cloaked targets.");
             LightningOrbIncludesRazorwire = Config.Bind("Items", "Razorwire", false, "Currently Broken. Enable to make Razorwire unable to go to cloaked targets.");
@@ -174,20 +174,21 @@ namespace CloakBuff
             DevilOrbIncludesNovaOnHeal = Config.Bind("Items", "Nkuhanas Opinion", true, "Enable to make the attack no longer seek out cloaked targets.");
             DevilOrbIncludesSprintWisp = Config.Bind("Items", "Little Disciple", true, "Enable to make the attack no longer seek out cloaked targets.");
             ProjectileDirectionalTargetFinderDagger = Config.Bind("Items", "Ceremonial Dagger", true, "Enable to make the spawned daggers no longer seek out cloaked targets.");
-            MiredUrn = Config.Bind("Items", "Mired Urn", true, "Finnicky. Prioritizes noncloaked enemies, but will target a cloaked enemy if they are the only target.");
+            MiredUrn = Config.Bind("Items", "Mired Urn", true, "Finnicky. Prioritizes noncloaked targets, but will choose a cloaked target if they are the only choice in range.");
             RoyalCap = Config.Bind("Items", "Royal Capacitator", true, "Enable to prevent the aiming reticle from appearing on cloaked targets.");
 
             LightningOrbIncludesCrocoDisease = Config.Bind("Survivors", "Acrid Epidemic", false, "Currently Broken. Affects Acrid's special Epidemic's spreading");
             MissileIncludesHarpoons = Config.Bind("Survivors", "Engineer Harpoons+Targeting", true, "Affects the Engineer's Utility Thermal Harpoons. Also prevents the user from painting cloaked enemies as targets.");
             EngiChargeMine = Config.Bind("Survivors", "Engineer Pressure Mines", true, "Finnicky. Affects the Engineer's Secondary Pressure Mines. Prevents exploding when cloaked enemies are in proximity.");
             EngiSpiderMine = Config.Bind("Survivors", "Engineer Spider Mines", true, "Affects the Engineer's Secondary Spider Mines. Prevents exploding when cloaked enemies are in proximity.");
-            EngiSpiderMineCanExplodeOnImpaled = Config.Bind("Survivors", "Engineer Spider Mines Single Target", true, "Affects the Engineer's Secondary Spider Mines, requires the previous option to be enabled. If true, then it will explode when armed if it is stuck on a cloaked target.");
+            EngiSpiderMineCanExplodeOnImpaled = Config.Bind("Survivors", "Engineer Spider Mines Single Target", true, "Affects the Engineer's Secondary Spider Mines, requires the previous option to be enabled." +
+                "\nIf enabled, then it will explode when armed if it is stuck on a cloaked target.");
             HuntressCantAim = Config.Bind("Survivors", "Huntress Aiming", true, "This adjustment will make Huntress unable to target cloaked enemies with her primary and secondary abilities");
             LightningOrbIncludesGlaive = Config.Bind("Survivors", "Huntress Glaive", true, "Affects the Huntress' Secondary Laser Glaive from bouncing to cloaked targets.");
             MercCantFind = Config.Bind("Survivors", "Mercernary Eviscerate", false, "Finnicky. Fails if an invalid enemy is within the same range of a valid enemy. The adjustment will prevent Mercernary's Eviscerate from targeting cloaked enemies");
 
             ShockKillsCloak = Config.Bind("Extra", "Shocking disrupts cloak", true, "Setting this value to true will make shocked targets (usually via Captain's M2 and Shocking Beacon) to clear cloak on hit. Note that Survivors are immune to this damagetype, so umbras can't normally be shocked...");
-            ShockPausesCelestine = Config.Bind("Extra", "Celestines cant buff shocked targets", false, "Enabling will make shocked targets unable to be cloaked via Celestine Elites.");
+            ShockPausesCelestine = Config.Bind("Extra", "Celestines cant buff shocked targets", true, "Enabling will make shocked targets unable to be cloaked via Celestine Elites.");
             IdiotsAllowedNearOutlets = Config.Bind("Extra", "Enable Shocking and Stunning for Survivors Or Umbras", OutletForkEnum.UmbraOnly, "0 = Disabled" +
                 "\nUmbraOnly = Umbras can get shocked and stunned." +
                 "\nSurvivorsAndUmbras = Both Survivors and Umbras can get shocked and stunned.");
@@ -212,6 +213,7 @@ namespace CloakBuff
         }
 
         #region Visual Modifications
+
         private static void HideDamageNumbers(ILContext il) //ty bubbet
         {
             var c = new ILCursor(il);
@@ -335,8 +337,11 @@ namespace CloakBuff
                 comp2.obj2 = ShockStateVfx.transform.Find("SphereChainEffect").gameObject;
             }
         }
-        #endregion
+
+        #endregion Visual Modifications
+
         #region Survivor Specific Modifications
+
         private void Paint_GetCurrentTargetInfo(On.EntityStates.Engi.EngiMissilePainter.Paint.orig_GetCurrentTargetInfo orig, EntityStates.Engi.EngiMissilePainter.Paint self, out HurtBox currentTargetHurtBox, out HealthComponent currentTargetHealthComponent)
         {
             orig(self, out currentTargetHurtBox, out currentTargetHealthComponent);
@@ -378,8 +383,11 @@ namespace CloakBuff
             bullseyeSearch.FilterOutGameObject(self.gameObject);
             return FilterMethod(bullseyeSearch.GetResults());
         }
-        #endregion
+
+        #endregion Survivor Specific Modifications
+
         #region Nonspecific Modifications
+
         private void ProjectileDirectionalTargetFinder_SearchForTarget(On.RoR2.Projectile.ProjectileDirectionalTargetFinder.orig_SearchForTarget orig, RoR2.Projectile.ProjectileDirectionalTargetFinder self)
         {
             orig(self);
@@ -588,9 +596,11 @@ namespace CloakBuff
             }
             return original && !body.hasCloakBuff;
         }
-        #endregion
+
+        #endregion Nonspecific Modifications
 
         #region Extra Modifications
+
         private void AddShockOrStunToSurvivors(On.RoR2.SurvivorCatalog.orig_Init orig)
         {
             orig();
@@ -646,7 +656,9 @@ namespace CloakBuff
                 self.characterBody.ClearTimedBuffs(RoR2Content.Buffs.AffixHauntedRecipient);
             }
         }
-        #endregion
+
+        #endregion Extra Modifications
+
         // Plugin
         private HurtBox FilterMethod(IEnumerable<HurtBox> listOfTargets)
         {
@@ -690,7 +702,8 @@ namespace CloakBuff
                 if (shadowVisEfx)
                 {
                     body = shadowVisEfx.healthComponent.body;
-                } else
+                }
+                else
                 {
                     body = gameObject.transform.parent.gameObject.GetComponent<CharacterBody>();
                 }
