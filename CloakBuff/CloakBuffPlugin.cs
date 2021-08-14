@@ -16,6 +16,7 @@ using UnityEngine;
 #pragma warning disable CS0618 // Type or member is obsolete
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
 #pragma warning restore CS0618 // Type or member is obsolete
+[assembly: HG.Reflection.SearchableAttribute.OptIn]
 
 namespace CloakBuff
 {
@@ -65,7 +66,7 @@ namespace CloakBuff
         public static ConfigEntry<bool> RoyalCap { get; set; }
         public static ConfigEntry<bool> ShockKillsCloak { get; set; }
         public static ConfigEntry<bool> ShockPausesCelestine { get; set; }
-        public static ConfigEntry<bool> AllowSurvivorsToStickForkInOutlet { get; set; }
+        public static ConfigEntry<OutletForkEnum> IdiotsAllowedNearOutlets { get; set; }
         public static ConfigEntry<bool> HuntressCantAim { get; set; }
         public static ConfigEntry<bool> MercCantFind { get; set; }
         public static ConfigEntry<bool> EngiChargeMine { get; set; }
@@ -74,8 +75,9 @@ namespace CloakBuff
 
         public GameObject DoppelgangerEffect = Resources.Load<GameObject>("prefabs/temporaryvisualeffects/DoppelgangerEffect");
         public static float evisMaxRange = EntityStates.Merc.Evis.maxRadius;
-        public static GameObject StunStateVfx = StunState.stunVfxPrefab;
-        public static GameObject ShockStateVfx = ShockState.stunVfxPrefab;
+
+        public static GameObject StunStateVfx;
+        public static GameObject ShockStateVfx;
 
         public void Awake()
         {
@@ -88,10 +90,6 @@ namespace CloakBuff
                 On.RoR2.Util.HandleCharacterPhysicsCastResults += Util_HandleCharacterPhysicsCastResults;
             if (EnableDamageNumbers.Value)
                 IL.RoR2.HealthComponent.HandleDamageDealt += HealthComponent_HandleDamageDealt1;
-            if (EnableStunEffect.Value)
-                ModifyStunVfx();
-            if (EnableShockEffect.Value)
-                ModifyShockVfx();
             //IL.RoR2.Util.HandleCharacterPhysicsCastResults += Util_HandleCharacterPhysicsCastResults1;
 
             // Character Specific
@@ -116,7 +114,7 @@ namespace CloakBuff
                 On.RoR2.SetStateOnHurt.SetShock += SetStateOnHurt_SetShock;
             if (ShockPausesCelestine.Value)
                 On.RoR2.BuffWard.BuffTeam += BuffWard_BuffTeam;
-            if (AllowSurvivorsToStickForkInOutlet.Value)
+            if (IdiotsAllowedNearOutlets.Value > OutletForkEnum.None)
                 On.RoR2.SurvivorCatalog.Init += AddShockOrStunToSurvivors;
 
             // Items
@@ -140,6 +138,36 @@ namespace CloakBuff
                 On.RoR2.Projectile.ProjectileDirectionalTargetFinder.SearchForTarget += ProjectileDirectionalTargetFinder_SearchForTarget;
             if (RoyalCap.Value)
                 On.RoR2.EquipmentSlot.ConfigureTargetFinderForEnemies += EquipmentSlot_ConfigureTargetFinderForEnemies;
+        }
+
+        [RoR2.SystemInitializer(dependencies: typeof(RoR2.EntityStateCatalog))]
+        public static void SetupStunAndShockStateVfx()
+        {
+            StunStateVfx = StunState.stunVfxPrefab;
+            ShockStateVfx = ShockState.stunVfxPrefab;
+
+            if (EnableStunEffect.Value)
+            {
+                var comp = StunStateVfx.GetComponent<HideVfxIfCloaked>();
+                if (!comp)
+                {
+                    comp = StunStateVfx.AddComponent<HideVfxIfCloaked>();
+                }
+                comp.obj1 = StunStateVfx.transform.Find("Ring").gameObject;
+                comp.obj2 = StunStateVfx.transform.Find("Stars").gameObject;
+            }
+
+
+            if (EnableShockEffect.Value)
+            {
+                var comp = ShockStateVfx.GetComponent<HideVfxIfCloaked>();
+                if (!comp)
+                {
+                    comp = ShockStateVfx.AddComponent<HideVfxIfCloaked>();
+                }
+                comp.obj1 = ShockStateVfx.transform.Find("Stun").gameObject;
+                comp.obj2 = ShockStateVfx.transform.Find("SphereChainEffect").gameObject;
+            }
         }
 
         public void SetupConfig()
@@ -171,9 +199,12 @@ namespace CloakBuff
             LightningOrbIncludesGlaive = Config.Bind("Survivors", "Huntress Glaive", true, "Affects the Huntress' Secondary Laser Glaive.");
             MercCantFind = Config.Bind("Survivors", "Mercernary Eviscerate", true, "Finnicky. Fails if an invalid enemy is within the same range of a valid enemy. The adjustment will prevent Mercernary's Eviscerate from targeting cloaked enemies");
 
-            ShockKillsCloak = Config.Bind("Extra", "Shocking disrupts cloak", true, "Setting this value to true will make shocked targets (usually via Captain's M2 and Shocking Beacon) to clear cloak on hit. Note that Survivors are immune to this damagetype, so umbras can't be shocked...");
-            ShockPausesCelestine = Config.Bind("Extra", "Celestines cant buff shocked targets", true, "Enabling will make shocked targets unable to be cloaked via Celestine Elites.");
-            AllowSurvivorsToStickForkInOutlet = Config.Bind("Extra", "Enable Shocking and Stunning for Survivors", true, "Enabling will allow all survivors to get shocked and/or stunned. Useful for fighting umbras w/ Shocking disrupts cloak.");
+            ShockKillsCloak = Config.Bind("Extra", "Shocking disrupts cloak", true, "Setting this value to true will make shocked targets (usually via Captain's M2 and Shocking Beacon) to clear cloak on hit. Note that Survivors are immune to this damagetype, so umbras can't normally be shocked...");
+            ShockPausesCelestine = Config.Bind("Extra", "Celestines cant buff shocked targets", false, "Enabling will make shocked targets unable to be cloaked via Celestine Elites.");
+            IdiotsAllowedNearOutlets = Config.Bind("Extra", "Enable Shocking and Stunning for Survivors Or Umbras", OutletForkEnum.UmbraOnly, "0 = Disabled" +
+                "\n 1 = Umbras can get shocked and stunned." +
+                "\n 2 = Survivors, but not umbras, can get shocked and stunned. Why even choose this option?" +
+                "\n 3 = Both Survivors and Umbras can get shocked and stunned.");
 
             MissileIncludesFilterType = Config.Bind("zFiltering", "MissileController", 2, "Its safe to ignore the options in this category." +
                 "\n 0 = Disabled," +
@@ -195,28 +226,6 @@ namespace CloakBuff
         }
 
         // Visual
-
-        public void ModifyStunVfx()
-        {
-            var comp = StunStateVfx.GetComponent<HideVfxIfCloaked>();
-            if (!comp)
-            {
-                comp = StunStateVfx.AddComponent<HideVfxIfCloaked>();
-            }
-            comp.obj1 = StunStateVfx.transform.Find("Ring").gameObject;
-            comp.obj2 = StunStateVfx.transform.Find("Stars").gameObject;
-        }
-
-        public void ModifyShockVfx()
-        {
-            var comp = ShockStateVfx.GetComponent<HideVfxIfCloaked>();
-            if (!comp)
-            {
-                comp = ShockStateVfx.AddComponent<HideVfxIfCloaked>();
-            }
-            comp.obj1 = ShockStateVfx.transform.Find("Stun").gameObject;
-            comp.obj2 = ShockStateVfx.transform.Find("SphereChainEffect").gameObject;
-        }
 
         private static void HealthComponent_HandleDamageDealt1(ILContext il) //ty bubbet
         {
@@ -572,12 +581,25 @@ namespace CloakBuff
             orig();
             foreach (var survivor in SurvivorCatalog.allSurvivorDefs)
             {
-                if (survivor.bodyPrefab)
+                var bodyPrefab = survivor.bodyPrefab;
+                if (bodyPrefab)
                 {
-                    var comp = survivor.bodyPrefab.GetComponent<SetStateOnHurt>();
+                    var comp = bodyPrefab.GetComponent<SetStateOnHurt>();
                     if (comp)
                     {
-                        comp.canBeStunned = true;
+                        if (IdiotsAllowedNearOutlets.Value == OutletForkEnum.SurvivorsAndUmbras)
+                            comp.canBeStunned = true;
+                        if (IdiotsAllowedNearOutlets.Value == OutletForkEnum.UmbraOnly)
+                        {
+                            var umbraComp = bodyPrefab.GetComponent<IfUmbraThenAllowShocked>();
+                            if (!umbraComp)
+                            {
+                                umbraComp = bodyPrefab.AddComponent<IfUmbraThenAllowShocked>();
+                                umbraComp.setStateOnHurt = comp;
+                                umbraComp.characterBody = bodyPrefab.GetComponent<CharacterBody>();
+                            }
+                        }
+                        
                     }
                 }
             }
@@ -585,14 +607,16 @@ namespace CloakBuff
 
         private void BuffWard_BuffTeam(On.RoR2.BuffWard.orig_BuffTeam orig, BuffWard self, IEnumerable<TeamComponent> recipients, float radiusSqr, Vector3 currentPosition)
         {
-            if (self.buffDef == RoR2Content.Buffs.AffixHauntedRecipient && self.gameObject.name.StartsWith("AffixedHauntedWard"))
+            if (self.buffDef == RoR2Content.Buffs.AffixHauntedRecipient || self.buffDef == RoR2Content.Buffs.Cloak)
             {
                 var newList = recipients.ToList();
                 foreach (var recipient in recipients)
                 {
                     var comp = recipient.GetComponent<SetStateOnHurt>();
                     if (comp && comp.targetStateMachine && comp.targetStateMachine.state is ShockState)
+                    {
                         newList.Remove(recipient);
+                    }
                 }
                 recipients = newList;
             }
@@ -710,6 +734,27 @@ namespace CloakBuff
             All,
             SprintWisp,
             NovaOnHeal
+        }
+
+        public enum OutletForkEnum
+        {
+            None,
+            UmbraOnly,
+            SurvivorsAndUmbras
+        }
+
+        public class IfUmbraThenAllowShocked : MonoBehaviour
+        {
+            public SetStateOnHurt setStateOnHurt;
+            public CharacterBody characterBody;
+
+            public void Start()
+            {
+                if (setStateOnHurt && characterBody && characterBody.inventory && characterBody.inventory.GetItemCount(RoR2Content.Items.InvadingDoppelganger) > 0)
+                {
+                    setStateOnHurt.canBeStunned = true;
+                }
+            }
         }
     }
 }
