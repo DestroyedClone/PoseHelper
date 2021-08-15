@@ -11,6 +11,7 @@ namespace MoonToOutro
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     public class Plugin : BaseUnityPlugin
     {
+        public static string flavorText = "";
         public void Awake()
         {
             R2API.Utils.CommandHelper.AddToConsoleWhenReady();
@@ -33,41 +34,36 @@ namespace MoonToOutro
                     UnityEngine.Object.FindObjectOfType<EscapeSequenceController>().CompleteEscapeSequence();
                 if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "moon2")
                 {
-
+                    GameObject.Find("Moon2DropshipZone/States/EscapeComplete").SetActive(true);
                 }
             }
         }
 
-        [ConCommand(commandName = "skipmoon_old", flags = ConVarFlags.ExecuteOnServer, helpText = "Immediately completes Commencement to properly head to the outro quickly. Must be used mid-run.")]
-        private static void SkipMoonOld(ConCommandArgs args)
-        {
-            args.senderMasterObject.AddComponent<ApprovedToSkipOutro>();
-            RoR2.Console.instance.SubmitCmd(args.sender, "next_scene moon", false);
-        }
-
-        [ConCommand(commandName = "skipmoon_win", flags = ConVarFlags.ExecuteOnServer, helpText = "Beats the game with a win.")]
+        [ConCommand(commandName = "show_endgame_text", flags = ConVarFlags.ExecuteOnServer, helpText = "show_endgame_text {BodyName} {win/fail}")]
         private static void SkipMoonWin(ConCommandArgs args)
         {
-            args.senderMasterObject.AddComponent<ApprovedToSkipOutro>().gameEndType = GameEndType.Win;
-            RoR2.Console.instance.SubmitCmd(args.sender, "next_scene moon2", false);
-        }
+            var bodyIndex = BodyCatalog.FindBodyIndexCaseInsensitive(args.GetArgString(0));
+            if (bodyIndex < 0)
+            {
+                Debug.Log("Couldn't find body index!");
+                return;
+            }
+            var survivorIndex = SurvivorCatalog.GetSurvivorIndexFromBodyIndex(bodyIndex);
+            if (survivorIndex < 0)
+            {
+                Debug.Log("Couldn't find survivor index!");
+                return;
+            }
 
-        [ConCommand(commandName = "skipmoon_fail", flags = ConVarFlags.ExecuteOnServer, helpText = "Ends the game with a fail.")]
-        private static void SkipMoonFail(ConCommandArgs args)
-        {
-            args.senderMasterObject.AddComponent<ApprovedToSkipOutro>().gameEndType = GameEndType.Fail;
-            RoR2.Console.instance.SubmitCmd(args.sender, "next_scene moon2", false);
+            SurvivorDef survivorDef = SurvivorCatalog.GetSurvivorDef(survivorIndex);
+            if ()
+
+
+            Console.instance.SubmitCmd(null, "set_scene outro", false);
         }
 
         public class ApprovedToSkipOutro : MonoBehaviour
         {
-            public GameEndType gameEndType = GameEndType.Win;
-        }
-
-        public enum GameEndType
-        {
-            Win,
-            Fail
         }
     }
 }
