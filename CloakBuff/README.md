@@ -43,6 +43,12 @@ Make sure to check the config.
 * Merc's Eviscerate fails to target *any* valid target so long as a cloaked target is within range. Otherwise it's fine. 
 	* Disabled by default.
 
+## Previews
+| Missiles + Huntress Targeting | Umbra Effect Hidden | Cloak Pauses Celestine	  |
+|--|--|--|
+| [![](https://img.youtube.com/vi/K9DRWABemdY/0.jpg)](https://www.youtube.com/watch?v=K9DRWABemdY "Comparison Video and Preview") | [![](https://img.youtube.com/vi/JiNf611Xa8I/0.jpg)](https://www.youtube.com/watch?v=JiNf611Xa8I "Comparison Video and Preview") | [![](https://img.youtube.com/vi/x4xJgDif91E/0.jpg)](https://www.youtube.com/watch?v=x4xJgDif91E "Comparison Video and Preview") |
+
+
 ## Credits
 Bubbet - IL Help [(Thunderstore)](https://thunderstore.io/package/Bubbet/) [(Github)](https://github.com/Bubbet)
 
