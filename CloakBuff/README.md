@@ -53,6 +53,7 @@ Make sure to check the config.
 Bubbet - IL Help [(Thunderstore)](https://thunderstore.io/package/Bubbet/) [(Github)](https://github.com/Bubbet)
 
 # Changelog
+* 1.1.1 - Fixed NRE with the hiding damage numbers feature
 * 1.1.0 - New Features
 * 1.0.0 - Release
 

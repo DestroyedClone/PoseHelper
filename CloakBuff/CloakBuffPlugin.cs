@@ -228,11 +228,15 @@ namespace CloakBuff
             c.Emit(OpCodes.Ldloc_0);
             c.EmitDelegate<Func<DamageDealtMessage, bool>>(ddm =>
             {
-                if ((bool)ddm.victim.GetComponent<HealthComponent>()?.body?.hasCloakBuff)
+                try
                 {
-                    //Debug.Log("body has cloak");
-                    return false;
+                    if ((bool)ddm?.victim?.GetComponent<HealthComponent>()?.body?.hasCloakBuff)
+                    {
+                        //Debug.Log("body has cloak");
+                        return false;
+                    }
                 }
+                catch (InvalidOperationException) { }
 
                 //Debug.Log("body does not have cloak");
                 return true;
