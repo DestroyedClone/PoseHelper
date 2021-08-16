@@ -10,30 +10,26 @@ using UnityEngine;
 
 namespace MoonToOutro
 {
-    [BepInPlugin("com.DestroyedClone.MoonToOutro", "Skip To Outro Text", "1.0.0")]
+    [BepInPlugin("com.DestroyedClone.SkipToOutro", "Skip To Outro Text", "1.0.0")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     public class Plugin : BaseUnityPlugin
     {
         public static ConfigEntry<bool> JustFlavorText { get; set; }
         public static ConfigEntry<float> JustFlavorTextTime { get; set; }
-        public static ConfigEntry<bool> DisableVoteController { get; set; }
+        //public static ConfigEntry<bool> DisableVoteController { get; set; }
 
         public static string flavorText = "";
-        public static bool voteControllerDisabled = false;
 
         public void Awake()
         {
             JustFlavorText = Config.Bind("", "Immediately Show Flavor Text", true, "Skips the cutscene ahead to a specified duration to the outro text.");
             JustFlavorTextTime = Config.Bind("", "Immediately Show Flavor Text Time", 45f, "Duration of the PlayableDirector to skip ahead for the other option.");
-            DisableVoteController = Config.Bind("", "Disable Vote Controller", true, "Disables the vote controller, because it can steal focus from the console when hitting SPACE");
+            //DisableVoteController = Config.Bind("", "Disable Vote Controller", true, "Disables the vote controller, because it can steal focus from the console when hitting SPACE");
 
             R2API.Utils.CommandHelper.AddToConsoleWhenReady();
             On.RoR2.UI.OutroFlavorTextController.UpdateFlavorText += OutroFlavorTextController_UpdateFlavorText;
             if (JustFlavorText.Value)
                 On.RoR2.OutroCutsceneController.OnEnable += SpeedUp;
-
-            if (DisableVoteController.Value)
-                On.RoR2.VoteController.Awake += VoteController_Awake;
 
             //failsafe for when the user leaves before the flavortext is reset
             On.RoR2.UI.MainMenu.MainMenuController.Start += ResetFlavortext;
@@ -43,18 +39,6 @@ namespace MoonToOutro
         {
             orig(self);
             flavorText = "";
-        }
-
-        private void VoteController_Awake(On.RoR2.VoteController.orig_Awake orig, VoteController self)
-        {
-            orig(self);
-
-            if (voteControllerDisabled)
-            {
-                var gameObj = GameObject.Find("CutsceneEnabledObjects/SkipVoteOverlayCanvas");
-                gameObj.AddComponent<KeepInactive>();
-                voteControllerDisabled = false;
-            }
         }
 
         private void SpeedUp(On.RoR2.OutroCutsceneController.orig_OnEnable orig, OutroCutsceneController self)
@@ -119,8 +103,6 @@ namespace MoonToOutro
                 }
                 flavorText = GetOutroText(survivorDef, isWinQuote);
             }
-            if (DisableVoteController.Value)
-                voteControllerDisabled = false;
             Debug.Log("Outro Text: "+ flavorText);
             Debug.Log(Language.GetString(flavorText));
             RoR2.Console.instance.SubmitCmd(null, "set_scene outro", false);
