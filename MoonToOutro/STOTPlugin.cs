@@ -103,7 +103,7 @@ namespace MoonToOutro
                 }
                 flavorText = GetOutroText(survivorDef, isWinQuote);
             }
-            Debug.Log("Outro Text: "+ flavorText);
+            Debug.Log("Outro Text: " + flavorText);
             Debug.Log(Language.GetString(flavorText));
             RoR2.Console.instance.SubmitCmd(null, "set_scene outro", false);
         }
