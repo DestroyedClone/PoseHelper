@@ -112,16 +112,5 @@ namespace MoonToOutro
         {
             return isWinQuote ? survivorDef.outroFlavorToken : survivorDef.mainEndingEscapeFailureFlavorToken;
         }
-        public class KeepInactive : MonoBehaviour
-        {
-            public void Update()
-            {
-                if (gameObject && gameObject.activeSelf)
-                {
-                    gameObject.SetActive(false);
-                }
-            }
-
-        }
     }
 }
