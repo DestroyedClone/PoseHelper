@@ -1,69 +1,130 @@
 ﻿using BepInEx;
-//using R2API.Utils;
-//using EnigmaticThunder;
+using BepInEx.Configuration;
 using RoR2;
+using System.Security.Permissions;
 using UnityEngine;
+
+#pragma warning disable CS0618 // Type or member is obsolete
+[assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
+#pragma warning restore CS0618 // Type or member is obsolete
 
 namespace MoonToOutro
 {
-    [BepInPlugin("com.DestroyedClone.MoonToOutro", "Immediate Moon To Outro", "1.1.0")]
-    //[R2APISubmoduleDependency(nameof(CommandHelper))]
+    [BepInPlugin("com.DestroyedClone.MoonToOutro", "Skip To Outro Text", "1.0.0")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     public class Plugin : BaseUnityPlugin
     {
+        public static ConfigEntry<bool> JustFlavorText { get; set; }
+        public static ConfigEntry<float> JustFlavorTextTime { get; set; }
+        public static ConfigEntry<bool> DisableVoteController { get; set; }
+
         public static string flavorText = "";
+
         public void Awake()
         {
+            JustFlavorText = Config.Bind("", "Immediately Show Flavor Text", true, "Skips the cutscene ahead to a specified duration to the outro text.");
+            JustFlavorTextTime = Config.Bind("", "Immediately Show Flavor Text Time", 45f, "Duration of the PlayableDirector to skip ahead for the other option.");
+            DisableVoteController = Config.Bind("", "Disable Vote Controller", true, "Disables the vote controller, because it can steal focus from the console when hitting SPACE");
+
             R2API.Utils.CommandHelper.AddToConsoleWhenReady();
-            On.RoR2.SceneDirector.Start += SceneDirector_Start;
             On.RoR2.UI.OutroFlavorTextController.UpdateFlavorText += OutroFlavorTextController_UpdateFlavorText;
+            if (JustFlavorText.Value)
+                On.RoR2.OutroCutsceneController.OnEnable += SpeedUp;
+
+            if (DisableVoteController.Value)
+                On.RoR2.VoteController.Awake += VoteController_Awake;
+
+            //failsafe for when the user leaves before the flavortext is reset
+            On.RoR2.UI.MainMenu.MainMenuController.Start += ResetFlavortext;
+        }
+
+        private void ResetFlavortext(On.RoR2.UI.MainMenu.MainMenuController.orig_Start orig, RoR2.UI.MainMenu.MainMenuController self)
+        {
+            orig(self);
+            flavorText = "";
+        }
+
+        private void VoteController_Awake(On.RoR2.VoteController.orig_Awake orig, VoteController self)
+        {
+            orig(self);
+
+            if (flavorText != "")
+            {
+                GameObject.Find("SkipVoteOverlayCanvas/SkipVoteOverlay/CanvasGroup/NakedButton").SetActive(false);
+                self.enabled = false;
+            }
+        }
+
+        private void SpeedUp(On.RoR2.OutroCutsceneController.orig_OnEnable orig, OutroCutsceneController self)
+        {
+            orig(self);
+
+            if (flavorText != "")
+            {
+                self.playableDirector.time = JustFlavorTextTime.Value;
+            }
         }
 
         private void OutroFlavorTextController_UpdateFlavorText(On.RoR2.UI.OutroFlavorTextController.orig_UpdateFlavorText orig, RoR2.UI.OutroFlavorTextController self)
         {
             orig(self);
-
-        }
-
-        private void SceneDirector_Start(On.RoR2.SceneDirector.orig_Start orig, SceneDirector self)
-        {
-            orig(self);
-            if (PlayerCharacterMasterController.instances[0].master?.gameObject.GetComponent<ApprovedToSkipOutro>())
+            if (flavorText != "")
             {
-                if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "moon")
-                    UnityEngine.Object.FindObjectOfType<EscapeSequenceController>().CompleteEscapeSequence();
-                if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "moon2")
+                if (self.languageTextMeshController)
                 {
-                    GameObject.Find("Moon2DropshipZone/States/EscapeComplete").SetActive(true);
+                    self.languageTextMeshController.token = flavorText;
                 }
+                flavorText = "";
             }
         }
 
-        [ConCommand(commandName = "show_endgame_text", flags = ConVarFlags.ExecuteOnServer, helpText = "show_endgame_text {BodyName} {win/fail}")]
-        private static void SkipMoonWin(ConCommandArgs args)
+        [ConCommand(commandName = "show_outro", flags = ConVarFlags.ExecuteOnServer, helpText = "show_outro {BodyName} {win/fail} - Shows the outro with the ending quote. The second argument defaults to win." +
+            "\nAlternatively: \"show_outro custom {string}\" will display a custom string instead.")]
+        private static void ShowEndgameText(ConCommandArgs args)
         {
-            var bodyIndex = BodyCatalog.FindBodyIndexCaseInsensitive(args.GetArgString(0));
-            if (bodyIndex < 0)
+            if (args.GetArgString(0).ToLower() == "custom")
             {
-                Debug.Log("Couldn't find body index!");
-                return;
+                flavorText = args.GetArgString(1);
             }
-            var survivorIndex = SurvivorCatalog.GetSurvivorIndexFromBodyIndex(bodyIndex);
-            if (survivorIndex < 0)
+            else
             {
-                Debug.Log("Couldn't find survivor index!");
-                return;
+                var bodyIndex = BodyCatalog.FindBodyIndexCaseInsensitive(args.GetArgString(0));
+                if (bodyIndex < 0)
+                {
+                    Debug.Log("Couldn't find body index!");
+                    return;
+                }
+                var survivorIndex = SurvivorCatalog.GetSurvivorIndexFromBodyIndex(bodyIndex);
+                if (survivorIndex < 0)
+                {
+                    Debug.Log("Couldn't find survivor index!");
+                    return;
+                }
+                SurvivorDef survivorDef = SurvivorCatalog.GetSurvivorDef(survivorIndex);
+                if (!survivorDef)
+                {
+                    Debug.Log("SurvivorDef not found!");
+                    return;
+                }
+
+                bool isWinQuote = true;
+                if (args.Count == 2)
+                {
+                    if (args.GetArgString(1).ToLower() == "fail")
+                    {
+                        isWinQuote = false;
+                    }
+                }
+                flavorText = GetOutroText(survivorDef, isWinQuote);
             }
-
-            SurvivorDef survivorDef = SurvivorCatalog.GetSurvivorDef(survivorIndex);
-            if ()
-
-
-            Console.instance.SubmitCmd(null, "set_scene outro", false);
+            Debug.Log("Outro Text: "+ flavorText);
+            Debug.Log(Language.GetString(flavorText));
+            RoR2.Console.instance.SubmitCmd(null, "set_scene outro", false);
         }
 
-        public class ApprovedToSkipOutro : MonoBehaviour
+        public static string GetOutroText(SurvivorDef survivorDef, bool isWinQuote)
         {
+            return isWinQuote ? survivorDef.outroFlavorToken : survivorDef.mainEndingEscapeFailureFlavorToken;
         }
     }
 }
