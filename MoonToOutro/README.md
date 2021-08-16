@@ -20,7 +20,6 @@ There's two versions of the command: `show_outro`:
 * `show_outro EngiBody` : Shows the Engineer's win quote
 * `show_outro HuntressBody fail` : Shows the Huntress's fail quote
 * `show_outro custom "<color=red>red text</color>"` : Shows the end flavortext as `red text` colored red.
-![](https://media.discordapp.net/attachments/567852222419828736/876357722436689920/unknown.png)
 * `show_outro custom "<style=cDeath><sprite name=\"Skull\" tint=1> Choose a new character? <sprite name=\"Skull\" tint=1></style>"`
 	* Note the backslashes before the quotation marks.
 ![](https://cdn.discordapp.com/attachments/471781153607647232/876741824272805928/unknown.png)
