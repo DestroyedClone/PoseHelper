@@ -19,6 +19,7 @@ namespace MoonToOutro
         public static ConfigEntry<bool> DisableVoteController { get; set; }
 
         public static string flavorText = "";
+        public static bool voteControllerDisabled = false;
 
         public void Awake()
         {
@@ -48,10 +49,11 @@ namespace MoonToOutro
         {
             orig(self);
 
-            if (flavorText != "")
+            if (voteControllerDisabled)
             {
-                GameObject.Find("SkipVoteOverlayCanvas/SkipVoteOverlay/CanvasGroup/NakedButton").SetActive(false);
-                self.enabled = false;
+                var gameObj = GameObject.Find("CutsceneEnabledObjects/SkipVoteOverlayCanvas");
+                gameObj.AddComponent<KeepInactive>();
+                voteControllerDisabled = false;
             }
         }
 
@@ -117,6 +119,8 @@ namespace MoonToOutro
                 }
                 flavorText = GetOutroText(survivorDef, isWinQuote);
             }
+            if (DisableVoteController.Value)
+                voteControllerDisabled = false;
             Debug.Log("Outro Text: "+ flavorText);
             Debug.Log(Language.GetString(flavorText));
             RoR2.Console.instance.SubmitCmd(null, "set_scene outro", false);
@@ -125,6 +129,17 @@ namespace MoonToOutro
         public static string GetOutroText(SurvivorDef survivorDef, bool isWinQuote)
         {
             return isWinQuote ? survivorDef.outroFlavorToken : survivorDef.mainEndingEscapeFailureFlavorToken;
+        }
+        public class KeepInactive : MonoBehaviour
+        {
+            public void Update()
+            {
+                if (gameObject && gameObject.activeSelf)
+                {
+                    gameObject.SetActive(false);
+                }
+            }
+
         }
     }
 }

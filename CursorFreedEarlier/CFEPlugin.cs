@@ -26,21 +26,13 @@ namespace CursorFreedEarlier
     {
         public void Awake()
         {
-            On.RoR2.SceneDirector.Start += SceneDirector_Start;
             UnityEngine.SceneManagement.SceneManager.sceneLoaded += SceneManager_sceneLoaded;
         }
 
         private void SceneManager_sceneLoaded(UnityEngine.SceneManagement.Scene arg0, UnityEngine.SceneManagement.LoadSceneMode arg1)
         {
             if (arg0.name == "loadingbasic")
-                Debug.Log("First Method happened");
-        }
-
-        private void SceneDirector_Start(On.RoR2.SceneDirector.orig_Start orig, SceneDirector self)
-        {
-            orig(self);
-            if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "loadingbasic")
-                Debug.Log("Second Method happened");
+                ToggleCursor();
         }
 
         public int ToggleCursor()
