@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace MoonToOutro
 {
-    [BepInPlugin("com.DestroyedClone.SkipToOutro", "Skip To Outro Text", "1.0.0")]
+    [BepInPlugin("com.DestroyedClone.SkipToOutroText", "Skip To Outro Text", "1.0.0")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     public class Plugin : BaseUnityPlugin
     {
