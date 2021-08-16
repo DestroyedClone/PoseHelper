@@ -10,6 +10,7 @@ using System.Linq;
 using System.Security;
 using System.Security.Permissions;
 using UnityEngine;
+using R2API.Utils;
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -25,21 +26,28 @@ namespace CursorFreedEarlier
     {
         public void Awake()
         {
-            On.RoR2.SplashScreenController.Start += SplashScreenController_Start;
             On.RoR2.SceneDirector.Start += SceneDirector_Start;
+            UnityEngine.SceneManagement.SceneManager.sceneLoaded += SceneManager_sceneLoaded;
+        }
+
+        private void SceneManager_sceneLoaded(UnityEngine.SceneManagement.Scene arg0, UnityEngine.SceneManagement.LoadSceneMode arg1)
+        {
+            if (arg0.name == "loadingbasic")
+                Debug.Log("First Method happened");
         }
 
         private void SceneDirector_Start(On.RoR2.SceneDirector.orig_Start orig, SceneDirector self)
         {
             orig(self);
             if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "loadingbasic")
-                self.gameObject.AddComponent<RoR2.UI.CursorOpener>();
+                Debug.Log("Second Method happened");
         }
 
-        private void SplashScreenController_Start(On.RoR2.SplashScreenController.orig_Start orig, SplashScreenController self)
+        public int ToggleCursor()
         {
-            orig(self);
-            self.gameObject.AddComponent<RoR2.UI.CursorOpener>();
+            var pes = MPEventSystemManager.primaryEventSystem;
+            pes.cursorOpenerCount = pes.cursorOpenerCount > 0 ? 0 : 1;
+            return pes.cursorOpenerCount;
         }
     }
 }
