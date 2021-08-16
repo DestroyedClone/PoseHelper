@@ -68,9 +68,7 @@ namespace AutoUseEquipmentDrones
         private void GiveComponent(On.RoR2.EquipmentSlot.orig_OnStartServer orig, EquipmentSlot self)
         {
             orig(self);
-            if (!self) return;
-            if (!self.characterBody) return;
-            if (!self.characterBody.master) return;
+            if (!self || !self.characterBody || !self.characterBody.master) return;
             switch (self.characterBody.baseNameToken)
             {
                 case "EQUIPMENTDRONE_BODY_NAME":
