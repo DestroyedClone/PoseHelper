@@ -11,6 +11,8 @@ https://thunderstore.io/package/DestroyedClone/NoQuitMainMenu/
 ### Credits
 Mouse Toggle: https://github.com/risk-of-thunder/R2Wiki/wiki/Tips-and-Tricks
 
-
+#### Changelog
+* 1.0.1 - Fixed bug that prevents cursor from disappearing during the game
+* 1.0.0 - Release
 
 > Written with [StackEdit](https://stackedit.io/).
