@@ -1,10 +1,9 @@
 ﻿using BepInEx;
-using UnityEngine;
-using BepInEx.Logging;
 using R2API.Utils;
 using RoR2;
 using System.Security;
 using System.Security.Permissions;
+using UnityEngine;
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -19,6 +18,7 @@ namespace CursorFreedEarlier
     public class CFEPlugin : BaseUnityPlugin
     {
         public static bool hasClosedStartingCursor = false;
+
         public void Awake()
         {
             UnityEngine.SceneManagement.SceneManager.sceneLoaded += SceneManager_sceneLoaded;
@@ -31,6 +31,7 @@ namespace CursorFreedEarlier
                 ToggleCursorAlt();
             }
         }
+
         public void ToggleCursorAlt()
         {
             var pes = MPEventSystemManager.primaryEventSystem;
@@ -41,10 +42,11 @@ namespace CursorFreedEarlier
                     hasClosedStartingCursor = false;
                     pes.cursorOpenerCount = 1;
                     break;
+
                 case 2:
-                        pes.cursorOpenerCount = 1;
-                        hasClosedStartingCursor = true;
-                        Debug.Log("Cursor closed");
+                    pes.cursorOpenerCount = 1;
+                    hasClosedStartingCursor = true;
+                    Debug.Log("Cursor closed");
                     break;
             }
             Debug.LogError("Cursors open after: " + pes.cursorOpenerCount);
