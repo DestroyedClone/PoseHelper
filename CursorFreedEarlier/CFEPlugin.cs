@@ -3,7 +3,6 @@ using R2API.Utils;
 using RoR2;
 using System.Security;
 using System.Security.Permissions;
-using UnityEngine;
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -26,13 +25,18 @@ namespace CursorFreedEarlier
 
         private void SceneManager_sceneLoaded(UnityEngine.SceneManagement.Scene arg0, UnityEngine.SceneManagement.LoadSceneMode arg1)
         {
-            if (!hasClosedStartingCursor && (arg0.name == "loadingbasic" || arg0.name == "title"))
+            /*if (!hasClosedStartingCursor && (arg0.name == "loadingbasic" || arg0.name == "title"))
             {
-                ToggleCursorAlt();
+                //ToggleCursorAlt();
+            }*/
+
+            if (!hasClosedStartingCursor)
+            {
+                ToggleCursor(arg0.name);
             }
         }
 
-        public void ToggleCursorAlt()
+        /*public void ToggleCursorAlt() //still works but feels less efficient.
         {
             var pes = MPEventSystemManager.primaryEventSystem;
             Debug.LogError("Cursors open: " + pes.cursorOpenerCount);
@@ -50,6 +54,28 @@ namespace CursorFreedEarlier
                     break;
             }
             Debug.LogError("Cursors open after: " + pes.cursorOpenerCount);
+        }*/
+
+        public void ToggleCursor(string sceneName)
+        {
+            var pes = MPEventSystemManager.primaryEventSystem;
+            //Debug.LogError("Cursors open: " + pes.cursorOpenerCount);
+
+            switch (sceneName)
+            {
+                case "loadingbasic":
+                    hasClosedStartingCursor = false;
+                    //Debug.Log("Cursor Opened");
+                    pes.cursorOpenerCount += 1;
+                    break;
+
+                case "title":
+                    hasClosedStartingCursor = true;
+                    //Debug.Log("Cursor Closed");
+                    pes.cursorOpenerCount -= 1;
+                    break;
+            }
+            //Debug.LogError("Cursors open after: " + pes.cursorOpenerCount);
         }
     }
 }
