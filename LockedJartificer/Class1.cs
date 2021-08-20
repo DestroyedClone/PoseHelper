@@ -1,16 +1,9 @@
 ﻿using BepInEx;
-using BepInEx.Configuration;
-using Mono.Cecil.Cil;
-using MonoMod.Cil;
 using R2API.Utils;
 using RoR2;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security;
 using System.Security.Permissions;
 using UnityEngine;
-using UnityEngine.Networking;
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -56,7 +49,7 @@ namespace LockedJartificer
             iceMesh1.name = "Jar";
             iceMesh1.transform.localPosition = new Vector3(0, -0.2f, 0);
             iceMesh1.transform.localRotation = Quaternion.Euler(270f, 0f, 0f);
-            iceMesh1.transform.localScale = new Vector3(2,2,2);
+            iceMesh1.transform.localScale = new Vector3(2, 2, 2);
             iceMesh1.GetComponent<MeshFilter>().sharedMesh = wispJarDisplay.transform.Find("mdlGlassJar/GlassJar").GetComponent<MeshFilter>().sharedMesh;
             iceMesh1.GetComponent<MeshRenderer>().sharedMaterial = glassArtifact.transform.Find("mdlArtifactSimpleCube").GetComponent<MeshRenderer>().sharedMaterial;
             var glassJarLid = wispJarDisplay.transform.Find("mdlGlassJar/GlassJarLid");
