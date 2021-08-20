@@ -63,6 +63,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatEdit", "ChatEdit\ChatEd
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmallErrorFix", "SmallErrorFix\SmallErrorFix.csproj", "{61E6AF8A-FAAB-4494-8C77-9BBBF153A6D1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpawnAsMonsterOnClick", "SpawnAsMonsterOnClick\SpawnAsMonsterOnClick.csproj", "{FF545C61-4A13-4EE7-99FE-A8711AC8243C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -189,6 +191,10 @@ Global
 		{61E6AF8A-FAAB-4494-8C77-9BBBF153A6D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{61E6AF8A-FAAB-4494-8C77-9BBBF153A6D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{61E6AF8A-FAAB-4494-8C77-9BBBF153A6D1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FF545C61-4A13-4EE7-99FE-A8711AC8243C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FF545C61-4A13-4EE7-99FE-A8711AC8243C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FF545C61-4A13-4EE7-99FE-A8711AC8243C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FF545C61-4A13-4EE7-99FE-A8711AC8243C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
