@@ -1,4 +1,5 @@
 ﻿using BepInEx;
+using BepInEx.Configuration;
 using R2API.Utils;
 using RoR2;
 using System.Security;
@@ -20,11 +21,14 @@ namespace LockedJartificer
         public static GameObject displayPrefab = Resources.Load<GameObject>("prefabs/networkedobjects/LockedMage");
         public static GameObject wispJarDisplay = Resources.Load<GameObject>("prefabs/pickupmodels/PickupWilloWisp");
         public static GameObject glassArtifact = Resources.Load<GameObject>("prefabs/pickupmodels/artifacts/PickupGlass");
+        public static ConfigEntry<bool> DisableUnlockableFilter { get; set; }
 
         public void Awake()
         {
+            DisableUnlockableFilter = Config.Bind("Default", "Disable Unlockable Filter", true, "Disables the unlockable filter of the lockedmage so that she shows up even if you have her unlocked.");
             ModifyPrefab();
             UnityEngine.SceneManagement.SceneManager.sceneLoaded += SceneManager_sceneLoaded;
+
         }
 
         private void SceneManager_sceneLoaded(UnityEngine.SceneManagement.Scene arg0, UnityEngine.SceneManagement.LoadSceneMode arg1)
@@ -44,7 +48,7 @@ namespace LockedJartificer
 
         public static void ModifyPrefab()
         {
-            displayPrefab.GetComponent<GameObjectUnlockableFilter>().enabled = false;
+            displayPrefab.GetComponent<GameObjectUnlockableFilter>().enabled = !DisableUnlockableFilter.Value;
             var iceMesh1 = displayPrefab.transform.Find("ModelBase/IceMesh");
             iceMesh1.name = "Jar";
             iceMesh1.transform.localPosition = new Vector3(0, -0.2f, 0);
