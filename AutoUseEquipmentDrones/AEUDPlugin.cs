@@ -19,7 +19,7 @@ using UnityEngine.AI;
 using EntityStates.GoldGat;
 using System.Security;
 using System.Security.Permissions;
-
+using static BetterEquipmentDroneUse.Methods;
 using EntityStates.AI;
 
 
@@ -56,12 +56,67 @@ namespace AutoUseEquipmentDrones
             var body = Resources.Load<GameObject>("prefabs/characterbodies/EquipmentDroneBody");
 
             //On.RoR2.CharacterAI.BaseAI.FixedUpdate += BaseAIOverride;
-            On.RoR2.PickupCatalog.Init += CachePickupIndices;
 
             //On.RoR2.CharacterAI.BaseAI.UpdateBodyAim += BaseAI_UpdateBodyAim;
             On.RoR2.CharacterAI.BaseAI.UpdateBodyInputs += Conditional_ForceEquipmentUse;
             On.RoR2.EquipmentSlot.OnStartServer += GiveComponent;
         }
+
+        #region Cache
+        [RoR2.SystemInitializer(dependencies: typeof(RoR2.PickupCatalog))]
+        private static void CachePickupIndices()
+        {
+            foreach (var itemIndex in allowedItemIndices)
+            {
+                if (PickupCatalog.FindPickupIndex(itemIndex) != PickupIndex.none)
+                    allowedPickupIndices.Add(PickupCatalog.FindPickupIndex(itemIndex));
+            }
+            foreach (var equipmentIndex in allowedEquipmentIndices)
+            {
+                if (PickupCatalog.FindPickupIndex(equipmentIndex) != PickupIndex.none)
+                    allowedPickupIndices.Add(PickupCatalog.FindPickupIndex(equipmentIndex));
+            }
+        }
+
+        [RoR2.SystemInitializer(dependencies: typeof(RoR2.ItemCatalog))]
+        private void CacheWhitelistedItems()
+        {
+            Debug.Log("Caching whitelisted items for Recycler.");
+            var testStringArray = Recycler_Items.Value.Split(',');
+            if (testStringArray.Length > 0)
+            {
+                foreach (string stringToTest in testStringArray)
+                {
+                    if (ItemCatalog.FindItemIndex(stringToTest) == ItemIndex.None) { continue; }
+                    allowedItemIndices.Add(ItemCatalog.FindItemIndex(stringToTest));
+                    Debug.Log("Adding whitelisted item: " + stringToTest);
+                }
+            }
+            Debug.Log(allowedItemIndices);
+        }
+
+        [RoR2.SystemInitializer(dependencies: typeof(RoR2.EquipmentCatalog))]
+        private void CacheWhitelistedEquipment()
+        {
+            Debug.Log("Caching whitelisted EQUIPMENT for Recycler.");
+            var testStringArray = Recycler_Equipment.Value.Split(',');
+            if (testStringArray.Length > 0)
+            {
+                foreach (string stringToTest in testStringArray)
+                {
+                    if (EquipmentCatalog.FindEquipmentIndex(stringToTest) == EquipmentIndex.None) { continue; }
+                    allowedEquipmentIndices.Add(EquipmentCatalog.FindEquipmentIndex(stringToTest));
+                    Debug.Log("Adding whitelisted equipment: " + stringToTest);
+                }
+            }
+        }
+
+        [RoR2.SystemInitializer(dependencies: typeof(RoR2.ChestRevealer))]
+        private static void CacheAllowedChestRevealerTypes()
+        {
+            allowedTypesToScan = ChestRevealer.typesToCheck;
+        }
+        #endregion
 
         private void GiveComponent(On.RoR2.EquipmentSlot.orig_OnStartServer orig, EquipmentSlot self)
         {
@@ -116,60 +171,7 @@ namespace AutoUseEquipmentDrones
             }
         }
 
-        private void CachePickupIndices(On.RoR2.PickupCatalog.orig_Init orig)
-        {
-            orig();
-            foreach (var itemIndex in allowedItemIndices)
-            {
-                if (PickupCatalog.FindPickupIndex(itemIndex) != PickupIndex.none)
-                    allowedPickupIndices.Add(PickupCatalog.FindPickupIndex(itemIndex));
-            }
-            foreach (var equipmentIndex in allowedEquipmentIndices)
-            {
-                if (PickupCatalog.FindPickupIndex(equipmentIndex) != PickupIndex.none)
-                    allowedPickupIndices.Add(PickupCatalog.FindPickupIndex(equipmentIndex));
-            }
-        }
 
-        [RoR2.SystemInitializer(dependencies: typeof(RoR2.ItemCatalog))]
-        private void CacheWhitelistedItems()
-        {
-            Debug.Log("Caching whitelisted items for Recycler.");
-            var testStringArray = Recycler_Items.Value.Split(',');
-            if (testStringArray.Length > 0)
-            {
-                foreach (string stringToTest in testStringArray)
-                {
-                    if (ItemCatalog.FindItemIndex(stringToTest) == ItemIndex.None) { continue; }
-                    allowedItemIndices.Add(ItemCatalog.FindItemIndex(stringToTest));
-                    Debug.Log("Adding whitelisted item: "+ stringToTest);
-                }
-            }
-            Debug.Log(allowedItemIndices);
-        }
-
-        [RoR2.SystemInitializer(dependencies: typeof(RoR2.EquipmentCatalog))]
-        private void CacheWhitelistedEquipment()
-        {
-            Debug.Log("Caching whitelisted EQUIPMENT for Recycler.");
-            var testStringArray = Recycler_Equipment.Value.Split(',');
-            if (testStringArray.Length > 0)
-            {
-                foreach (string stringToTest in testStringArray)
-                {
-                    if (EquipmentCatalog.FindEquipmentIndex(stringToTest) == EquipmentIndex.None) { continue; }
-                    allowedEquipmentIndices.Add(EquipmentCatalog.FindEquipmentIndex(stringToTest));
-                    Debug.Log("Adding whitelisted equipment: " + stringToTest);
-                }
-            }
-        }
-
-
-        [RoR2.SystemInitializer(dependencies: typeof(RoR2.ChestRevealer))]
-        private static void GetAllowedTypes()
-        {
-            allowedTypesToScan = ChestRevealer.typesToCheck;
-        }
 
 
         public static bool CheckForAlive(TeamIndex teamIndex)
