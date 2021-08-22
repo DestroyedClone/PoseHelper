@@ -18,6 +18,7 @@ namespace AggressionArtifact
     [BepInPlugin("com.DestroyedClone.AggressionArtifact", "Aggression Artifact", "1.0.0")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.DifferentModVersionsAreOk)]
+    [R2APISubmoduleDependency(nameof(ArtifactAPI))]
     public class HPATPlugin : BaseUnityPlugin
     {
         public static ArtifactDef Aggression = ScriptableObject.CreateInstance<ArtifactDef>();
