@@ -45,7 +45,7 @@ namespace AggressionArtifact
         public static void InitializeArtifact()
         {
             Aggression.nameToken = "Artifact of Aggression";
-            Aggression.descriptionToken = "Increases range of monster targeting" + (RangeMultiplier.Value < 0 ? "infinitely." : ("by " + RangeMultiplier.Value * 100f + "%."));
+            Aggression.descriptionToken = "Increases range of monster targeting " + (RangeMultiplier.Value < 0 ? "infinitely." : ("by " + RangeMultiplier.Value * 100f + "%."));
             //Aggression.smallIconDeselectedSprite = AssetLoaderAndChecker.MainAssets.LoadAsset<Sprite>("Assets/Textures/Artifact/VarianceDisabled.png");
             //Aggression.smallIconSelectedSprite = AssetLoaderAndChecker.MainAssets.LoadAsset<Sprite>("Assets/Textures/Artifact/VarianceEnabled.png");
             ArtifactAPI.Add(Aggression);
