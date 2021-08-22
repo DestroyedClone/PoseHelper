@@ -27,6 +27,7 @@ using EntityStates.AI;
 #pragma warning disable CS0618 // Type or member is obsolete
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
 #pragma warning restore CS0618 // Type or member is obsolete
+[assembly: HG.Reflection.SearchableAttribute.OptIn]
 
 namespace AutoUseEquipmentDrones
 {
@@ -53,11 +54,8 @@ namespace AutoUseEquipmentDrones
 
 
             var body = Resources.Load<GameObject>("prefabs/characterbodies/EquipmentDroneBody");
-            On.RoR2.ChestRevealer.Init += GetAllowedTypes;
 
             //On.RoR2.CharacterAI.BaseAI.FixedUpdate += BaseAIOverride;
-            On.RoR2.ItemCatalog.Init += CacheWhitelistedItems;
-            On.RoR2.EquipmentCatalog.Init += CacheWhitelistedEquipment;
             On.RoR2.PickupCatalog.Init += CachePickupIndices;
 
             //On.RoR2.CharacterAI.BaseAI.UpdateBodyAim += BaseAI_UpdateBodyAim;
@@ -133,9 +131,9 @@ namespace AutoUseEquipmentDrones
             }
         }
 
-        private void CacheWhitelistedItems(On.RoR2.ItemCatalog.orig_Init orig)
+        [RoR2.SystemInitializer(dependencies: typeof(RoR2.ItemCatalog))]
+        private void CacheWhitelistedItems()
         {
-            orig();
             Debug.Log("Caching whitelisted items for Recycler.");
             var testStringArray = Recycler_Items.Value.Split(',');
             if (testStringArray.Length > 0)
@@ -150,9 +148,9 @@ namespace AutoUseEquipmentDrones
             Debug.Log(allowedItemIndices);
         }
 
-        private void CacheWhitelistedEquipment(On.RoR2.EquipmentCatalog.orig_Init orig)
+        [RoR2.SystemInitializer(dependencies: typeof(RoR2.EquipmentCatalog))]
+        private void CacheWhitelistedEquipment()
         {
-            orig();
             Debug.Log("Caching whitelisted EQUIPMENT for Recycler.");
             var testStringArray = Recycler_Equipment.Value.Split(',');
             if (testStringArray.Length > 0)
@@ -167,10 +165,9 @@ namespace AutoUseEquipmentDrones
         }
 
 
-
-        private void GetAllowedTypes(On.RoR2.ChestRevealer.orig_Init orig)
+        [RoR2.SystemInitializer(dependencies: typeof(RoR2.ChestRevealer))]
+        private static void GetAllowedTypes()
         {
-            orig();
             allowedTypesToScan = ChestRevealer.typesToCheck;
         }
 
