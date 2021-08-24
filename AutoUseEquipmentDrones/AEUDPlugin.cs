@@ -174,13 +174,13 @@ namespace AutoUseEquipmentDrones
 
 
 
-        public static bool CheckForAlive(TeamIndex teamIndex)
+        public static bool CheckForAliveOnTeam(TeamIndex teamIndex)
         {
             ReadOnlyCollection<TeamComponent> teamComponents = TeamComponent.GetTeamMembers(teamIndex);
             return teamComponents.Count > 0;
         }
 
-        public static GameObject GetMostHurtAlly(TeamIndex teamIndex)
+        public static GameObject GetMostHurtTeam(TeamIndex teamIndex)
         {
             ReadOnlyCollection<TeamComponent> teamComponents = TeamComponent.GetTeamMembers(teamIndex);
             Dictionary<TeamComponent, float> keyValuePairs = new Dictionary<TeamComponent, float>();
@@ -194,60 +194,6 @@ namespace AutoUseEquipmentDrones
             // https://stackoverflow.com/questions/23734686/c-sharp-dictionary-get-the-key-of-the-min-value
             var min = keyValuePairs.Aggregate((l, r) => l.Value < r.Value ? l : r).Key;
             return null;
-        }
-
-
-        public static bool CheckInteractables()
-        {
-            Type[] array = ChestRevealer.typesToCheck;
-            for (int i = 0; i < array.Length; i++)
-            {
-                foreach (MonoBehaviour monoBehaviour in InstanceTracker.FindInstancesEnumerable(array[i]))
-                {
-                    if (((IInteractable)monoBehaviour).ShouldShowOnScanner())
-                    {
-                        Debug.Log("interactable check 1");
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
-
-        public static bool CheckForInteractables()
-        {
-            ///Type[] validInteractables = new Type[] {  };
-            foreach (var valid in allowedTypesToScan)
-            {
-                InstanceTracker.FindInstancesEnumerable(valid);
-                if (((IInteractable)valid).ShouldShowOnScanner())
-                {
-                    Debug.Log("interactable check 2");
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        public static bool CheckForDebuffs(CharacterBody characterBody)
-        {
-            BuffIndex buffIndex = 0;
-            BuffIndex buffCount = (BuffIndex)BuffCatalog.buffCount;
-            while (buffIndex < buffCount)
-            {
-                BuffDef buffDef = BuffCatalog.GetBuffDef(buffIndex);
-                if (buffDef.isDebuff && characterBody.HasBuff(buffIndex))
-                {
-                    if (characterBody.HasBuff(buffIndex))
-                    {
-                        Debug.Log("debuffs!");
-                        return true;
-                    }
-                }
-                buffIndex++;
-            }
-            Debug.Log("no debuffs?!");
-            return false;
         }
 
         enum DroneMode

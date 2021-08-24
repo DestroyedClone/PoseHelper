@@ -69,9 +69,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OctoberTwenty", "OctoberTwe
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LockedJartificer", "LockedJartificer\LockedJartificer.csproj", "{3BE5EFA6-4966-4EC9-AB09-F37DE4CD3E21}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HighPriorityAggroTest", "HighPriorityAggroTest\HighPriorityAggroTest.csproj", "{3C54C8A4-84C0-4992-98DA-B4B7C249794D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HighPriorityAggroTest", "HighPriorityAggroTest\HighPriorityAggroTest.csproj", "{3C54C8A4-84C0-4992-98DA-B4B7C249794D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AggressionArtifact", "AggressionArtifact\AggressionArtifact.csproj", "{12428BB6-2CF5-41C8-8DA8-DAA787BECF87}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AggressionArtifact", "AggressionArtifact\AggressionArtifact.csproj", "{12428BB6-2CF5-41C8-8DA8-DAA787BECF87}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlyingEnemyKnockback", "FlyingEnemyKnockback\FlyingEnemyKnockback.csproj", "{1232BD16-8C47-4EAE-B0AE-26A4B8E2CD22}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -219,6 +221,10 @@ Global
 		{12428BB6-2CF5-41C8-8DA8-DAA787BECF87}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{12428BB6-2CF5-41C8-8DA8-DAA787BECF87}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{12428BB6-2CF5-41C8-8DA8-DAA787BECF87}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1232BD16-8C47-4EAE-B0AE-26A4B8E2CD22}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1232BD16-8C47-4EAE-B0AE-26A4B8E2CD22}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1232BD16-8C47-4EAE-B0AE-26A4B8E2CD22}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1232BD16-8C47-4EAE-B0AE-26A4B8E2CD22}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
