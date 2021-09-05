@@ -52,10 +52,21 @@ namespace DynamicOverheadText
 
             if (critText) { PrefabAPI.RegisterNetworkPrefab(critText); }
             R2API.EffectAPI.AddEffect(critText);
-            //var fy = critText.AddComponent<FuckYou>();
-            //fy.languageTextMeshController = ltmc;
-            //fy.textMeshPro = tmp;
-            //fy.text = tmp.text;
+        }
+
+        public static void CreateTextPrefab2(GameObject textPrefab, string text, string prefabName, float fontSize = 1f)
+        {
+            textPrefab = PrefabAPI.InstantiateClone(Resources.Load<GameObject>("prefabs/effects/BearProc"), prefabName);
+            textPrefab.name = "CriticalHitText";
+            var tmp = textPrefab.transform.Find("TextCamScaler/TextRiser/TextMeshPro").GetComponent<TextMeshPro>();
+            var ltmc = tmp.gameObject.GetComponent<LanguageTextMeshController>();
+            ltmc.token = text;
+            tmp.text = text;
+            tmp.fontSize = fontSize;
+            textPrefab.AddComponent<NetworkIdentity>();
+
+            if (textPrefab) { PrefabAPI.RegisterNetworkPrefab(textPrefab); }
+            R2API.EffectAPI.AddEffect(textPrefab);
         }
 
 
