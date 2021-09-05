@@ -64,7 +64,7 @@ namespace MithrixEquipmentDrones
                 int participatingPlayerCount = Run.instance.participatingPlayerCount != 0 ? Run.instance.participatingPlayerCount : 1;
                 float angle = 360f / participatingPlayerCount;
                 Quaternion rotation = Quaternion.AngleAxis(angle, Vector3.up);
-                var nextPosition = gameObject.transform.position + Vector3.up * 8f + Vector3.forward * 4f;
+                var nextPosition = gameObject.transform.position + Vector3.up * 8f + Vector3.forward * 8f;
 
                 int i = 0;
 
@@ -72,7 +72,7 @@ namespace MithrixEquipmentDrones
                 {
                     if (playerCharacterMasterController && playerCharacterMasterController.body && playerCharacterMasterController.body.healthComponent.alive)
                     {
-                        EquipmentIndex equipmentIndex = EquipmentIndex.None;
+                        EquipmentIndex equipmentIndex = RoR2Content.Equipment.Fruit.equipmentIndex;
                         if (playerCharacterMasterController.body.inventory && playerCharacterMasterController.body.inventory.currentEquipmentState.equipmentIndex != EquipmentIndex.None)
                             equipmentIndex = playerCharacterMasterController.body.inventory.GetEquipmentIndex();
                         SummonDrone(gameObject, nextPosition, equipmentIndex);
@@ -117,11 +117,8 @@ namespace MithrixEquipmentDrones
                             temporaryOverlay.originalMaterial = Resources.Load<Material>("Materials/matSummonDrone");
                             temporaryOverlay.AddToCharacerModel(component.modelTransform.GetComponent<CharacterModel>());
                         }
-                        if (equipmentIndex != EquipmentIndex.None)
-                        {
-                            var inventory = characterMaster.inventory;
-                            if (inventory) inventory.SetEquipmentIndex(equipmentIndex);
-                        }
+                        var inventory = characterMaster.inventory;
+                        if (inventory) inventory.SetEquipmentIndex(equipmentIndex);
                     }
                 }
                 return characterMaster;
