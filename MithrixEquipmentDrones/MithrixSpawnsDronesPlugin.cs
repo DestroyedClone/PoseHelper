@@ -13,7 +13,7 @@ using UnityEngine.Networking;
 
 namespace MithrixEquipmentDrones
 {
-    [BepInPlugin("com.DestroyedClone.MithrixEquipmentDrones", "Mithrix Spawns Equipment Drones", "1.0.0")]
+    [BepInPlugin("com.DestroyedClone.MithrixSpawnsEquipmentDrones", "Mithrix Spawns Equipment Drones", "1.0.0")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.DifferentModVersionsAreOk)]
     public class MithrixSpawnsDronesPlugin : BaseUnityPlugin
