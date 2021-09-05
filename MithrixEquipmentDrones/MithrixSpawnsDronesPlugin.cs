@@ -1,21 +1,15 @@
 ﻿using BepInEx;
 using R2API.Utils;
 using RoR2;
-using UnityEngine;
 using System.Security;
 using System.Security.Permissions;
-using UnityEngine.UI;
-using TMPro;
-using R2API;
-using RoR2.UI;
+using UnityEngine;
 using UnityEngine.Networking;
-using System;
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
 #pragma warning restore CS0618 // Type or member is obsolete
-//[assembly: HG.Reflection.SearchableAttribute.OptIn]
 
 namespace MithrixEquipmentDrones
 {
@@ -39,8 +33,8 @@ namespace MithrixEquipmentDrones
         public class MithrixSpawnsDronesActivator : MonoBehaviour
         {
             public ReturnStolenItemsOnGettingHit returnStolenItems;
-            ItemStealController itemStealController;
-            GameObject masterPrefab = null;
+            private ItemStealController itemStealController;
+            private GameObject masterPrefab = null;
 
             public void Start()
             {
