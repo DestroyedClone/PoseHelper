@@ -28,15 +28,10 @@ namespace DynamicOverheadText
         public void Awake()
         {
             Hooks();
-            CreateCritTextPrefab();
-            //On.RoR2.EffectComponent.Start += EffectComponent_Start;
-
-        }
-
-        private void EffectComponent_Start(On.RoR2.EffectComponent.orig_Start orig, EffectComponent self)
-        {
-            orig(self);
-            Chat.AddMessage(self.gameObject.name+" : Effect Index: "+self.effectIndex);
+            critText = CreateTextPrefab(
+                "<color=#69221a><b>Critical" +
+                "\nHit!</b></color>",
+                "CriticalHitText", 2f);
         }
 
         public void CreateCritTextPrefab()
@@ -54,26 +49,12 @@ namespace DynamicOverheadText
             R2API.EffectAPI.AddEffect(critText);
         }
 
-        public static void CreateTextPrefab2(GameObject textPrefab, string text, string prefabName, float fontSize = 1f)
+
+        public GameObject CreateTextPrefab(string text, string prefabName, float fontSize = 1f)
         {
-            textPrefab = PrefabAPI.InstantiateClone(Resources.Load<GameObject>("prefabs/effects/BearProc"), prefabName);
-            textPrefab.name = "CriticalHitText";
-            var tmp = textPrefab.transform.Find("TextCamScaler/TextRiser/TextMeshPro").GetComponent<TextMeshPro>();
-            var ltmc = tmp.gameObject.GetComponent<LanguageTextMeshController>();
-            ltmc.token = text;
-            tmp.text = text;
-            tmp.fontSize = fontSize;
-            textPrefab.AddComponent<NetworkIdentity>();
-
-            if (textPrefab) { PrefabAPI.RegisterNetworkPrefab(textPrefab); }
-            R2API.EffectAPI.AddEffect(textPrefab);
-        }
-
-
-        public static void CreateTextPrefab(GameObject textPrefab, string text, string prefabName, float fontSize = 1f)
-        {
-            textPrefab = PrefabAPI.InstantiateClone(Resources.Load<GameObject>("prefabs/effects/BearProc"), prefabName);
+            var textPrefab = PrefabAPI.InstantiateClone(Resources.Load<GameObject>("prefabs/effects/BearProc"), prefabName);
             textPrefab.name = prefabName;
+            UnityEngine.Object.Destroy(textPrefab.transform.Find("Fluff").gameObject);
             var tmp = textPrefab.transform.Find("TextCamScaler/TextRiser/TextMeshPro").GetComponent<TextMeshPro>();
             var ltmc = tmp.gameObject.GetComponent<LanguageTextMeshController>();
             ltmc.token = text;
@@ -83,11 +64,12 @@ namespace DynamicOverheadText
 
             if (textPrefab) { PrefabAPI.RegisterNetworkPrefab(textPrefab); }
             R2API.EffectAPI.AddEffect(textPrefab);
+            return textPrefab;
         }
 
         public void Hooks()
         {
-            GlobalEventManager.onServerDamageDealt += ShowCritHit;
+            GlobalEventManager.onServerDamageDealt += ShowDamageRelatedHits;
         }
 
         public void SpawnEffect(GameObject effectPrefab, Vector3 position)
@@ -99,32 +81,11 @@ namespace DynamicOverheadText
             EffectManager.SpawnEffect(effectPrefab, effectData, true);
         }
 
-        private void ShowCritHit(DamageReport obj)
+        private void ShowDamageRelatedHits(DamageReport obj)
         {
             if (obj.damageInfo.crit)
             {
                 SpawnEffect(critText, obj.damageInfo.position);
-            }
-        }
-
-        public class FuckYou : MonoBehaviour
-        {
-            public TextMeshPro textMeshPro;
-            public LanguageTextMeshController languageTextMeshController;
-            public string text;
-            public float size;
-
-            public void Awake()
-            {
-                if (textMeshPro)
-                {
-                    textMeshPro.text = text;
-                    textMeshPro.fontSize = size;
-                }
-                if (languageTextMeshController)
-                {
-                    languageTextMeshController.token = text;
-                }
             }
         }
     }
