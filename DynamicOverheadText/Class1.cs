@@ -14,6 +14,7 @@ using UnityEngine.Networking;
 #pragma warning disable CS0618 // Type or member is obsolete
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
 #pragma warning restore CS0618 // Type or member is obsolete
+[assembly: HG.Reflection.SearchableAttribute.OptIn]
 
 namespace DynamicOverheadText
 {
@@ -31,9 +32,10 @@ namespace DynamicOverheadText
             critText = CreateTextPrefab(
                 "<color=#69221a><b>Critical" +
                 "\nHit!</b></color>",
-                "CriticalHitText", 2f);
+                "CriticalHitText",
+                "",
+                2f);
         }
-
         public void CreateCritTextPrefab()
         {
             critText = PrefabAPI.InstantiateClone(Resources.Load<GameObject>("prefabs/effects/BearProc"), "CriticalHitText");
@@ -50,17 +52,19 @@ namespace DynamicOverheadText
         }
 
 
-        public GameObject CreateTextPrefab(string text, string prefabName, float fontSize = 1f)
+        public static GameObject CreateTextPrefab(string text, string prefabName, string soundName = "", float fontSize = 1f)
         {
             var textPrefab = PrefabAPI.InstantiateClone(Resources.Load<GameObject>("prefabs/effects/BearProc"), prefabName);
             textPrefab.name = prefabName;
             UnityEngine.Object.Destroy(textPrefab.transform.Find("Fluff").gameObject);
+            textPrefab.GetComponent<EffectComponent>().soundName = soundName;
             var tmp = textPrefab.transform.Find("TextCamScaler/TextRiser/TextMeshPro").GetComponent<TextMeshPro>();
             var ltmc = tmp.gameObject.GetComponent<LanguageTextMeshController>();
             ltmc.token = text;
             tmp.text = text;
             tmp.fontSize = fontSize;
             textPrefab.AddComponent<NetworkIdentity>();
+            textPrefab.AddComponent<HoverOverHead>();
 
             if (textPrefab) { PrefabAPI.RegisterNetworkPrefab(textPrefab); }
             R2API.EffectAPI.AddEffect(textPrefab);
@@ -72,11 +76,11 @@ namespace DynamicOverheadText
             GlobalEventManager.onServerDamageDealt += ShowDamageRelatedHits;
         }
 
-        public void SpawnEffect(GameObject effectPrefab, Vector3 position)
+        public void SpawnEffectNoParent(GameObject effectPrefab, Vector3 position)
         {
             EffectData effectData = new EffectData
             {
-                origin = position,
+                origin = position
             };
             EffectManager.SpawnEffect(effectPrefab, effectData, true);
         }
@@ -85,8 +89,42 @@ namespace DynamicOverheadText
         {
             if (obj.damageInfo.crit)
             {
-                SpawnEffect(critText, obj.damageInfo.position);
+                //SpawnEffect(critText, obj.damageInfo.position);
+                EffectData effectData = new EffectData
+                {
+                    origin = obj.damageInfo.position,
+                    rootObject = obj.victim.gameObject.GetComponent<ModelLocator>().modelBaseTransform.gameObject
+                };
+                EffectManager.SpawnEffect(critText, effectData, true);
             }
+        }
+
+        public class HoverOverHeadSafe : MonoBehaviour
+        {
+            private Transform parentTransform;
+            private Collider bodyCollider;
+            public Vector3 bonusOffset;
+
+            private void Start()
+            {
+                if (!base.transform.parent)
+                {
+                    enabled = false;
+                }
+                this.parentTransform = base.transform.parent;
+                this.bodyCollider = base.transform.parent.GetComponent<Collider>();
+            }
+
+            private void Update()
+            {
+                Vector3 a = this.parentTransform.position;
+                if (this.bodyCollider)
+                {
+                    a = this.bodyCollider.bounds.center + new Vector3(0f, this.bodyCollider.bounds.extents.y, 0f);
+                }
+                base.transform.position = a + this.bonusOffset;
+            }
+
         }
     }
 }
