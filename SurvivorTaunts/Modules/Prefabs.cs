@@ -11,6 +11,8 @@ namespace SurvivorTaunts.Modules
     {
         public static List<GameObject> displayPrefabs = new List<GameObject>();
         public static List<RuntimeAnimatorController> runtimeAnimatorControllers = new List<RuntimeAnimatorController>();
+
+        [RoR2.SystemInitializer(dependencies: typeof(RoR2.SurvivorCatalog))]
         public static void CacheDisplays()
         {
             foreach (var survivor in SurvivorCatalog.allSurvivorDefs)

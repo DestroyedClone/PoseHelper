@@ -6,6 +6,7 @@ using R2API.Utils;
 using EntityStates;
 using System.Collections.Generic;
 
+[assembly: HG.Reflection.SearchableAttribute.OptIn]
 namespace SurvivorTaunts
 {
     [BepInPlugin("com.DestroyedClone.SurvivorTaunts", "Survivor Taunts", "1.0.0")]
@@ -34,7 +35,6 @@ namespace SurvivorTaunts
             Modules.Tokens.AddTokens(); // register name tokens
 
             // have to setup late so the catalog can populate
-            On.RoR2.SurvivorCatalog.Init += SurvivorCatalog_Init;
             RoR2.CharacterBody.onBodyStartGlobal += CharacterBody_onBodyStartGlobal;
         }
 
@@ -47,17 +47,11 @@ namespace SurvivorTaunts
             }
         }
 
-        private void SurvivorCatalog_Init(On.RoR2.SurvivorCatalog.orig_Init orig)
-        {
-            orig();
-            Modules.Prefabs.CacheDisplays();
-        }
-
         public class SurvivorTauntController : MonoBehaviour
         {
             public LocalUser localUser;
             public CharacterBody characterBody;
-            bool isAuthority = true;
+            readonly bool isAuthority = true;
             EntityStateMachine outer;
             public SurvivorIndex survivorIndex;
             List<RuntimeAnimatorController> runtimeAnimatorControllers = new List<RuntimeAnimatorController>();
@@ -86,12 +80,12 @@ namespace SurvivorTaunts
                 {
                     if (Input.GetKeyDown(Modules.Config.displayKeybind.Value))
                     {
-                        this.outer.SetInterruptState(EntityState.Instantiate(new SerializableEntityStateType(typeof(Emotes.Display))), InterruptPriority.Any);
+                        this.outer.SetInterruptState(EntityStateCatalog.InstantiateState(new SerializableEntityStateType(typeof(Emotes.Display))), InterruptPriority.Any);
                         return;
                     }
                     else if (Input.GetKeyDown(Modules.Config.poseKeybind.Value))
                     {
-                        this.outer.SetInterruptState(EntityState.Instantiate(new SerializableEntityStateType(typeof(Emotes.Pose))), InterruptPriority.Any);
+                        this.outer.SetInterruptState(EntityStateCatalog.InstantiateState(new SerializableEntityStateType(typeof(Emotes.Pose))), InterruptPriority.Any);
                         return;
                     }
                 }
