@@ -2,6 +2,7 @@
 using RoR2;
 using UnityEngine;
 
+
 namespace SurvivorTaunts.Emotes
 {
     public class BaseEmote : BaseState
@@ -16,6 +17,7 @@ namespace SurvivorTaunts.Emotes
         private float initialTime;
         private Animator animator;
         private ChildLocator childLocator;
+
         public LocalUser localUser;
 
         public override void OnEnter()
@@ -33,8 +35,10 @@ namespace SurvivorTaunts.Emotes
 
             if (this.animDuration == 0 && this.duration != 0) this.animDuration = this.duration;
 
-            if (this.duration > 0) base.PlayAnimation("FullBody, Override", this.animString, "Emote.playbackRate", this.duration);
-            else base.PlayAnimation("FullBody, Override", this.animString, "Emote.playbackRate", this.animDuration);
+            if (this.duration > 0) 
+                base.PlayAnimation("FullBody, Override", this.animString, "Emote.playbackRate", this.duration);
+            else 
+                base.PlayAnimation("FullBody, Override", this.animString, "Emote.playbackRate", this.animDuration);
 
             this.activePlayID = Util.PlaySound(soundString, base.gameObject);
 
@@ -55,13 +59,16 @@ namespace SurvivorTaunts.Emotes
 
             base.characterBody.hideCrosshair = false;
 
-            if (base.GetAimAnimator()) base.GetAimAnimator().enabled = true;
+            if (base.GetAimAnimator()) 
+                base.GetAimAnimator().enabled = true;
             if (this.animator)
             {
                 this.animator.SetLayerWeight(animator.GetLayerIndex("AimPitch"), 1);
                 this.animator.SetLayerWeight(animator.GetLayerIndex("AimYaw"), 1);
             }
 
+            base.PlayAnimation("FullBody, Override", "BufferEmpty");
+            if (this.activePlayID != 0) AkSoundEngine.StopPlayingID(this.activePlayID);
             if (this.normalizeModel)
             {
                 if (base.modelLocator)
@@ -69,9 +76,6 @@ namespace SurvivorTaunts.Emotes
                     base.modelLocator.normalizeToFloor = false;
                 }
             }
-
-            base.PlayAnimation("FullBody, Override", "BufferEmpty");
-            //if (this.activePlayID != 0) AkSoundEngine.StopPlayingID(this.activePlayID); TODO
         }
 
         public override void FixedUpdate()

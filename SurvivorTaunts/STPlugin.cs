@@ -59,11 +59,10 @@ namespace SurvivorTaunts
 
             public void Awake()
             {
-                // so i can see progress
                 runtimeAnimatorControllers = Modules.Prefabs.runtimeAnimatorControllers;
                 displayPrefabs = Modules.Prefabs.displayPrefabs;
-                Debug.Log("Getting localuser");
                 this.localUser = LocalUserManager.readOnlyLocalUsersList[0];
+
                 Debug.Log("entitystatemachine");
                 outer = this.gameObject.GetComponent<EntityStateMachine>();
                 Debug.Log("survivorindex");
