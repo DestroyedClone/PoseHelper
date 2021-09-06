@@ -1,13 +1,12 @@
 ﻿using BepInEx;
+using R2API;
 using R2API.Utils;
 using RoR2;
-using UnityEngine;
+using RoR2.UI;
 using System.Security;
 using System.Security.Permissions;
-using UnityEngine.UI;
 using TMPro;
-using R2API;
-using RoR2.UI;
+using UnityEngine;
 using UnityEngine.Networking;
 
 [module: UnverifiableCode]
@@ -36,6 +35,7 @@ namespace DynamicOverheadText
                 "",
                 2f);
         }
+
         public void CreateCritTextPrefab()
         {
             critText = PrefabAPI.InstantiateClone(Resources.Load<GameObject>("prefabs/effects/BearProc"), "CriticalHitText");
@@ -51,7 +51,6 @@ namespace DynamicOverheadText
             R2API.EffectAPI.AddEffect(critText);
         }
 
-
         public static GameObject CreateTextPrefab(string text, string prefabName, string soundName = "", float fontSize = 1f)
         {
             var textPrefab = PrefabAPI.InstantiateClone(Resources.Load<GameObject>("prefabs/effects/BearProc"), prefabName);
@@ -64,7 +63,7 @@ namespace DynamicOverheadText
             tmp.text = text;
             tmp.fontSize = fontSize;
             textPrefab.AddComponent<NetworkIdentity>();
-            textPrefab.AddComponent<HoverOverHead>();
+            textPrefab.AddComponent<HoverOverHeadSafe>();
 
             if (textPrefab) { PrefabAPI.RegisterNetworkPrefab(textPrefab); }
             R2API.EffectAPI.AddEffect(textPrefab);
@@ -124,7 +123,6 @@ namespace DynamicOverheadText
                 }
                 base.transform.position = a + this.bonusOffset;
             }
-
         }
     }
 }
