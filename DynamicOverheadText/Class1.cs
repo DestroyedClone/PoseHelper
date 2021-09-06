@@ -92,7 +92,7 @@ namespace DynamicOverheadText
                 EffectData effectData = new EffectData
                 {
                     origin = obj.damageInfo.position,
-                    rootObject = obj.victim.gameObject.GetComponent<ModelLocator>().modelBaseTransform.gameObject
+                    rootObject = obj.victim.gameObject
                 };
                 EffectManager.SpawnEffect(critText, effectData, true);
             }
@@ -106,22 +106,23 @@ namespace DynamicOverheadText
 
             private void Start()
             {
-                if (!base.transform.parent)
+                if (!transform.parent)
                 {
                     enabled = false;
+                    return;
                 }
-                this.parentTransform = base.transform.parent;
-                this.bodyCollider = base.transform.parent.GetComponent<Collider>();
+                parentTransform = transform.parent;
+                bodyCollider = transform.parent.GetComponent<Collider>();
             }
 
             private void Update()
             {
-                Vector3 a = this.parentTransform.position;
-                if (this.bodyCollider)
+                Vector3 a = parentTransform.position;
+                if (bodyCollider)
                 {
-                    a = this.bodyCollider.bounds.center + new Vector3(0f, this.bodyCollider.bounds.extents.y, 0f);
+                    a = bodyCollider.bounds.center + new Vector3(0f, bodyCollider.bounds.extents.y, 0f);
                 }
-                base.transform.position = a + this.bonusOffset;
+                transform.position = a + bonusOffset;
             }
         }
     }
