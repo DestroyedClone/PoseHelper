@@ -1,6 +1,8 @@
 ﻿using BepInEx;
 using R2API;
 using R2API.Utils;
+using R2API.Networking;
+using R2API.Networking.Interfaces;
 using RoR2;
 using RoR2.UI;
 using System.Security;
@@ -19,8 +21,8 @@ namespace ShowTyping
     [BepInPlugin("com.DestroyedClone.ShowTyping", "Show Typing", "1.0.0")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
-    [R2APISubmoduleDependency(nameof(EffectAPI), nameof(PrefabAPI))]
-    public class Class1 : BaseUnityPlugin
+    [R2APISubmoduleDependency(nameof(EffectAPI), nameof(PrefabAPI), nameof(NetworkingAPI))]
+    public class ShowTypingPlugin : BaseUnityPlugin
     {
         public static GameObject typingText;
         public static GameObject unfocusedText;
@@ -31,6 +33,7 @@ namespace ShowTyping
             On.RoR2.UI.ChatBox.Start += ChatBox_Start;
             On.RoR2.UI.ChatBox.FocusInputField += ChatBox_FocusInputField;
             On.RoR2.UI.ChatBox.UnfocusInputField += ChatBox_UnfocusInputField;
+            NetworkingAPI.RegisterMessageType<Networking.SyncSomething>();
 
             typingText = CreateTextPrefab(
                 "TYPING...",
@@ -91,7 +94,8 @@ namespace ShowTyping
             return textPrefab;
         }
 
-        private class InGameChattingIndicator : MonoBehaviour
+
+        public class InGameChattingIndicator : MonoBehaviour
         {
             PlayerCharacterMasterController localPlayer;
 
