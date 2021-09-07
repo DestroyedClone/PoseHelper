@@ -5,6 +5,7 @@ using RoR2;
 using R2API.Utils;
 using EntityStates;
 using System.Collections.Generic;
+using UnityEngine.Networking;
 
 [assembly: HG.Reflection.SearchableAttribute.OptIn]
 namespace SurvivorTaunts
@@ -12,10 +13,9 @@ namespace SurvivorTaunts
     [BepInPlugin("com.DestroyedClone.SurvivorTaunts", "Survivor Taunts", "1.0.0")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
+    [R2APISubmoduleDependency("LanguageAPI")]
     public class STPlugin : BaseUnityPlugin
     {
-        public static ConfigEntry<bool> Key_1_Pose { get; set; }
-        public static ConfigEntry<bool> Key_2_Pose { get; set; }
 
         public static STPlugin instance;
 
@@ -36,6 +36,14 @@ namespace SurvivorTaunts
 
             // have to setup late so the catalog can populate
             RoR2.CharacterBody.onBodyStartGlobal += CharacterBody_onBodyStartGlobal;
+            On.RoR2.UI.MainMenu.MainMenuController.Start += MainMenuController_Start;
+        }
+
+        private void MainMenuController_Start(On.RoR2.UI.MainMenu.MainMenuController.orig_Start orig, RoR2.UI.MainMenu.MainMenuController self)
+        {
+            orig(self);
+            Modules.Prefabs.CacheDisplayPrefabs();
+            On.RoR2.UI.MainMenu.MainMenuController.Start -= MainMenuController_Start;
         }
 
         private void CharacterBody_onBodyStartGlobal(CharacterBody obj)
@@ -51,33 +59,43 @@ namespace SurvivorTaunts
         {
             public LocalUser localUser;
             public CharacterBody characterBody;
-            readonly bool isAuthority = true;
             EntityStateMachine outer;
-            public SurvivorIndex survivorIndex;
-            List<RuntimeAnimatorController> runtimeAnimatorControllers = new List<RuntimeAnimatorController>();
-            List<GameObject> displayPrefabs = new List<GameObject>();
+            public SurvivorDef survivorDef;
+            bool isNetwork = false;
+
+            bool canTaunt = true;
 
             public void Awake()
             {
-                runtimeAnimatorControllers = Modules.Prefabs.runtimeAnimatorControllers;
-                displayPrefabs = Modules.Prefabs.displayPrefabs;
+                if (!characterBody)
+                    characterBody = gameObject.GetComponent<CharacterBody>();
+                isNetwork = NetworkServer.active;
+
                 this.localUser = LocalUserManager.readOnlyLocalUsersList[0];
 
-                Debug.Log("entitystatemachine");
-                outer = this.gameObject.GetComponent<EntityStateMachine>();
-                Debug.Log("survivorindex");
-                // errors here ?
-                Debug.Log("BodyIndex = "+ characterBody.bodyIndex);
-                survivorIndex = SurvivorCatalog.GetSurvivorIndexFromBodyIndex(characterBody.bodyIndex);
-                Debug.Log("SurvivorIndex: " + survivorIndex);
+                foreach (var entityStateMachine in gameObject.GetComponents<EntityStateMachine>())
+                {
+                    if (entityStateMachine.customName == "Body")
+                    {
+                        outer = entityStateMachine;
+                        break;
+                    }
+                }
+
+                survivorDef = SurvivorCatalog.GetSurvivorDef(SurvivorCatalog.GetSurvivorIndexFromBodyIndex(characterBody.bodyIndex));
             }
 
             public void Update()
             {
                 // emotes
-                if (isAuthority && characterBody.characterMotor.isGrounded && !this.localUser.isUIFocused)
+                if (isNetwork && characterBody.characterMotor.isGrounded && !this.localUser.isUIFocused)
                 {
-                    if (Input.GetKeyDown(Modules.Config.displayKeybind.Value))
+                    if (Input.GetKeyDown(Modules.Config.disablePoseKeybind.Value))
+                    {
+                        canTaunt = !canTaunt;
+                        Chat.AddMessage($"Survivor Taunts: {(canTaunt ? "En" : "Dis")}abled");
+                    }
+                    else if (Input.GetKeyDown(Modules.Config.displayKeybind.Value))
                     {
                         this.outer.SetInterruptState(EntityStateCatalog.InstantiateState(new SerializableEntityStateType(typeof(Emotes.Display))), InterruptPriority.Any);
                         return;

@@ -9,24 +9,33 @@ namespace SurvivorTaunts.Emotes
 {
     public class Display : BaseEmote
     {
-        RuntimeAnimatorController runtimeAnimator;
+        RuntimeAnimatorController cachedRuntimeAnimator;
         Animator animator;
         STPlugin.SurvivorTauntController survivorTauntController;
 
         public override void OnEnter()
         {
-            this.animDuration = 0.75f;
+            Debug.Log("Entered");
             animator = this.GetModelAnimator();
-            runtimeAnimator = animator.runtimeAnimatorController;
+
+            cachedRuntimeAnimator = animator.runtimeAnimatorController;
             survivorTauntController = this.characterBody.GetComponent<STPlugin.SurvivorTauntController>();
+
             base.OnEnter();
-            var index = (int)survivorTauntController.survivorIndex;
-            Debug.Log("using survivorindex: " + index);
-            animator.runtimeAnimatorController = SurvivorTaunts.Modules.Prefabs.runtimeAnimatorControllers[index];
+
+            Modules.Prefabs.survivorDef_to_animationController.TryGetValue(survivorTauntController.survivorDef, out RuntimeAnimatorController runtimeAnimator);
+            animator.runtimeAnimatorController = runtimeAnimator;
+            Modules.Prefabs.survivorDef_to_gameObject.TryGetValue(survivorTauntController.survivorDef, out GameObject displayPrefab);
+
+            // virtuals
+            animString = "Spawn";
+            animDuration = 0.75f;
+
         }
 
         public override void OnExit()
         {
+            animator.runtimeAnimatorController = cachedRuntimeAnimator;
             base.OnExit();
 
         }

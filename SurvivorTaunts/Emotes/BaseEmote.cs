@@ -68,7 +68,7 @@ namespace SurvivorTaunts.Emotes
             }
 
             base.PlayAnimation("FullBody, Override", "BufferEmpty");
-            if (this.activePlayID != 0) AkSoundEngine.StopPlayingID(this.activePlayID);
+            //if (this.activePlayID != 0) AkSoundEngine.StopPlayingID(this.activePlayID);
             if (this.normalizeModel)
             {
                 if (base.modelLocator)
@@ -107,12 +107,12 @@ namespace SurvivorTaunts.Emotes
             {
                 if (Input.GetKeyDown(Modules.Config.displayKeybind.Value))
                 {
-                    this.outer.SetInterruptState(EntityState.Instantiate(new SerializableEntityStateType(typeof(Display))), InterruptPriority.Any);
+                    this.outer.SetInterruptState(EntityStateCatalog.InstantiateState(new SerializableEntityStateType(typeof(Display))), InterruptPriority.Any);
                     return;
                 }
                 else if (Input.GetKeyDown(Modules.Config.poseKeybind.Value))
                 {
-                    this.outer.SetInterruptState(EntityState.Instantiate(new SerializableEntityStateType(typeof(Pose))), InterruptPriority.Any);
+                    this.outer.SetInterruptState(EntityStateCatalog.InstantiateState(new SerializableEntityStateType(typeof(Pose))), InterruptPriority.Any);
                     return;
                 }
             }
