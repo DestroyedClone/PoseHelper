@@ -18,11 +18,11 @@ using UnityEngine.Networking;
 
 namespace ShowTyping
 {
-    [BepInPlugin("com.DestroyedClone.ShowTyping", "Show Typing", "1.0.0")]
+    [BepInPlugin("com.DestroyedClone.MultiplayerStatusIndicators", "Multiplayer Status Indicators", "1.0.0")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
     [R2APISubmoduleDependency(nameof(EffectAPI), nameof(PrefabAPI), nameof(NetworkingAPI))]
-    public class ShowTypingPlugin : BaseUnityPlugin
+    public class ShowMultiplayerStatusIndicatorsPlugin : BaseUnityPlugin
     {
         public static GameObject typingText;
         public static GameObject unfocusedText;

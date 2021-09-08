@@ -83,7 +83,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VanillaDamageTyped", "Vanil
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MithrixEquipmentDrones", "MithrixEquipmentDrones\MithrixEquipmentDrones.csproj", "{19AB27F2-1F00-4040-82BA-C56061A8EE64}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShowTyping", "ShowTyping\ShowTyping.csproj", "{9059C693-499C-4B64-AB13-CF54E249A0C5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MultiplayerStatusIndicators", "ShowTyping\MultiplayerStatusIndicators.csproj", "{9059C693-499C-4B64-AB13-CF54E249A0C5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConCommandConnectWithPassword", "ConCommandConnectWithPassword\ConCommandConnectWithPassword.csproj", "{C1A4CB6D-FF8A-42C2-8FFF-BCF3983396FD}"
 EndProject

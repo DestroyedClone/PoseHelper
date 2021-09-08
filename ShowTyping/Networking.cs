@@ -6,7 +6,7 @@ using UnityEngine.Networking;
 using ShowTyping;
 using UnityEngine;
 using RoR2;
-using static ShowTyping.ShowTypingPlugin;
+using static ShowTyping.ShowMultiplayerStatusIndicatorsPlugin;
 
 namespace ShowTyping
 {
@@ -47,7 +47,7 @@ namespace ShowTyping
                     //});
                     return;
                 }
-                var typingText = UnityEngine.Object.Instantiate(ShowTypingPlugin.typingText, bodyObject.transform);
+                var typingText = UnityEngine.Object.Instantiate(ShowMultiplayerStatusIndicatorsPlugin.typingText, bodyObject.transform);
                 typingText.transform.position = bodyObject.transform.position + Vector3.up*2f;
                 typingText.transform.SetParent(bodyObject.transform);
                 NetworkServer.Spawn(typingText);
@@ -100,7 +100,7 @@ namespace ShowTyping
                     //});
                     return;
                 }
-                var typingText = UnityEngine.Object.Instantiate(ShowTypingPlugin.unfocusedText, bodyObject.transform);
+                var typingText = UnityEngine.Object.Instantiate(ShowMultiplayerStatusIndicatorsPlugin.unfocusedText, bodyObject.transform);
                 typingText.transform.position = bodyObject.transform.position + Vector3.up * 2f;
                 typingText.transform.SetParent(bodyObject.transform);
                 NetworkServer.Spawn(typingText);
