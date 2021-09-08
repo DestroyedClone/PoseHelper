@@ -72,7 +72,7 @@ namespace ShowTyping
         private void ChatBox_Start(On.RoR2.UI.ChatBox.orig_Start orig, ChatBox self)
         {
             orig(self);
-            if (!PlayerCharacterMasterController.instances[0].body)
+            if (PlayerCharacterMasterController.instances.Count <= 0)
                 return;
             if (!self.gameObject.GetComponent<InGameChattingIndicator>())
                 self.gameObject.AddComponent<InGameChattingIndicator>();
@@ -102,57 +102,56 @@ namespace ShowTyping
         {
             PlayerCharacterMasterController localPlayer;
 
-            GameObject typingIndicatorInstance;
             public bool isChatting = false;
-
-            GameObject unfocusedIndicatorInstance;
             bool windowUnfocused = false;
 
             float stopwatch;
             readonly float duration = 1.5f;
+            bool sendMessage = false;
 
-            public void Awake()
+            public void Start()
             {
-                localPlayer = PlayerCharacterMasterController.instances[0];
+                if (PlayerCharacterMasterController.instances[0])
+                    localPlayer = PlayerCharacterMasterController.instances[0];
+                else
+                    enabled = false;
             }
 
             public void Update()
             {
                 if (!localPlayer.body)
                     return;
-                stopwatch += Time.deltaTime;
 
                 NetworkIdentity identity = localPlayer.body.gameObject.GetComponent<NetworkIdentity>();
                 if (!identity)
                 {
-                    Debug.LogWarning("PlaySoundInServer: The body did not have a NetworkIdentity component!");
+                    Debug.LogWarning("InGameChattingIndicator: The body did not have a NetworkIdentity component!");
                     return;
                 }
 
-                if (stopwatch >= duration)
-                {
-                    stopwatch = 0f;
-                    if (typingIndicatorInstance != isChatting)
+                if (!sendMessage) // to get rid of the delay while typing at an inopportune time
+                { //think of it like a build up, incrementer? idk
+                    stopwatch += Time.deltaTime;
+                    if (stopwatch >= duration)
                     {
-                        if (isChatting)
-                        {
-                            //typingIndicatorInstance = Instantiate(typingText, localPlayer.body.transform);
-                            new Networking.TypingTextMessage(identity.netId).Send(NetworkDestination.Server);
-                            return;
-                        }
-                        UnityEngine.Object.Destroy(typingIndicatorInstance);
-                        typingIndicatorInstance = null;
+                        sendMessage = true;
+                        stopwatch = 0;
                     }
-                    if (unfocusedIndicatorInstance != windowUnfocused)
+                }
+
+                if (sendMessage)
+                {
+                    if (windowUnfocused)
                     {
-                        if (windowUnfocused)
-                        {
-                            //unfocusedIndicatorInstance = Instantiate(unfocusedText, localPlayer.body.transform);
-                            new Networking.UnfocusedTextMessage(identity.netId).Send(NetworkDestination.Server);
-                            return;
-                        }
-                        UnityEngine.Object.Destroy(unfocusedIndicatorInstance);
-                        unfocusedIndicatorInstance = null;
+                        // higher priority
+                        new Networking.UnfocusedTextMessage(identity.netId).Send(NetworkDestination.Server);
+                        sendMessage = false;
+                        return;
+                    }
+                    if (isChatting)
+                    {
+                        new Networking.TypingTextMessage(identity.netId).Send(NetworkDestination.Server);
+                        sendMessage = false;
                     }
                 }
             }
@@ -161,6 +160,7 @@ namespace ShowTyping
         }
 
         #region InLobby
+        /*
         private void SceneManager_sceneLoaded(UnityEngine.SceneManagement.Scene sceneName, UnityEngine.SceneManagement.LoadSceneMode arg1)
         {
             if (sceneName.name == "lobby")
@@ -206,7 +206,7 @@ namespace ShowTyping
 
                 }
             }
-        }
+        }*/
         #endregion
     }
 }

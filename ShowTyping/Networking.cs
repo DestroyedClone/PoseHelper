@@ -27,18 +27,29 @@ namespace ShowTyping
             {
                 if (!NetworkServer.active)
                 {
-                    Chat.AddMessage("TypingTextMessage: Client received message, skipping.");
+                    //Chat.SendBroadcastChat(new Chat.SimpleChatMessage
+                    //{
+                    //    baseToken = "TypingTextMessage: Ran on client. Skipping."
+                    //});
                     return;
                 }
-                Chat.AddMessage("TypingTextMessage: Server received message");
+                //Chat.SendBroadcastChat(new Chat.SimpleChatMessage
+                //{
+                //    baseToken = "TypingTextMessage: Server received message."
+                //});
                 //NetworkUser networkUser = Util.FindNetworkObject(netId).GetComponent<NetworkUser>();
                 GameObject bodyObject = Util.FindNetworkObject(netId);
                 if (!bodyObject)
                 {
-                    Chat.AddMessage("TypingTextMessage: bodyObject is null.");
+                    //Chat.SendBroadcastChat(new Chat.SimpleChatMessage
+                    //{
+                    //    baseToken = "TypingTextMessage: Null bodyobject, leaving.."
+                    //});
                     return;
                 }
                 var typingText = UnityEngine.Object.Instantiate(ShowTypingPlugin.typingText, bodyObject.transform);
+                typingText.transform.position = bodyObject.transform.position + Vector3.up*2f;
+                typingText.transform.SetParent(bodyObject.transform);
                 NetworkServer.Spawn(typingText);
             }
 
@@ -68,15 +79,30 @@ namespace ShowTyping
             public void OnReceived()
             {
                 if (!NetworkServer.active)
+                {
+                    /*Chat.SendBroadcastChat(new Chat.SimpleChatMessage
+                    {
+                        baseToken = "UnfocusedTextMessage: Ran on client. Skipping."
+                    });*/
                     return;
+                }
+                //Chat.SendBroadcastChat(new Chat.SimpleChatMessage
+                //{
+                //    baseToken = "UnfocusedTextMessage: Server received message."
+                //});
                 //NetworkUser networkUser = Util.FindNetworkObject(netId).GetComponent<NetworkUser>();
                 GameObject bodyObject = Util.FindNetworkObject(netId);
                 if (!bodyObject)
                 {
-                    Debug.Log("TypingTextMessage: bodyObject is null.");
+                    //Chat.SendBroadcastChat(new Chat.SimpleChatMessage
+                    //{
+                    //    baseToken = "UnfocusedTextMessage: Null bodyobject, leaving.."
+                    //});
                     return;
                 }
                 var typingText = UnityEngine.Object.Instantiate(ShowTypingPlugin.unfocusedText, bodyObject.transform);
+                typingText.transform.position = bodyObject.transform.position + Vector3.up * 2f;
+                typingText.transform.SetParent(bodyObject.transform);
                 NetworkServer.Spawn(typingText);
             }
 
