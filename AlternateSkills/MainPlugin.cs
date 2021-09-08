@@ -23,7 +23,7 @@ namespace AlternateSkills
     [BepInPlugin("com.DestroyedClone.AlternateSkills", "Alternate Skills", "1.0.0")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
-    [R2APISubmoduleDependency(nameof(LoadoutAPI), nameof(SurvivorAPI), nameof(LanguageAPI))]
+    [R2APISubmoduleDependency(nameof(LoadoutAPI), nameof(SurvivorAPI), nameof(LanguageAPI), nameof(ProjectileAPI), nameof(DamageAPI))]
 
     public class MainPlugin : BaseUnityPlugin
     {
@@ -59,15 +59,16 @@ namespace AlternateSkills
             return buffDefs.ToArray();
         }
 
-        //KomradeSpectre Aetherium AccursedPotion
+
+        // Aetherium: https://github.com/KomradeSpectre/AetheriumMod/blob/6f35f9d8c57f4b7fa14375f620518e7c904c8287/Aetherium/Items/AccursedPotion.cs#L344-L358
         public static void AddBuffAndDot(BuffDef buff, float duration, int stackCount, RoR2.CharacterBody body)
         {
-            DotController.DotIndex index = (DotController.DotIndex)Array.FindIndex(DotController.dotDefs, (dotDef) => dotDef.associatedBuff == buff);
+            RoR2.DotController.DotIndex index = (RoR2.DotController.DotIndex)Array.FindIndex(RoR2.DotController.dotDefs, (dotDef) => dotDef.associatedBuff == buff);
             for (int y = 0; y < stackCount; y++)
             {
-                if (index != DotController.DotIndex.None)
+                if (index != RoR2.DotController.DotIndex.None)
                 {
-                    DotController.InflictDot(body.gameObject, body.gameObject, index, duration, 0.25f);
+                    RoR2.DotController.InflictDot(body.gameObject, body.gameObject, index, duration, 0.25f);
                 }
                 else
                 {
