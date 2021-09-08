@@ -21,6 +21,7 @@ namespace SurvivorTaunts
 
         // soft dependency stuff
         public static bool starstormInstalled = false;
+        public static RuntimeAnimatorController introAnimatorController;
 
         public void Awake()
         {
@@ -37,6 +38,17 @@ namespace SurvivorTaunts
             // have to setup late so the catalog can populate
             RoR2.CharacterBody.onBodyStartGlobal += CharacterBody_onBodyStartGlobal;
             On.RoR2.UI.MainMenu.MainMenuController.Start += MainMenuController_Start;
+            UnityEngine.SceneManagement.SceneManager.sceneLoaded += SceneManager_sceneLoaded;
+        }
+
+        private void SceneManager_sceneLoaded(UnityEngine.SceneManagement.Scene arg0, UnityEngine.SceneManagement.LoadSceneMode arg1)
+        {
+            if (arg0.name == "intro")
+            {
+                introAnimatorController = GameObject.Find("Set 4 - Cargo/CargoPosition/mdlCommandoDualies").GetComponent<Animator>().runtimeAnimatorController;
+                if (IntroCutsceneController.shouldSkip) RoR2.Console.instance.SubmitCmd(null, "set_scene title");
+                UnityEngine.SceneManagement.SceneManager.sceneLoaded -= SceneManager_sceneLoaded;
+            }
         }
 
         private void MainMenuController_Start(On.RoR2.UI.MainMenu.MainMenuController.orig_Start orig, RoR2.UI.MainMenu.MainMenuController self)
