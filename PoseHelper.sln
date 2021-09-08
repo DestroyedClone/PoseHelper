@@ -85,6 +85,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MithrixEquipmentDrones", "M
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShowTyping", "ShowTyping\ShowTyping.csproj", "{9059C693-499C-4B64-AB13-CF54E249A0C5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConCommandConnectWithPassword", "ConCommandConnectWithPassword\ConCommandConnectWithPassword.csproj", "{C1A4CB6D-FF8A-42C2-8FFF-BCF3983396FD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -255,6 +257,10 @@ Global
 		{9059C693-499C-4B64-AB13-CF54E249A0C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9059C693-499C-4B64-AB13-CF54E249A0C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9059C693-499C-4B64-AB13-CF54E249A0C5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C1A4CB6D-FF8A-42C2-8FFF-BCF3983396FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C1A4CB6D-FF8A-42C2-8FFF-BCF3983396FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C1A4CB6D-FF8A-42C2-8FFF-BCF3983396FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C1A4CB6D-FF8A-42C2-8FFF-BCF3983396FD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

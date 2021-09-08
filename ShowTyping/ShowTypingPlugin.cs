@@ -33,7 +33,8 @@ namespace ShowTyping
             On.RoR2.UI.ChatBox.Start += ChatBox_Start;
             On.RoR2.UI.ChatBox.FocusInputField += ChatBox_FocusInputField;
             On.RoR2.UI.ChatBox.UnfocusInputField += ChatBox_UnfocusInputField;
-            NetworkingAPI.RegisterMessageType<Networking.SyncSomething>();
+            NetworkingAPI.RegisterMessageType<Networking.TypingTextMessage>();
+            NetworkingAPI.RegisterMessageType<Networking.UnfocusedTextMessage>();
 
             typingText = CreateTextPrefab(
                 "TYPING...",
@@ -71,6 +72,8 @@ namespace ShowTyping
         private void ChatBox_Start(On.RoR2.UI.ChatBox.orig_Start orig, ChatBox self)
         {
             orig(self);
+            if (!PlayerCharacterMasterController.instances[0].body)
+                return;
             if (!self.gameObject.GetComponent<InGameChattingIndicator>())
                 self.gameObject.AddComponent<InGameChattingIndicator>();
         }
@@ -87,7 +90,7 @@ namespace ShowTyping
             tmp.text = text;
             tmp.fontSize = fontSize;
             textPrefab.AddComponent<NetworkIdentity>();
-            textPrefab.AddComponent<HoverOverHead>().bonusOffset = new Vector3(0,1,0);
+            //textPrefab.AddComponent<HoverOverHead>().bonusOffset = new Vector3(0,1,0);
             UnityEngine.Object.Destroy(textPrefab.GetComponent<EffectComponent>());
 
             if (textPrefab) { PrefabAPI.RegisterNetworkPrefab(textPrefab); }
@@ -105,6 +108,9 @@ namespace ShowTyping
             GameObject unfocusedIndicatorInstance;
             bool windowUnfocused = false;
 
+            float stopwatch;
+            readonly float duration = 1.5f;
+
             public void Awake()
             {
                 localPlayer = PlayerCharacterMasterController.instances[0];
@@ -112,29 +118,46 @@ namespace ShowTyping
 
             public void Update()
             {
-                if (typingIndicatorInstance != isChatting)
+                if (!localPlayer.body)
+                    return;
+                stopwatch += Time.deltaTime;
+
+                NetworkIdentity identity = localPlayer.body.gameObject.GetComponent<NetworkIdentity>();
+                if (!identity)
                 {
-                    if (isChatting)
-                    {
-                        typingIndicatorInstance = Instantiate(typingText, localPlayer.body.transform);
-                        return;
-                    }
-                    UnityEngine.Object.Destroy(typingIndicatorInstance);
-                    typingIndicatorInstance = null;
+                    Debug.LogWarning("PlaySoundInServer: The body did not have a NetworkIdentity component!");
+                    return;
                 }
-                if (unfocusedIndicatorInstance != windowUnfocused)
+
+                if (stopwatch >= duration)
                 {
-                    if (windowUnfocused)
+                    stopwatch = 0f;
+                    if (typingIndicatorInstance != isChatting)
                     {
-                        unfocusedIndicatorInstance = Instantiate(unfocusedText, localPlayer.body.transform);
-                        return;
+                        if (isChatting)
+                        {
+                            //typingIndicatorInstance = Instantiate(typingText, localPlayer.body.transform);
+                            new Networking.TypingTextMessage(identity.netId).Send(NetworkDestination.Server);
+                            return;
+                        }
+                        UnityEngine.Object.Destroy(typingIndicatorInstance);
+                        typingIndicatorInstance = null;
                     }
-                    UnityEngine.Object.Destroy(unfocusedIndicatorInstance);
-                    unfocusedIndicatorInstance = null;
+                    if (unfocusedIndicatorInstance != windowUnfocused)
+                    {
+                        if (windowUnfocused)
+                        {
+                            //unfocusedIndicatorInstance = Instantiate(unfocusedText, localPlayer.body.transform);
+                            new Networking.UnfocusedTextMessage(identity.netId).Send(NetworkDestination.Server);
+                            return;
+                        }
+                        UnityEngine.Object.Destroy(unfocusedIndicatorInstance);
+                        unfocusedIndicatorInstance = null;
+                    }
                 }
             }
 
-            void OnApplicationFocus(bool hasFocus) { windowUnfocused = !hasFocus; }
+            private void OnApplicationFocus(bool hasFocus) { windowUnfocused = !hasFocus; }
         }
 
         #region InLobby

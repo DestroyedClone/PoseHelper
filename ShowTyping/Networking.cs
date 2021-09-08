@@ -12,63 +12,82 @@ namespace ShowTyping
 {
     public class Networking
     {
-        public class SyncSomething : INetMessage
+        public class TypingTextMessage : INetMessage
         {
-            NetworkInstanceId netId; //CharacterBody.gameObject
-            int indicatorType;
+            NetworkInstanceId netId;
 
-            public SyncSomething()
-            {
-            }
+            public TypingTextMessage() { }
 
-            public SyncSomething(NetworkInstanceId netId, int indicatorType)
+            public TypingTextMessage(NetworkInstanceId netId)
             {
                 this.netId = netId;
-                this.indicatorType = indicatorType;
-                number = num;
             }
-
 
             public void OnReceived()
             {
-                if (NetworkServer.active)
+                if (!NetworkServer.active)
                 {
-                    Debug.Log("SyncSomething: Host ran this. Skip.");
+                    Chat.AddMessage("TypingTextMessage: Client received message, skipping.");
                     return;
                 }
-                switch (indicatorType)
-                {
-                    case 0: // Typing Indicator
-                        break;
-                    case 1: // Tabbed out Indicator
-                        break;
-                }
-
-
-                Chat.AddMessage($"Client received SyncSomething. Position received is {position}. Number received is {number}.");
+                Chat.AddMessage("TypingTextMessage: Server received message");
+                //NetworkUser networkUser = Util.FindNetworkObject(netId).GetComponent<NetworkUser>();
                 GameObject bodyObject = Util.FindNetworkObject(netId);
                 if (!bodyObject)
                 {
-                    Debug.Log("SyncSomething: bodyObject is null.");
+                    Chat.AddMessage("TypingTextMessage: bodyObject is null.");
                     return;
                 }
-                Util.PlaySound("somevanillasoundstring", bodyObject);
+                var typingText = UnityEngine.Object.Instantiate(ShowTypingPlugin.typingText, bodyObject.transform);
+                NetworkServer.Spawn(typingText);
             }
 
-            // method that will write the variables into the network coming from the caller of the machine
             public void Serialize(NetworkWriter writer)
             {
-                // Order Matters
                 writer.Write(netId);
             }
 
-            // method that handles how to read the data that was received on clients
             public void Deserialize(NetworkReader reader)
             {
-                // Order must match serialize
                 netId = reader.ReadNetworkId();
-                position = reader.ReadVector3();
-                number = reader.ReadInt32();
+            }
+        }
+
+
+        public class UnfocusedTextMessage : INetMessage
+        {
+            NetworkInstanceId netId;
+
+            public UnfocusedTextMessage() { }
+
+            public UnfocusedTextMessage(NetworkInstanceId netId)
+            {
+                this.netId = netId;
+            }
+
+            public void OnReceived()
+            {
+                if (!NetworkServer.active)
+                    return;
+                //NetworkUser networkUser = Util.FindNetworkObject(netId).GetComponent<NetworkUser>();
+                GameObject bodyObject = Util.FindNetworkObject(netId);
+                if (!bodyObject)
+                {
+                    Debug.Log("TypingTextMessage: bodyObject is null.");
+                    return;
+                }
+                var typingText = UnityEngine.Object.Instantiate(ShowTypingPlugin.unfocusedText, bodyObject.transform);
+                NetworkServer.Spawn(typingText);
+            }
+
+            public void Serialize(NetworkWriter writer)
+            {
+                writer.Write(netId);
+            }
+
+            public void Deserialize(NetworkReader reader)
+            {
+                netId = reader.ReadNetworkId();
             }
         }
     }
