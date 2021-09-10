@@ -11,6 +11,8 @@ using R2API.Networking;
 using UnityEngine.Networking;
 using BepInEx.Configuration;
 
+using R2API.Networking.Interfaces;
+
 using System;
 
 [module: UnverifiableCode]
@@ -75,6 +77,7 @@ namespace DeathMessageAboveCorpse
         public static ConfigEntry<bool> cfgFinalSurvivorCorpseKept;
 
         public static GameObject defaultTextObject;
+        public static GameObject communicatorObject;
 
         // Text displays larger for the client in the middle of the screen (https://youtu.be/vQRPpSx5WLA?t=1336)
         // 3 second delay after the corpse is on the ground before showing either client or server message
@@ -102,23 +105,23 @@ namespace DeathMessageAboveCorpse
 
         public void SetupConfig()
         {
-            cfgDuration = Config.Bind("", "Duration", 60f, "Length of time in seconds the message stays out.");
-            cfgFinalSurvivorCorpseKept = Config.Bind("", "Keep Final Corpse Alive", true, "If true, keeps the player's final/last-life corpse from getting deleted until the message is finished.");
+            cfgDuration = Config.Bind("", "Duration", 60f, "Length of time in seconds the message stays out. Set to zero/negative for infinite.");
+            //cfgFinalSurvivorCorpseKept = Config.Bind("", "Keep Final Corpse Alive", true, "If true, keeps the player's final/last-life corpse from getting deleted until the message is finished.");
         }
 
         private void GlobalEventManager_OnPlayerCharacterDeath(On.RoR2.GlobalEventManager.orig_OnPlayerCharacterDeath orig, RoR2.GlobalEventManager self, RoR2.DamageReport damageReport, RoR2.NetworkUser victimNetworkUser)
         {
             orig(self, damageReport, victimNetworkUser);
 
+            //int quoteIndex = UnityEngine.Random.Range(0, deathMessages.Length);
             var deathMessage = GetDeathMessage();
             var textObject = UnityEngine.Object.Instantiate<GameObject>(defaultTextObject);
-            textObject.transform.position = damageReport.victimBody.corePosition + Vector3.up * 2f;
             ShowDeathMessageComponent showDeathMessageComponent = textObject.GetComponent<ShowDeathMessageComponent>();
-            showDeathMessageComponent.textMeshPro.text = deathMessage;
-            //showDeathMessageComponent.textMeshPro.font = Resources.Load<TMP_FontAsset>("tmpfonts/fontsource/RiskofRainFont");
-            //showDeathMessageComponent.textMeshPro.fontMaterial = Resources.Load<Material>("tmpfonts/fontsource/riskofrainfont");
             showDeathMessageComponent.transformToWatch = damageReport.victim.modelLocator.modelTransform.transform;
+            showDeathMessageComponent.textMeshPro.text = deathMessage;
             showDeathMessageComponent.languageTextMeshController.token = deathMessage;
+
+            //new Networking.DeathQuoteMessage(identity).Send(NetworkDestination.Server);
             NetworkServer.Spawn(textObject);
         }
 
@@ -138,22 +141,14 @@ namespace DeathMessageAboveCorpse
             UnityEngine.Object.Destroy(textPrefab.GetComponent<Rigidbody>());
             textPrefab.AddComponent<NetworkIdentity>();
             ShowDeathMessageComponent showDeathMessageComponent = textPrefab.AddComponent<ShowDeathMessageComponent>();
-            showDeathMessageComponent.duration = 3f;
+            showDeathMessageComponent.timeBeforeDisplay = 3f;
             showDeathMessageComponent.gameObjectToEnable = textPrefab.transform.Find("TextMeshPro").gameObject;
             showDeathMessageComponent.textMeshPro = showDeathMessageComponent.gameObjectToEnable.GetComponent<TextMeshPro>();
             showDeathMessageComponent.textMeshPro.fontSize = 2f;
             showDeathMessageComponent.languageTextMeshController = showDeathMessageComponent.gameObjectToEnable.GetComponent<LanguageTextMeshController>();
 
-
-            if (cfgDuration.Value > 0)
-            {
-                showDeathMessageComponent.destroyOnTimer = textPrefab.GetComponent<DestroyOnTimer>();
-                showDeathMessageComponent.destroyOnTimer.duration = cfgDuration.Value;
-            }
-            else
-            {
-                UnityEngine.Object.Destroy(textPrefab.GetComponent<DestroyOnTimer>());
-            }
+            showDeathMessageComponent.destroyOnTimer = textPrefab.GetComponent<DestroyOnTimer>();
+            showDeathMessageComponent.destroyOnTimer.duration = cfgDuration.Value > 0 ? cfgDuration.Value : Mathf.Infinity;
 
             if (textPrefab) { PrefabAPI.RegisterNetworkPrefab(textPrefab); }
             return textPrefab;
@@ -165,7 +160,7 @@ namespace DeathMessageAboveCorpse
             public GameObject gameObjectToEnable;
 
             private float age;
-            public float duration;
+            public float timeBeforeDisplay;
             public bool stoppedMoving;
 
             public TextMeshPro textMeshPro;
@@ -209,7 +204,7 @@ namespace DeathMessageAboveCorpse
                 }
                 this.age += Time.fixedDeltaTime;
 
-                if (this.age > this.duration)
+                if (this.age > this.timeBeforeDisplay)
                 {
                     //bool grounded = false;
                     Physics.Raycast(lastPosition, Vector3.down, out RaycastHit raycastHit, 1000f, LayerIndex.world.mask);

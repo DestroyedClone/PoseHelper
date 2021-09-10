@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Text;
 using R2API.Networking.Interfaces;
 using UnityEngine.Networking;
-using ShowTyping;
 using UnityEngine;
 using RoR2;
 using static DeathMessageAboveCorpse.DeathMessageAboveCorpsePlugin;
@@ -15,6 +14,7 @@ namespace DeathMessageAboveCorpse
         public class DeathQuoteMessage : INetMessage
         {
             NetworkInstanceId netId;
+            int quoteIndex = 0;
 
             public DeathQuoteMessage() { }
 
@@ -25,18 +25,15 @@ namespace DeathMessageAboveCorpse
 
             public void OnReceived()
             {
-                if (!NetworkServer.active)
+                if (NetworkServer.active)
                 {
-                    Chat.SendBroadcastChat(new Chat.SimpleChatMessage
-                    {
-                        baseToken = "DeathQuoteMessage: Ran on client. Skipping."
-                    });
                     return;
                 }
                 Chat.SendBroadcastChat(new Chat.SimpleChatMessage
                 {
-                    baseToken = "DeathQuoteMessage: Server received message."
+                    baseToken = "DeathQuoteMessage: Client received message."
                 });
+
                 //NetworkUser networkUser = Util.FindNetworkObject(netId).GetComponent<NetworkUser>();
                 GameObject bodyObject = Util.FindNetworkObject(netId);
                 if (!bodyObject)
@@ -47,7 +44,7 @@ namespace DeathMessageAboveCorpse
                     });
                     return;
                 }
-                var typingText = UnityEngine.Object.Instantiate(ShowMultiplayerStatusIndicatorsPlugin.typingText, bodyObject.transform);
+                var typingText = UnityEngine.Object.Instantiate(DeathMessageAboveCorpsePlugin.defaultTextObject, bodyObject.transform);
                 typingText.transform.position = bodyObject.transform.position + Vector3.up*2f;
                 typingText.transform.SetParent(bodyObject.transform);
                 NetworkServer.Spawn(typingText);
@@ -63,5 +60,7 @@ namespace DeathMessageAboveCorpse
                 netId = reader.ReadNetworkId();
             }
         }
+
+
     }
 }
