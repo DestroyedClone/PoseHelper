@@ -119,7 +119,7 @@ namespace DeathMessageAboveCorpse
 
         public void SetupConfig()
         {
-            cfgDuration = Config.Bind("", "Duration", 60f, "Length of time in seconds the message stays out. Set to zero/negative for infinite.");
+            cfgDuration = Config.Bind("", "Duration", 60f, "Length of time in seconds the message stays out. Set to zero/negative for 100 hours.");
             //cfgFinalSurvivorCorpseKept = Config.Bind("", "Keep Final Corpse Alive", true, "If true, keeps the player's final/last-life corpse from getting deleted until the message is finished.");
         }
 
@@ -152,7 +152,7 @@ namespace DeathMessageAboveCorpse
             deathMessageLocator.textMeshPro.fontSize = fontSize;
             deathMessageLocator.languageTextMeshController = textPrefab.transform.Find("TextMeshPro").gameObject.GetComponent<LanguageTextMeshController>();
             deathMessageLocator.destroyOnTimer = textPrefab.GetComponent<DestroyOnTimer>();
-            textPrefab.GetComponent<DestroyOnTimer>().duration = cfgDuration.Value > 0 ? cfgDuration.Value : Mathf.Infinity;
+            textPrefab.GetComponent<DestroyOnTimer>().duration = cfgDuration.Value > 0 ? cfgDuration.Value : 360000;
 
             PrefabAPI.RegisterNetworkPrefab(textPrefab);
             defaultTextObject = textPrefab;
