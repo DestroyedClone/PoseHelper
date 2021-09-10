@@ -74,10 +74,9 @@ namespace DeathMessageAboveCorpse
         };
 
         public static ConfigEntry<float> cfgDuration;
-        public static ConfigEntry<bool> cfgFinalSurvivorCorpseKept;
 
         public static GameObject defaultTextObject;
-        public static GameObject communicatorObject;
+        public static GameObject defaultTrackerObject;
 
         // Text displays larger for the client in the middle of the screen (https://youtu.be/vQRPpSx5WLA?t=1336)
         // 3 second delay after the corpse is on the ground before showing either client or server message
@@ -86,10 +85,25 @@ namespace DeathMessageAboveCorpse
         public void Awake()
         {
             SetupConfig();
-            On.RoR2.GlobalEventManager.OnPlayerCharacterDeath += GlobalEventManager_OnPlayerCharacterDeath;
-            if (cfgFinalSurvivorCorpseKept.Value)
-                On.RoR2.ModelLocator.OnDestroy += ModelLocator_OnDestroy;
+            On.RoR2.CharacterBody.OnDeathStart += CharacterBody_OnDeathStart;
+            On.RoR2.ModelLocator.OnDestroy += ModelLocator_OnDestroy;
+            NetworkingAPI.RegisterMessageType<Networking.DeathQuoteMessageToServer>();
             defaultTextObject = CreateDefaultTextObject();
+            Debug.Log("a");
+            defaultTrackerObject = CreateTrackerObject();
+            Debug.Log("b");
+        }
+
+        private void CharacterBody_OnDeathStart(On.RoR2.CharacterBody.orig_OnDeathStart orig, CharacterBody self)
+        {
+            if (self.master && self.isPlayerControlled && LocalUserManager.readOnlyLocalUsersList[0].cachedBody.GetComponent<NetworkIdentity>() == self.GetComponent<NetworkIdentity>())
+            {
+                var trackerObject = Instantiate<GameObject>(defaultTrackerObject);
+                defaultTrackerObject.name = $"Tracking Corpse: {self.GetDisplayName()}";
+                trackerObject.GetComponent<TrackCorpseClient>().modelTransform = self.modelLocator.modelTransform.transform;
+                trackerObject.GetComponent<TrackCorpseClient>().lastPosition = self.transform.position;
+            }
+            orig(self);
         }
 
         private void ModelLocator_OnDestroy(On.RoR2.ModelLocator.orig_OnDestroy orig, ModelLocator self)
@@ -109,36 +123,16 @@ namespace DeathMessageAboveCorpse
             //cfgFinalSurvivorCorpseKept = Config.Bind("", "Keep Final Corpse Alive", true, "If true, keeps the player's final/last-life corpse from getting deleted until the message is finished.");
         }
 
-        private void GlobalEventManager_OnPlayerCharacterDeath(On.RoR2.GlobalEventManager.orig_OnPlayerCharacterDeath orig, RoR2.GlobalEventManager self, RoR2.DamageReport damageReport, RoR2.NetworkUser victimNetworkUser)
-        {
-            orig(self, damageReport, victimNetworkUser);
-
-            //int quoteIndex = UnityEngine.Random.Range(0, deathMessages.Length);
-            var deathMessage = GetDeathMessage();
-            var textObject = UnityEngine.Object.Instantiate<GameObject>(defaultTextObject);
-            ShowDeathMessageComponent showDeathMessageComponent = textObject.GetComponent<ShowDeathMessageComponent>();
-            showDeathMessageComponent.transformToWatch = damageReport.victim.modelLocator.modelTransform.transform;
-            showDeathMessageComponent.textMeshPro.text = deathMessage;
-            showDeathMessageComponent.languageTextMeshController.token = deathMessage;
-
-            //new Networking.DeathQuoteMessage(identity).Send(NetworkDestination.Server);
-            NetworkServer.Spawn(textObject);
-        }
-
-        public string GetDeathMessage()
-        {
-            return deathMessages[UnityEngine.Random.Range(0, deathMessages.Length)];
-        }
-
         public static GameObject CreateTrackerObject()
         {
             var trackerObject = new GameObject();
+            trackerObject.name = "trackingprefab";
             trackerObject.AddComponent<NetworkIdentity>();
-            TrackCorpseClient trackCorpse = trackerObject.AddComponent<TrackCorpseClient>();
+            trackerObject.AddComponent<TrackCorpseClient>();
+            var prefab = PrefabAPI.InstantiateClone(trackerObject, "DeathMessageAboveCorpse_DefaultTrackerObject");
 
-
-            if (trackerObject) PrefabAPI.RegisterNetworkPrefab(trackerObject);
-            return trackerObject;
+            PrefabAPI.RegisterNetworkPrefab(prefab);
+            return prefab;
         }
 
         public static GameObject CreateDefaultTextObject()
@@ -155,11 +149,10 @@ namespace DeathMessageAboveCorpse
             DeathMessageLocator deathMessageLocator = textPrefab.AddComponent<DeathMessageLocator>();
             deathMessageLocator.textMeshPro = textPrefab.transform.Find("TextMeshPro").gameObject.GetComponent<TextMeshPro>();
             deathMessageLocator.textMeshPro.fontSize = 2f;
-            deathMessageLocator.languageTextMeshController = deathMessageLocator.gameObjectToEnable.GetComponent<LanguageTextMeshController>();
-            deathMessageLocator.destroyOnTimer = textPrefab.GetComponent<DestroyOnTimer>();
-            deathMessageLocator.destroyOnTimer.duration = cfgDuration.Value > 0 ? cfgDuration.Value : Mathf.Infinity;
+            deathMessageLocator.languageTextMeshController = textPrefab.transform.Find("TextMeshPro").gameObject.GetComponent<LanguageTextMeshController>();
+            textPrefab.GetComponent<DestroyOnTimer>().duration = cfgDuration.Value > 0 ? cfgDuration.Value : Mathf.Infinity;
 
-            if (textPrefab) { PrefabAPI.RegisterNetworkPrefab(textPrefab); }
+            PrefabAPI.RegisterNetworkPrefab(textPrefab);
             defaultTextObject = textPrefab;
             return textPrefab;
         }
@@ -170,16 +163,16 @@ namespace DeathMessageAboveCorpse
             public float timeBeforeDisplay = 3f;
             public bool stoppedMoving;
 
-            public Transform transformToWatch;
-
             public Vector3 lastPosition = Vector3.zero;
 
             public CameraRigController cameraRig;
             public GameObject target;
 
+            public Transform modelTransform;
+
             private readonly float lenience = 0.15f;
 
-            private void Awake()
+            private void Start()
             {
                 cameraRig = CameraRigController.readOnlyInstancesList[0];
                 if (cameraRig) target = cameraRig.target;
@@ -193,43 +186,42 @@ namespace DeathMessageAboveCorpse
                     //EffectManager.SpawnEffect(Resources.Load<GameObject>("prefabs/effects/DamageRejected"), new EffectData(){origin = lastPosition}, true);
                     if (Mathf.Abs(Vector3.Distance(cameraRig.targetParams.cameraPivotTransform.position, lastPosition)) > lenience)
                     {
-                        this.age = 0f;
+                        age = 0f;
                         return;
                     }
                 }
-                this.age += Time.fixedDeltaTime;
+                age += Time.fixedDeltaTime;
 
-                if (this.age > this.timeBeforeDisplay)
+                if (age > timeBeforeDisplay)
                 {
-                    //bool grounded = false;
                     Physics.Raycast(lastPosition, Vector3.down, out RaycastHit raycastHit, 1000f, LayerIndex.world.mask);
-                    if (Vector3.Distance(raycastHit.point, lastPosition) >= 3f || !transformToWatch)
+                    if (Vector3.Distance(raycastHit.point, lastPosition) >= 3f)
                     {
-                        //grounded = true;
                         lastPosition = raycastHit.point;
                     }
                     var positionToSend = lastPosition + Vector3.up * 3f;
 
                     new Networking.DeathQuoteMessageToServer(positionToSend).Send(NetworkDestination.Server);
-                    if (destroyOnTimer) destroyOnTimer.enabled = true;
-                    if (gameObjectToEnable) gameObjectToEnable.SetActive(true);
-                    if (transformToWatch && !transform.gameObject.GetComponent<Corpse>()) transformToWatch.gameObject.AddComponent<Corpse>();
-                    enabled = false;
+                    Chat.AddMessage("Sent message to server!");
+                    if (modelTransform && !modelTransform.gameObject.GetComponent<Corpse>()) modelTransform.gameObject.AddComponent<Corpse>();
+                    Destroy(gameObject);
                 }
             }
         }
 
         public class DeathMessageLocator : MonoBehaviour
         {
-            public DestroyOnTimer destroyOnTimer;
-
             public TextMeshPro textMeshPro;
             public LanguageTextMeshController languageTextMeshController;
+            public int quoteIndex = 0;
 
             public void Start()
             {
-
+                Chat.AddMessage(""+quoteIndex);
+                var deathQuote = deathMessages[quoteIndex];
+                languageTextMeshController.token = deathQuote;
             }
+
         }
 
         public class ShowDeathMessageComponent : MonoBehaviour
