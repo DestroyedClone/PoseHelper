@@ -11,16 +11,17 @@ namespace DeathMessageAboveCorpse
 {
     public class Networking
     {
-        public class DeathQuoteMessage : INetMessage
+        public class DeathQuoteMessageToServer : INetMessage
         {
             NetworkInstanceId netId;
-            int quoteIndex = 0;
+            Vector3 position;
 
-            public DeathQuoteMessage() { }
+            public DeathQuoteMessageToServer() { }
 
-            public DeathQuoteMessage(NetworkInstanceId netId)
+            public DeathQuoteMessageToServer(NetworkInstanceId netId, Vector3 position)
             {
                 this.netId = netId;
+                this.position = position;
             }
 
             public void OnReceived()
@@ -53,14 +54,53 @@ namespace DeathMessageAboveCorpse
             public void Serialize(NetworkWriter writer)
             {
                 writer.Write(netId);
+                writer.Write(position);
             }
 
             public void Deserialize(NetworkReader reader)
             {
                 netId = reader.ReadNetworkId();
+                position = reader.ReadVector3();
             }
         }
 
+        public class DeathQuoteMessageToClients : INetMessage
+        {
+            Vector3 position;
+
+            public DeathQuoteMessageToClients() { }
+
+            public DeathQuoteMessageToClients(Vector3 position)
+            {
+                this.position = position;
+            }
+
+            public void OnReceived()
+            {
+                if (!NetworkServer.active)
+                {
+                    return;
+                }
+                Chat.SendBroadcastChat(new Chat.SimpleChatMessage
+                {
+                    baseToken = "DeathQuoteMessage: Server received message."
+                });
+
+                var typingText = UnityEngine.Object.Instantiate(defaultTextObject);
+                typingText.transform.position = position;
+                NetworkServer.Spawn(typingText);
+            }
+
+            public void Serialize(NetworkWriter writer)
+            {
+                writer.Write(position);
+            }
+
+            public void Deserialize(NetworkReader reader)
+            {
+                position = reader.ReadVector3();
+            }
+        }
 
     }
 }

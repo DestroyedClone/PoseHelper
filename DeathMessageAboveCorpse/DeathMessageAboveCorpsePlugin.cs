@@ -95,7 +95,7 @@ namespace DeathMessageAboveCorpse
         private void ModelLocator_OnDestroy(On.RoR2.ModelLocator.orig_OnDestroy orig, ModelLocator self)
         {
             //self.characterMotor.body.master.IsDeadAndOutOfLivesServer()
-            if (self?.characterMotor?.body?.master && self.characterMotor.body.healthComponent && !self.characterMotor.body.healthComponent.alive)
+            if (self?.characterMotor?.body?.master)// && self.characterMotor.body.healthComponent && !self.characterMotor.body.healthComponent.alive)
             {
                 self.preserveModel = true;
                 self.noCorpse = true;
@@ -130,6 +130,17 @@ namespace DeathMessageAboveCorpse
             return deathMessages[UnityEngine.Random.Range(0, deathMessages.Length)];
         }
 
+        public static GameObject CreateTrackerObject()
+        {
+            var trackerObject = new GameObject();
+            trackerObject.AddComponent<NetworkIdentity>();
+            TrackCorpseClient trackCorpse = trackerObject.AddComponent<TrackCorpseClient>();
+
+
+            if (trackerObject) PrefabAPI.RegisterNetworkPrefab(trackerObject);
+            return trackerObject;
+        }
+
         public static GameObject CreateDefaultTextObject()
         {
             var textPrefab = PrefabAPI.InstantiateClone(Resources.Load<GameObject>("prefabs/effects/DamageRejected"), "DeathMessageAboveCorpse_DefaultTextObjectChild");
@@ -140,18 +151,85 @@ namespace DeathMessageAboveCorpse
             UnityEngine.Object.Destroy(textPrefab.GetComponent<ConstantForce>());
             UnityEngine.Object.Destroy(textPrefab.GetComponent<Rigidbody>());
             textPrefab.AddComponent<NetworkIdentity>();
-            ShowDeathMessageComponent showDeathMessageComponent = textPrefab.AddComponent<ShowDeathMessageComponent>();
-            showDeathMessageComponent.timeBeforeDisplay = 3f;
-            showDeathMessageComponent.gameObjectToEnable = textPrefab.transform.Find("TextMeshPro").gameObject;
-            showDeathMessageComponent.textMeshPro = showDeathMessageComponent.gameObjectToEnable.GetComponent<TextMeshPro>();
-            showDeathMessageComponent.textMeshPro.fontSize = 2f;
-            showDeathMessageComponent.languageTextMeshController = showDeathMessageComponent.gameObjectToEnable.GetComponent<LanguageTextMeshController>();
 
-            showDeathMessageComponent.destroyOnTimer = textPrefab.GetComponent<DestroyOnTimer>();
-            showDeathMessageComponent.destroyOnTimer.duration = cfgDuration.Value > 0 ? cfgDuration.Value : Mathf.Infinity;
+            DeathMessageLocator deathMessageLocator = textPrefab.AddComponent<DeathMessageLocator>();
+            deathMessageLocator.textMeshPro = textPrefab.transform.Find("TextMeshPro").gameObject.GetComponent<TextMeshPro>();
+            deathMessageLocator.textMeshPro.fontSize = 2f;
+            deathMessageLocator.languageTextMeshController = deathMessageLocator.gameObjectToEnable.GetComponent<LanguageTextMeshController>();
+            deathMessageLocator.destroyOnTimer = textPrefab.GetComponent<DestroyOnTimer>();
+            deathMessageLocator.destroyOnTimer.duration = cfgDuration.Value > 0 ? cfgDuration.Value : Mathf.Infinity;
 
             if (textPrefab) { PrefabAPI.RegisterNetworkPrefab(textPrefab); }
+            defaultTextObject = textPrefab;
             return textPrefab;
+        }
+
+        public class TrackCorpseClient : MonoBehaviour
+        {
+            private float age;
+            public float timeBeforeDisplay = 3f;
+            public bool stoppedMoving;
+
+            public Transform transformToWatch;
+
+            public Vector3 lastPosition = Vector3.zero;
+
+            public CameraRigController cameraRig;
+            public GameObject target;
+
+            private readonly float lenience = 0.15f;
+
+            private void Awake()
+            {
+                cameraRig = CameraRigController.readOnlyInstancesList[0];
+                if (cameraRig) target = cameraRig.target;
+            }
+
+            private void FixedUpdate()
+            {
+                if (cameraRig && cameraRig.targetParams && cameraRig.targetParams.cameraPivotTransform && cameraRig.target == target)
+                {
+                    lastPosition = cameraRig.targetParams.cameraPivotTransform.position;
+                    //EffectManager.SpawnEffect(Resources.Load<GameObject>("prefabs/effects/DamageRejected"), new EffectData(){origin = lastPosition}, true);
+                    if (Mathf.Abs(Vector3.Distance(cameraRig.targetParams.cameraPivotTransform.position, lastPosition)) > lenience)
+                    {
+                        this.age = 0f;
+                        return;
+                    }
+                }
+                this.age += Time.fixedDeltaTime;
+
+                if (this.age > this.timeBeforeDisplay)
+                {
+                    //bool grounded = false;
+                    Physics.Raycast(lastPosition, Vector3.down, out RaycastHit raycastHit, 1000f, LayerIndex.world.mask);
+                    if (Vector3.Distance(raycastHit.point, lastPosition) >= 3f || !transformToWatch)
+                    {
+                        //grounded = true;
+                        lastPosition = raycastHit.point;
+                    }
+                    var positionToSend = lastPosition + Vector3.up * 3f;
+
+                    new Networking.DeathQuoteMessageToServer(positionToSend).Send(NetworkDestination.Server);
+                    if (destroyOnTimer) destroyOnTimer.enabled = true;
+                    if (gameObjectToEnable) gameObjectToEnable.SetActive(true);
+                    if (transformToWatch && !transform.gameObject.GetComponent<Corpse>()) transformToWatch.gameObject.AddComponent<Corpse>();
+                    enabled = false;
+                }
+            }
+        }
+
+        public class DeathMessageLocator : MonoBehaviour
+        {
+            public DestroyOnTimer destroyOnTimer;
+
+            public TextMeshPro textMeshPro;
+            public LanguageTextMeshController languageTextMeshController;
+
+            public void Start()
+            {
+
+            }
         }
 
         public class ShowDeathMessageComponent : MonoBehaviour
@@ -160,7 +238,7 @@ namespace DeathMessageAboveCorpse
             public GameObject gameObjectToEnable;
 
             private float age;
-            public float timeBeforeDisplay;
+            public float timeBeforeDisplay = 3f;
             public bool stoppedMoving;
 
             public TextMeshPro textMeshPro;
