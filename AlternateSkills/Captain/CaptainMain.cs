@@ -26,7 +26,7 @@ namespace AlternateSkills.Captain
             SetupSkills();
             DamageTypes.SetupDamageTypes();
             On.RoR2.GlobalEventManager.OnHitEnemy += GlobalEventManager_OnHitEnemy;
-            On.RoR2.EntityStateCatalog.Init += EntityStateCatalog_Init;
+            //On.RoR2.EntityStateCatalog.Init += EntityStateCatalog_Init;
         }
 
         private static void EntityStateCatalog_Init(On.RoR2.EntityStateCatalog.orig_Init orig)

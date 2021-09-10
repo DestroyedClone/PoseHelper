@@ -31,6 +31,12 @@ namespace AlternateSkills.Captain
 
     public class CallNukeAlt : CallAirstrikeAlt
     {
+        public override void OnEnter()
+        {
+            this.damageCoefficient = 100000;
+            base.OnEnter();
+        }
+
         public override void ModifyProjectile(ref FireProjectileInfo fireProjectileInfo)
         {
             fireProjectileInfo.projectilePrefab = Projectiles.nukeProjectile;

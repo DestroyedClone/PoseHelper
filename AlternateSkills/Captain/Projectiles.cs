@@ -12,6 +12,7 @@ namespace AlternateSkills.Captain
     {
         public static GameObject nukeProjectile;
         public static GameObject irradiateProjectile;
+        public static GameObject nukeProjectileGhost;
 
         public static int nukeBlightStacks = 10;
         public static int nukeBlightDuration = 30;
@@ -34,6 +35,9 @@ namespace AlternateSkills.Captain
             var nukeBehaviour = irradiateProjectile.AddComponent<NukeBehaviour>();
             nukeBehaviour.projectileController = irradiateProjectile.GetComponent<ProjectileController>();
 
+            nukeProjectileGhost = PrefabAPI.InstantiateClone(Resources.Load<GameObject>("prefabs/projectileghosts/CaptainAirstrikeAltGhost"), "CaptainScepterNukeGhost");
+
+            nukeProjectileGhost.transform.localScale = new Vector3(100f, 100f, 100f);
 
 
             var baseProjectile = Resources.Load<GameObject>("prefabs/projectiles/CaptainAirstrikeAltProjectile");
@@ -44,6 +48,20 @@ namespace AlternateSkills.Captain
             projectileImpactExplosion.fireChildren = true;
             projectileImpactExplosion.childrenCount = 1;
             projectileImpactExplosion.childrenProjectilePrefab = irradiateProjectile;
+            var projectileController = nukeProjectile.GetComponent<ProjectileController>();
+            if (projectileController)
+            {
+                Debug.Log("eeeee");
+            }
+            if (nukeProjectileGhost)
+            {
+                Debug.Log("b");
+                projectileController.ghostPrefab = nukeProjectileGhost;
+            } else
+            {
+                Debug.LogError("projectile ghost doesnt exist despite me making it");
+            }
+            Debug.Log("b");
 
 
             ProjectileAPI.Add(irradiateProjectile);
@@ -66,7 +84,7 @@ namespace AlternateSkills.Captain
 
             public void Irradiate()
             {
-                Chat.AddMessage("Irradiating!");
+                Chat.AddMessage("<style=cDeath><sprite name=\"Skull\" tint=1> The air feels sickly... <sprite name=\"Skull\" tint=1></style>");
                 var blastAttack = new BlastAttack
                 {
                     position = base.transform.position,
