@@ -1,23 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using R2API.Networking.Interfaces;
-using UnityEngine.Networking;
-using UnityEngine;
+﻿using R2API.Networking.Interfaces;
 using RoR2;
+using UnityEngine;
+using UnityEngine.Networking;
 using static DeathMessageAboveCorpse.DeathMessageAboveCorpsePlugin;
 
 namespace DeathMessageAboveCorpse
 {
     public class Networking
     {
-        static bool debugging = false;
+        private static bool debugging = false;
 
         public class DeathQuoteMessageToServer : INetMessage
         {
-            Vector3 position;
+            private Vector3 position;
 
-            public DeathQuoteMessageToServer() { }
+            public DeathQuoteMessageToServer()
+            {
+            }
 
             public DeathQuoteMessageToServer(Vector3 position)
             {
@@ -44,12 +43,12 @@ namespace DeathMessageAboveCorpse
 
                 if (debugging)
                     Chat.SendBroadcastChat(new Chat.SimpleChatMessage
-                {
-                    baseToken = "Server: Received."
-                });
+                    {
+                        baseToken = "Server: Received."
+                    });
 
                 var quoteIndex = UnityEngine.Random.Range(0, deathMessagesResolved.Length);
-                    new DeathQuoteMessageToClients(quoteIndex, position).Send(R2API.Networking.NetworkDestination.Clients);
+                new DeathQuoteMessageToClients(quoteIndex, position).Send(R2API.Networking.NetworkDestination.Clients);
             }
 
             public void Serialize(NetworkWriter writer)
@@ -63,13 +62,14 @@ namespace DeathMessageAboveCorpse
             }
         }
 
-
         public class DeathQuoteMessageToClients : INetMessage
         {
-            int index;
-            Vector3 position;
+            private int index;
+            private Vector3 position;
 
-            public DeathQuoteMessageToClients() { }
+            public DeathQuoteMessageToClients()
+            {
+            }
 
             public DeathQuoteMessageToClients(int index, Vector3 position)
             {
@@ -81,12 +81,11 @@ namespace DeathMessageAboveCorpse
             {
                 if (NetworkServer.active && !NetworkClient.active)
                 {
-
                     if (debugging)
                         Chat.SendBroadcastChat(new Chat.SimpleChatMessage
-                    {
-                        baseToken = "Client: Server ran code."
-                    });
+                        {
+                            baseToken = "Client: Server ran code."
+                        });
                     return;
                 }
 
@@ -96,7 +95,7 @@ namespace DeathMessageAboveCorpse
                         baseToken = "Client: Received."
                     });
 
-                    var typingText = UnityEngine.Object.Instantiate(defaultTextObject);
+                var typingText = UnityEngine.Object.Instantiate(defaultTextObject);
                 typingText.transform.position = position;
                 DeathMessageLocator deathMessageLocator = typingText.GetComponent<DeathMessageLocator>();
                 deathMessageLocator.quoteIndex = index;

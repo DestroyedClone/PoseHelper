@@ -1,18 +1,16 @@
 ﻿using BepInEx;
+using BepInEx.Configuration;
+using R2API;
+using R2API.Networking;
+using R2API.Networking.Interfaces;
 using R2API.Utils;
+using RoR2;
+using RoR2.UI;
 using System.Security;
 using System.Security.Permissions;
-using UnityEngine;
-using R2API;
-using RoR2;
 using TMPro;
-using RoR2.UI;
-using R2API.Networking;
+using UnityEngine;
 using UnityEngine.Networking;
-using BepInEx.Configuration;
-
-using R2API.Networking.Interfaces;
-using System;
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -187,17 +185,16 @@ namespace DeathMessageAboveCorpse
         {
             orig(self);
             //self.master.IsDeadAndOutOfLivesServer()
-            bool lastLifeCheck = true;
-            if (cfgOnlyLastLife.Value)
+            bool lastLifeCheck = cfgOnlyLastLife.Value == false || cfgOnlyLastLife.Value && self.master.IsDeadAndOutOfLivesServer();
+            if (self.isPlayerControlled && self.master && lastLifeCheck)
             {
-                lastLifeCheck = self.master && self.master.IsDeadAndOutOfLivesServer();
-            }
-            if (self.master && self.isPlayerControlled && lastLifeCheck && LocalUserManager.readOnlyLocalUsersList[0].cachedBody.GetComponent<NetworkIdentity>() == self.GetComponent<NetworkIdentity>())
-            {
-                var trackerObject = Instantiate<GameObject>(defaultTrackerObject);
-                defaultTrackerObject.name = $"Tracking Corpse: {self.GetDisplayName()}";
-                trackerObject.GetComponent<TrackCorpseClient>().modelTransform = self.modelLocator.modelTransform.transform;
-                trackerObject.GetComponent<TrackCorpseClient>().lastPosition = self.transform.position;
+                if (LocalUserManager.readOnlyLocalUsersList[0].cachedBody.GetComponent<NetworkIdentity>() == self.GetComponent<NetworkIdentity>())
+                {
+                    var trackerObject = Instantiate<GameObject>(defaultTrackerObject);
+                    trackerObject.name = $"Tracking Corpse: {self.GetDisplayName()}";
+                    trackerObject.GetComponent<TrackCorpseClient>().modelTransform = self.modelLocator.modelTransform.transform;
+                    trackerObject.GetComponent<TrackCorpseClient>().lastPosition = self.transform.position;
+                }
             }
         }
 
@@ -229,7 +226,8 @@ namespace DeathMessageAboveCorpse
                 deathMessagesResolved = new string[deathMessages.Length + deathMessagesStarstorm.Length];
                 deathMessages.CopyTo(deathMessagesResolved, 0);
                 deathMessagesStarstorm.CopyTo(deathMessagesResolved, deathMessages.Length);
-            } else
+            }
+            else
             {
                 deathMessagesResolved = (string[])deathMessages.Clone();
             }
@@ -327,7 +325,7 @@ namespace DeathMessageAboveCorpse
                     var positionToSend = lastPosition + Vector3.up * 3f;
 
                     new Networking.DeathQuoteMessageToServer(positionToSend).Send(NetworkDestination.Server);
-                    Chat.AddMessage("Sent message to server!");
+                    //Chat.AddMessage("Sent message to server!");
                     //if (modelTransform && !modelTransform.gameObject.GetComponent<Corpse>()) modelTransform.gameObject.AddComponent<Corpse>();
                     Destroy(gameObject);
                 }
@@ -343,21 +341,19 @@ namespace DeathMessageAboveCorpse
 
             public void Start()
             {
-                    //Chat.AddMessage(""+quoteIndex);
-                if (quoteIndex > deathMessagesResolved.Length-1)
+                //Chat.AddMessage(""+quoteIndex);
+                if (quoteIndex > deathMessagesResolved.Length - 1)
                 {
                     quoteIndex = deathMessagesResolved.Length - 1;
                 }
                 var deathQuote = deathMessagesResolved[quoteIndex];
                 languageTextMeshController.token = deathQuote;
-
             }
 
             public void ShowMessageOnHud()
             {
                 var hudSimple = GameObject.Find("HUDSimple(Clone)");
             }
-
         }
 
         /*
