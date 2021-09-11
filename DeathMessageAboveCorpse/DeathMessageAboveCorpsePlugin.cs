@@ -12,7 +12,6 @@ using UnityEngine.Networking;
 using BepInEx.Configuration;
 
 using R2API.Networking.Interfaces;
-
 using System;
 
 [module: UnverifiableCode]
@@ -73,7 +72,96 @@ namespace DeathMessageAboveCorpse
             "Consider lowering the difficulty.",
         };
 
+        public static string[] deathMessagesStarstorm = new string[]
+        {"Oh no...",
+        "Oopsie.",
+        "Should have seen that coming.",
+        "Destiny sealed.",
+        "That was depressing.",
+        "Anticlimatic.",
+        "Yeet.",
+        "That wasn't cool.",
+        "Dying, again.",
+        "Could have been worse.",
+        "At least you tried.",
+        "Heartbroken.",
+        "Not OP.",
+        "Should have gotten Dio's Friend.",
+        "What?",
+        "Yeah... nice.",
+        "Are you okay?",
+        "Let's try again sometime soon.",
+        "Rude, didn't even say goodbye.",
+        "Another one bites the dust.",
+        "Stinky.",
+        "Get some rest.",
+        "I don't get it.",
+        ":(",
+        "To be honest, I expected that.",
+        "You are no more.",
+        "You died painfully.",
+        "Let's pretend that didn't happen.",
+        "Bye bye.",
+        "You cried before losing consciousness.",
+        "You will be remembered.",
+        "You didn't stand a chance.",
+        "Very, very dead.",
+        "Sorry mom.",
+        "Mom says it's my turn now.",
+        "What's the point?",
+        "Relatable.",
+        "Try harder.",
+        "Boom.",
+        "ouchies owo",
+        "F.",
+        "This is the part where you quit.",
+        "You weren't strong enough.",
+        "Continue?",
+        "You have perished.",
+        "The planet has claimed your life",
+        "You fought valiantly... But to no avail.",
+        "You didn't know how to live.",
+        "The end.",
+        "FIN.",
+        "Was that it?",
+        "Give up?",
+        "The end?",
+        "Nooooooooooo!",
+        "Good enough.",
+        "Fair game.",
+        "Need a tutorial?",
+        "Help is not coming.",
+        "Medic!",
+        "C-c-c-combo breaker!",
+        "It was fun while it lasted.",
+        "An attempt was made.",
+        "You had one job.",
+        "Good job!",
+        "Need a hug?",
+        "Hnng.",
+        "Life comes and goes.",
+        "It's just a game.",
+        "You'll win! ...Someday.",
+        "You could do it.",
+        "dead.exe",
+        "Imagine living",
+        "What?!",
+        "What was that?",
+        "Don't skip leg day.",
+        "Wow! Okay...",
+        "Whew.",
+        "Yes, you just died.",
+        "Free ticket to hell.",
+        "Free ticket to heaven.",
+        "The void welcomes you.",
+        "Weee wooo weee wooo."
+        };
+
+        public static string[] deathMessagesResolved = new string[] { };
+
         public static ConfigEntry<float> cfgDuration;
+        public static ConfigEntry<bool> cfgUseSSMessages;
+        public static ConfigEntry<bool> cfgOnlyLastLife;
         public static float fontSize = 10f;
 
         public static GameObject defaultTextObject;
@@ -86,6 +174,7 @@ namespace DeathMessageAboveCorpse
         public void Awake()
         {
             SetupConfig();
+            ReadConfig();
             On.RoR2.CharacterBody.OnDeathStart += CharacterBody_OnDeathStart;
             //On.RoR2.ModelLocator.OnDestroy += ModelLocator_OnDestroy;
             NetworkingAPI.RegisterMessageType<Networking.DeathQuoteMessageToServer>();
@@ -97,7 +186,13 @@ namespace DeathMessageAboveCorpse
         private void CharacterBody_OnDeathStart(On.RoR2.CharacterBody.orig_OnDeathStart orig, CharacterBody self)
         {
             orig(self);
-            if (self.master && self.isPlayerControlled && self.master.IsDeadAndOutOfLivesServer() && LocalUserManager.readOnlyLocalUsersList[0].cachedBody.GetComponent<NetworkIdentity>() == self.GetComponent<NetworkIdentity>())
+            //self.master.IsDeadAndOutOfLivesServer()
+            bool lastLifeCheck = true;
+            if (cfgOnlyLastLife.Value)
+            {
+                lastLifeCheck = self.master && self.master.IsDeadAndOutOfLivesServer();
+            }
+            if (self.master && self.isPlayerControlled && lastLifeCheck && LocalUserManager.readOnlyLocalUsersList[0].cachedBody.GetComponent<NetworkIdentity>() == self.GetComponent<NetworkIdentity>())
             {
                 var trackerObject = Instantiate<GameObject>(defaultTrackerObject);
                 defaultTrackerObject.name = $"Tracking Corpse: {self.GetDisplayName()}";
@@ -120,7 +215,35 @@ namespace DeathMessageAboveCorpse
         public void SetupConfig()
         {
             cfgDuration = Config.Bind("", "Duration", 60f, "Length of time in seconds the message stays out. Set to zero/negative for 100 hours.");
+            cfgUseSSMessages = Config.Bind("Match with Host", "Starstorm Strings", false, "If enabled, then the mod will include death messages from Starstorm." +
+                "\nEnsure this setting matches with the host of the server.");
+            cfgOnlyLastLife = Config.Bind("Match with Host", "Only Show On True Death", true, "If enabled, then the message will only show up on the player's last life, to mirror Risk of Rain 1." +
+                "\nEnsure this setting matches with the host of the server.");
             //cfgFinalSurvivorCorpseKept = Config.Bind("", "Keep Final Corpse Alive", true, "If true, keeps the player's final/last-life corpse from getting deleted until the message is finished.");
+        }
+
+        public void ReadConfig()
+        {
+            if (cfgUseSSMessages.Value)
+            {
+                deathMessagesResolved = new string[deathMessages.Length + deathMessagesStarstorm.Length];
+                deathMessages.CopyTo(deathMessagesResolved, 0);
+                deathMessagesStarstorm.CopyTo(deathMessagesResolved, deathMessages.Length);
+            } else
+            {
+                deathMessagesResolved = (string[])deathMessages.Clone();
+            }
+        }
+
+        public void ICantRead()
+        {
+            // use a dictionary?
+            // <bool, string[]>
+            // iterate through, if true then add to a string[][] object
+            // var length = foreach string[] in string[][].length++;
+            // new string[length].
+            // foreach string[] in string[][]
+            // Copy to based off last or something
         }
 
         public static GameObject CreateTrackerObject()
@@ -220,8 +343,12 @@ namespace DeathMessageAboveCorpse
 
             public void Start()
             {
-                //Chat.AddMessage(""+quoteIndex);
-                var deathQuote = deathMessages[quoteIndex];
+                    //Chat.AddMessage(""+quoteIndex);
+                if (quoteIndex > deathMessagesResolved.Length-1)
+                {
+                    quoteIndex = deathMessagesResolved.Length - 1;
+                }
+                var deathQuote = deathMessagesResolved[quoteIndex];
                 languageTextMeshController.token = deathQuote;
 
             }
@@ -233,6 +360,7 @@ namespace DeathMessageAboveCorpse
 
         }
 
+        /*
         public class ShowDeathMessageComponent : MonoBehaviour
         {
             public DestroyOnTimer destroyOnTimer;
@@ -271,10 +399,10 @@ namespace DeathMessageAboveCorpse
                 if (cameraRig && cameraRig.targetParams && cameraRig.targetParams.cameraPivotTransform && cameraRig.target == target)
                 {
                     lastPosition = cameraRig.targetParams.cameraPivotTransform.position;
-                    /*EffectManager.SpawnEffect(Resources.Load<GameObject>("prefabs/effects/DamageRejected"), new EffectData()
+                    EffectManager.SpawnEffect(Resources.Load<GameObject>("prefabs/effects/DamageRejected"), new EffectData()
                     {
                         origin = lastPosition
-                    }, true);*/
+                    }, true);
                     if (Mathf.Abs(Vector3.Distance(cameraRig.targetParams.cameraPivotTransform.position, lastPosition)) > lenience)
                     {
                         this.age = 0f;
@@ -299,6 +427,6 @@ namespace DeathMessageAboveCorpse
                     enabled = false;
                 }
             }
-        }
+        }*/
     }
 }

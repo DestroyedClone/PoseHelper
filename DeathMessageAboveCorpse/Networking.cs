@@ -11,6 +11,8 @@ namespace DeathMessageAboveCorpse
 {
     public class Networking
     {
+        static bool debugging = false;
+
         public class DeathQuoteMessageToServer : INetMessage
         {
             Vector3 position;
@@ -26,11 +28,11 @@ namespace DeathMessageAboveCorpse
             {
                 if (!NetworkServer.active)
                 {
-
-                    Chat.SendBroadcastChat(new Chat.SimpleChatMessage
-                    {
-                        baseToken = "Server: Client ran code."
-                    });
+                    if (debugging)
+                        Chat.SendBroadcastChat(new Chat.SimpleChatMessage
+                        {
+                            baseToken = "Server: Client ran code."
+                        });
                     return;
                 }
 
@@ -40,12 +42,13 @@ namespace DeathMessageAboveCorpse
                 deathMessageLocator.quoteIndex = UnityEngine.Random.Range(0, deathMessages.Length);
                 NetworkServer.Spawn(typingText);*/
 
-                Chat.SendBroadcastChat(new Chat.SimpleChatMessage
+                if (debugging)
+                    Chat.SendBroadcastChat(new Chat.SimpleChatMessage
                 {
                     baseToken = "Server: Received."
                 });
 
-                var quoteIndex = UnityEngine.Random.Range(0, deathMessages.Length);
+                var quoteIndex = UnityEngine.Random.Range(0, deathMessagesResolved.Length);
                     new DeathQuoteMessageToClients(quoteIndex, position).Send(R2API.Networking.NetworkDestination.Clients);
             }
 
@@ -79,19 +82,21 @@ namespace DeathMessageAboveCorpse
                 if (NetworkServer.active && !NetworkClient.active)
                 {
 
-                    Chat.SendBroadcastChat(new Chat.SimpleChatMessage
+                    if (debugging)
+                        Chat.SendBroadcastChat(new Chat.SimpleChatMessage
                     {
                         baseToken = "Client: Server ran code."
                     });
                     return;
                 }
 
-                Chat.SendBroadcastChat(new Chat.SimpleChatMessage
-                {
-                    baseToken = "Client: Received."
-                });
+                if (debugging)
+                    Chat.SendBroadcastChat(new Chat.SimpleChatMessage
+                    {
+                        baseToken = "Client: Received."
+                    });
 
-                var typingText = UnityEngine.Object.Instantiate(defaultTextObject);
+                    var typingText = UnityEngine.Object.Instantiate(defaultTextObject);
                 typingText.transform.position = position;
                 DeathMessageLocator deathMessageLocator = typingText.GetComponent<DeathMessageLocator>();
                 deathMessageLocator.quoteIndex = index;
