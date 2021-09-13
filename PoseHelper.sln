@@ -93,8 +93,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LobbySkillPreview", "LobbyS
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NoUnlocksDrizzle", "NoUnlocksDrizzle\NoUnlocksDrizzle.csproj", "{27364D54-570D-4530-867D-6002695275D1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoSkipIntroCutscenePatch", "AutoSkipIntroCutscenePatch\AutoSkipIntroCutscenePatch.csproj", "{194AA803-FC15-4A16-A32D-C63BCA2E8008}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -281,10 +279,6 @@ Global
 		{27364D54-570D-4530-867D-6002695275D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{27364D54-570D-4530-867D-6002695275D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{27364D54-570D-4530-867D-6002695275D1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{194AA803-FC15-4A16-A32D-C63BCA2E8008}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{194AA803-FC15-4A16-A32D-C63BCA2E8008}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{194AA803-FC15-4A16-A32D-C63BCA2E8008}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{194AA803-FC15-4A16-A32D-C63BCA2E8008}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
