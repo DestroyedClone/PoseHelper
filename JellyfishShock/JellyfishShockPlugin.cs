@@ -10,7 +10,7 @@ using KinematicCharacterController;
 
 namespace JellyfishShock
 {
-    [BepInPlugin("com.DestroyedClone.JellyfishShocks", "Jellyfish Shocks", "1.0.0")]
+    [BepInPlugin("com.DestroyedClone.OriginalJellyfish", "Original Jellyfish", "1.0.0")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.DifferentModVersionsAreOk)]
     [R2APISubmoduleDependency(nameof(LanguageAPI), nameof(LoadoutAPI))]
@@ -29,6 +29,7 @@ namespace JellyfishShock
         private static void SetupBody()
         {
             myCharacter.GetComponent<SetStateOnHurt>().canBeHitStunned = false;
+            myCharacter.GetComponent<SetStateOnHurt>().canBeStunned = false;
             myCharacter.GetComponent<SphereCollider>().enabled = false;
             myCharacter.GetComponent<Rigidbody>().mass = 999999f;
         }
@@ -39,7 +40,7 @@ namespace JellyfishShock
                 "\n\nAlso like the Jellyfish, they have quite the sting, capable of penetrating my weather shielding. The same gases used for flight are used to create a very powerful electrostatic charge." +
                 "\n\nWhen they are not busy hunting me, the Jellyfish have been seen sunbathing and absorbing the strange fumes from the ground.";
 
-            LanguageAPI.Add("JELLYFISH_LORE", lore_en, "EN");
+            LanguageAPI.Add("JELLYFISH_BODY_LORE", lore_en, "en");
         }
 
         private static void SetupSkills()

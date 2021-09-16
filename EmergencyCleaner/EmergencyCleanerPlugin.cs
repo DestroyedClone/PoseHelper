@@ -7,6 +7,7 @@ using UnityEngine;
 using RoR2.Skills;
 using EntityStates;
 using System.Collections;
+using BepInEx.Configuration;
 
 namespace EmergencyCleaner
 {

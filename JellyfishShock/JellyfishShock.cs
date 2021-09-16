@@ -14,13 +14,13 @@ namespace JellyfishShock
 			novaEffectPrefab = JellyNova.novaEffectPrefab;
 			chargingSoundString = ShockState.enterSoundString;
 			novaSoundString = JellyNova.novaSoundString;
-			novaDamageCoefficient = 0.8f;
-			novaRadius = JellyNova.novaRadius;
+			novaDamageCoefficient = 0.4f;
+			novaRadius = JellyNova.novaRadius * 0.5f;
 			novaForce = 0;
 		}
 
 
-		public static float baseDuration = 1f;
+		public static float baseDuration = 0.5f;
 		public static GameObject chargingEffectPrefab;
 		public static GameObject novaEffectPrefab;
 		public static string chargingSoundString;
@@ -38,15 +38,15 @@ namespace JellyfishShock
 		{
 			base.OnEnter();
 			this.stopwatch = 0f;
-			this.duration = JellyNova.baseDuration / this.attackSpeedStat;
+			this.duration = JellyShockSkill.baseDuration / this.attackSpeedStat;
 			Transform modelTransform = base.GetModelTransform();
 			base.PlayCrossfade("Body", "Nova", "Nova.playbackRate", this.duration, 0.1f);
-			this.soundID = Util.PlaySound(JellyNova.chargingSoundString, base.gameObject);
-			if (JellyNova.chargingEffectPrefab)
+			this.soundID = Util.PlaySound(JellyShockSkill.chargingSoundString, base.gameObject);
+			if (JellyShockSkill.chargingEffectPrefab)
 			{
-				this.chargeEffect = UnityEngine.Object.Instantiate<GameObject>(JellyNova.chargingEffectPrefab, base.transform.position, base.transform.rotation);
+				this.chargeEffect = UnityEngine.Object.Instantiate<GameObject>(JellyShockSkill.chargingEffectPrefab, base.transform.position, base.transform.rotation);
 				this.chargeEffect.transform.parent = base.transform;
-				this.chargeEffect.transform.localScale = new Vector3(JellyNova.novaRadius, JellyNova.novaRadius, JellyNova.novaRadius);
+				this.chargeEffect.transform.localScale = new Vector3(JellyShockSkill.novaRadius, JellyShockSkill.novaRadius, JellyShockSkill.novaRadius);
 				this.chargeEffect.GetComponent<ScaleParticleSystemDuration>().newDuration = this.duration;
 			}
 			if (modelTransform)
@@ -92,17 +92,17 @@ namespace JellyfishShock
 		private void Detonate()
 		{
 			this.hasExploded = true;
-			Util.PlaySound(JellyNova.novaSoundString, base.gameObject);
+			Util.PlaySound(JellyShockSkill.novaSoundString, base.gameObject);
 			if (this.chargeEffect)
 			{
 				EntityState.Destroy(this.chargeEffect);
 			}
-			if (JellyNova.novaEffectPrefab)
+			if (JellyShockSkill.novaEffectPrefab)
 			{
-				EffectManager.SpawnEffect(JellyNova.novaEffectPrefab, new EffectData
+				EffectManager.SpawnEffect(JellyShockSkill.novaEffectPrefab, new EffectData
 				{
 					origin = base.transform.position,
-					scale = JellyNova.novaRadius
+					scale = JellyShockSkill.novaRadius
 				}, true);
 			}
 			new BlastAttack
@@ -110,10 +110,11 @@ namespace JellyfishShock
 				attacker = base.gameObject,
 				inflictor = base.gameObject,
 				teamIndex = TeamComponent.GetObjectTeam(base.gameObject),
-				baseDamage = this.damageStat * JellyNova.novaDamageCoefficient,
-				baseForce = JellyNova.novaForce,
+				baseDamage = this.damageStat * JellyShockSkill.novaDamageCoefficient,
+				baseForce = 0f,
+				bonusForce = Vector3.zero,
 				position = base.transform.position,
-				radius = JellyNova.novaRadius,
+				radius = JellyShockSkill.novaRadius,
 				procCoefficient = 1f,
 				attackerFiltering = AttackerFiltering.NeverHit
 			}.Fire();

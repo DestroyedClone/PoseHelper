@@ -99,6 +99,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TargetedNotifier", "Targete
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmergencyCleaner", "EmergencyCleaner\EmergencyCleaner.csproj", "{F1DB9B9B-01EA-461F-99A3-8016927B4D7B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RandomLoadoutMonsterArtifact", "RandomLoadoutMonsterArtifact\RandomLoadoutMonsterArtifact.csproj", "{62CFAE75-6CB4-4991-903D-35C5631757D6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -297,6 +299,10 @@ Global
 		{F1DB9B9B-01EA-461F-99A3-8016927B4D7B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F1DB9B9B-01EA-461F-99A3-8016927B4D7B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F1DB9B9B-01EA-461F-99A3-8016927B4D7B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{62CFAE75-6CB4-4991-903D-35C5631757D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{62CFAE75-6CB4-4991-903D-35C5631757D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{62CFAE75-6CB4-4991-903D-35C5631757D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{62CFAE75-6CB4-4991-903D-35C5631757D6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
