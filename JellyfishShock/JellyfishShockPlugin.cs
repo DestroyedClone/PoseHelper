@@ -75,7 +75,7 @@ namespace JellyfishShock
                 LanguageAPI.Add(lorestring, lore_en, "en");
                 LanguageAPI.Add(lorestring, lore_es, "es-419");
                 LanguageAPI.Add(lorestring, lore_jp, "ja");
-                LanguageAPI.Add(lorestring, lore_ru, "ru");
+                LanguageAPI.Add(lorestring, lore_ru, "RU");
 
                 // Skill
                 var nameString = "DESTROYEDCLONE_JELLYFISHSHOCK_NAME";
