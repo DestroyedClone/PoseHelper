@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using EntityStates;
-using EntityStates.JellyfishMonster;
+﻿using EntityStates.JellyfishMonster;
 
 namespace JellyfishShock
 {

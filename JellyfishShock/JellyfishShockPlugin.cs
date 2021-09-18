@@ -1,15 +1,11 @@
-﻿using System;
-using BepInEx;
+﻿using BepInEx;
+using BepInEx.Configuration;
+using EntityStates;
 using R2API;
 using R2API.Utils;
 using RoR2;
-using UnityEngine;
 using RoR2.Skills;
-using EntityStates;
-using KinematicCharacterController;
-using BepInEx.Configuration;
-using System.Collections;
-using System.Collections.Generic;
+using UnityEngine;
 
 namespace JellyfishShock
 {
@@ -67,7 +63,7 @@ namespace JellyfishShock
                     "\n\nAlso like the Jellyfish, they have quite the sting, capable of penetrating my weather shielding. The same gases used for flight are used to create a very powerful electrostatic charge." +
                     "\n\nWhen they are not busy hunting me, the Jellyfish have been seen sunbathing and absorbing the strange fumes from the ground.";
                 var lore_es = "Notas de campo:  Una criatura aérea, capaz de volar utilizando una combinación de gases en su casco transparente. Al igual que las medusas de la Tierra, también utilizan la pulsación para ayudarse en la locomoción; sin embargo, en lugar de una serie de tentáculos, tienen dos \"ramas\" formadas por muchos tentáculos envueltos alrededor de sí mismos." +
-                    "\n\nTambién, al igual que las medusas, tienen un aguijón bastante potente, capaz de penetrar mi escudo meteorológico. Los mismos gases que utilizan para volar sirven para crear una carga electrostática muy potente." + 
+                    "\n\nTambién, al igual que las medusas, tienen un aguijón bastante potente, capaz de penetrar mi escudo meteorológico. Los mismos gases que utilizan para volar sirven para crear una carga electrostática muy potente." +
                     "\n\nCuando no están ocupadas cazándome, se ha visto a las medusas tomando el sol y absorbiendo los extraños gases del suelo. Traducción realizada con la versión gratuita del traductor";
                 var lore_jp = "フィールドノート。 透明な船体の中にあるガスの組み合わせで飛行することができる空中生物。地球上のクラゲと同様に脈動を利用して移動するが、一連の触手ではなく、多くの触手を巻き付けた2本の「枝」を持つ。" +
                     "\n\nまた、クラゲのようにかなりの刺があり、私の遮蔽物を貫通することができる。飛行に使われるのと同じガスを使って、非常に強力な静電気を発生させます。" +
