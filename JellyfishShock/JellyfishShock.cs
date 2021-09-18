@@ -10,22 +10,22 @@ namespace JellyfishShock
 	{
 		public JellyShockSkill()
         {
+			novaDamageCoefficient = JellyfishShockPlugin.JellyfishDischargeDamageCoefficient.Value;
 			chargingEffectPrefab = JellyNova.chargingEffectPrefab;
 			novaEffectPrefab = JellyNova.novaEffectPrefab;
 			chargingSoundString = ShockState.enterSoundString;
 			novaSoundString = JellyNova.novaSoundString;
-			novaDamageCoefficient = 0.4f;
-			novaRadius = JellyNova.novaRadius * 0.5f;
+			novaRadius = JellyNova.novaRadius * 0.8f;
 			novaForce = 0;
 		}
 
 
-		public static float baseDuration = 0.5f;
+		public static float baseDuration = 0.25f;
 		public static GameObject chargingEffectPrefab;
 		public static GameObject novaEffectPrefab;
 		public static string chargingSoundString;
 		public static string novaSoundString;
-		public static float novaDamageCoefficient;
+		public static float novaDamageCoefficient = 1f;
 		public static float novaRadius;
 		public static float novaForce;
 		private bool hasExploded;
