@@ -51,7 +51,10 @@ namespace JellyfishShock
                 "\n2. Close the game, and delete your config file for this mod." +
                 "\n3. Start the game.";
 
-            var currentLanguage = Language.currentLanguageName;
+            var currentLanguageIsNull = Language.currentLanguage == null;
+
+            var currentLanguage = currentLanguageIsNull ? "en" : Language.currentLanguageName;
+            var realName = currentLanguageIsNull ? "English" : Language.currentLanguage.selfName;
 
             switch (currentLanguage)
             {
@@ -93,7 +96,7 @@ namespace JellyfishShock
                     break;
             }
 
-            Config.Bind("0", localizeKey, $"{Language.currentLanguage.selfName}", localizeDesc);
+            Config.Bind("0", localizeKey, realName, localizeDesc);
             JellyfishBaseDamage = Config.Bind(string.Empty, bodyBaseDamage, 10f, string.Empty);
             JellyfishLevelDamage = Config.Bind(string.Empty, bodyLevelDamage, 1.5f, string.Empty);
             JellyfishDischargeDamageCoefficient = Config.Bind(string.Empty, skillNameDamageCoefficient, 1f, string.Empty);
