@@ -23,6 +23,11 @@ namespace JellyfishShock
         public static ConfigEntry<float> JellyfishDischargeDamageCoefficient;
         public static ConfigEntry<bool> JellyfishLoreChange;
 
+        public static ConfigEntry<bool> JellyfishHitstun;
+        public static ConfigEntry<bool> JellyfishStun;
+        public static ConfigEntry<bool> JellyfishCollision;
+        public static ConfigEntry<bool> JellyfishKnockback;
+
         public void Awake()
         {
             Language.onCurrentLanguageChanged += Language_onCurrentLanguageChanged;
@@ -51,10 +56,21 @@ namespace JellyfishShock
                 "\n2. Close the game, and delete your config file for this mod." +
                 "\n3. Start the game.";
 
+            var allowHitstun = "Allow hitstun";
+            var allowHitstunDesc = "Sufficiently strong hits can temporarily stun this enemy.";
+            var allowStun = "Allow stuns";
+            var allowStunDesc = "Allow attacks like Commando's Suppressive Fire or items like Stun Grenade to stun this enemy.";
+            var allowCollision = "Enable Collision";
+            var allowCollisionDesc = "Prevents the jellyfish from passing through walls.";
+            var allowKnockback = "Allow Knockback";
+
             var currentLanguageIsNull = Language.currentLanguage == null;
 
             var currentLanguage = currentLanguageIsNull ? "en" : Language.currentLanguageName;
             var realName = currentLanguageIsNull ? "English" : Language.currentLanguage.selfName;
+
+            var commandoSpecialLocalize = Language.GetString("COMMANDO_SPECIAL_NAME", currentLanguage);
+            var stunGrenadeLocalize = Language.GetString("ITEM_STUNCHANCEONHIT_NAME", currentLanguage);
 
             switch (currentLanguage)
             {
@@ -69,6 +85,13 @@ namespace JellyfishShock
                     skillNameDamageCoefficient = "Coeficiente de daños";
                     loreOverride = "Anulación de Lore";
                     loreOverrideDesc = "Si es cierto, sustituye el lore por el de \"Risk of Rain 1\"";
+                    allowHitstun = "Permitir hitstun";
+                    allowHitstunDesc = "Los golpes suficientemente fuertes pueden aturdir temporalmente a este enemigo.";
+                    allowStun = "Permitir aturdimiento";
+                    allowStunDesc = $"Permite que ataques como el \"{commandoSpecialLocalize}\" del Comando u objetos como la \"{stunGrenadeLocalize}\" aturdan a este enemigo.";
+                    allowCollision = "Permitir colisión";
+                    allowCollisionDesc = "Evita que la medusa atraviese las paredes.";
+                    allowKnockback = "Permitir contragolpe";
                     break;
                 case "ja":
                     localizeKey = "現在の設定言語。";
@@ -81,6 +104,13 @@ namespace JellyfishShock
                     skillNameDamageCoefficient = "ダメージ係数";
                     loreOverride = "伝承の上書き";
                     loreOverrideDesc = "本当ならば、「Risk of Rain 1」に登場する伝承者と入れ替わる。";
+                    allowHitstun = "ヒットスタン";
+                    allowHitstunDesc = "十分に強いヒットはこの敵を一時的にスタンさせることができる。";
+                    allowStun = "スタンを許可する";
+                    allowStunDesc = $"コマンドーの 「{commandoSpecialLocalize}」のような攻撃や、「{stunGrenadeLocalize}」のようなアイテムで、この敵をスタンさせることができる。衝突を許可する";
+                    allowCollision = "衝突を許可する";
+                    allowCollisionDesc = "クラゲが壁を通過するのを防ぎます。";
+                    allowKnockback = "ノックバックを許可する";
                     break;
                 case "RU":
                     localizeKey = "Текущий язык конфигурации:";
@@ -93,22 +123,35 @@ namespace JellyfishShock
                     skillNameDamageCoefficient = "Коэффициент повреждения";
                     loreOverride = "Переопределение знаний";
                     loreOverrideDesc = "Если верно, заменяет историю на историю из \"Risk of Rain 1\".";
+                    allowHitstun = "Разрешить оглушение ударом";
+                    allowHitstunDesc = "Достаточно сильные удары могут временно оглушить этого противника.";
+                    allowStun = "Разрешить оглушение";
+                    allowStunDesc = $"Позволяет атакам типа \"{commandoSpecialLocalize}\" или предметам типа \"{stunGrenadeLocalize}\" оглушать этого врага.";
+                    allowCollision = "Разрешить столкновение";
+                    allowCollisionDesc = "Предотвращает прохождение медузы сквозь стены.";
+                    allowKnockback = "Разрешить отталкивание";
                     break;
             }
 
             Config.Bind("0", localizeKey, realName, localizeDesc);
             JellyfishBaseDamage = Config.Bind(string.Empty, bodyBaseDamage, 10f, string.Empty);
-            JellyfishLevelDamage = Config.Bind(string.Empty, bodyLevelDamage, 1.5f, string.Empty);
+            JellyfishLevelDamage = Config.Bind(string.Empty, bodyLevelDamage, 2f, string.Empty);
             JellyfishDischargeDamageCoefficient = Config.Bind(string.Empty, skillNameDamageCoefficient, 1f, string.Empty);
             JellyfishLoreChange = Config.Bind(string.Empty, loreOverride, true, loreOverrideDesc);
+
+            JellyfishHitstun = Config.Bind(string.Empty, allowHitstun, false, allowHitstunDesc);
+            JellyfishStun = Config.Bind(string.Empty, allowStun, false, allowStunDesc);
+            JellyfishCollision = Config.Bind(string.Empty, allowCollision, false, allowCollisionDesc);
+            JellyfishKnockback = Config.Bind(string.Empty, allowKnockback, false, string.Empty);
+
         }
 
         private static void SetupBody()
         {
-            myCharacter.GetComponent<SetStateOnHurt>().canBeHitStunned = false;
-            myCharacter.GetComponent<SetStateOnHurt>().canBeStunned = false;
-            myCharacter.GetComponent<SphereCollider>().enabled = false;
-            myCharacter.GetComponent<Rigidbody>().mass = 999999f;
+            myCharacter.GetComponent<SetStateOnHurt>().canBeHitStunned = JellyfishHitstun.Value;
+            myCharacter.GetComponent<SetStateOnHurt>().canBeStunned = JellyfishStun.Value;
+            myCharacter.GetComponent<SphereCollider>().enabled = JellyfishCollision.Value;
+            if (!JellyfishKnockback.Value) myCharacter.GetComponent<Rigidbody>().mass = 999999f;
 
             var characterBody = myCharacter.GetComponent<CharacterBody>();
             characterBody.baseDamage = JellyfishBaseDamage.Value;
