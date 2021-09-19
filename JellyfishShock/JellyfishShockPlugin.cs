@@ -6,17 +6,20 @@ using R2API.Utils;
 using RoR2;
 using RoR2.Skills;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace JellyfishShock
 {
-    [BepInPlugin("com.DestroyedClone.OriginalJellyfish", "Original Jellyfish", "1.0.0")]
+    [BepInPlugin("com.DestroyedClone.OriginalJellyfish", "Original Jellyfish", "1.0.1")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.DifferentModVersionsAreOk)]
-    [R2APISubmoduleDependency(nameof(LanguageAPI), nameof(LoadoutAPI))]
+    [R2APISubmoduleDependency(nameof(LanguageAPI), nameof(LoadoutAPI), nameof(EffectAPI))]
     public class JellyfishShockPlugin : BaseUnityPlugin
     {
         public static GameObject myCharacter = Resources.Load<GameObject>("prefabs/characterbodies/JellyfishBody");
-        public static BodyIndex bodyIndex = myCharacter.GetComponent<CharacterBody>().bodyIndex;
+        public static BodyIndex jellyBodyIndex = myCharacter.GetComponent<CharacterBody>().bodyIndex;
+
+        public static GameObject shockEffect;
 
         public static ConfigEntry<float> JellyfishBaseDamage;
         public static ConfigEntry<float> JellyfishLevelDamage;
@@ -28,18 +31,65 @@ namespace JellyfishShock
         public static ConfigEntry<bool> JellyfishCollision;
         public static ConfigEntry<bool> JellyfishKnockback;
 
+        internal static BepInEx.Logging.ManualLogSource _logger;
+
+        public static int incremeter = 0;
+
         public void Awake()
         {
             Language.onCurrentLanguageChanged += Language_onCurrentLanguageChanged;
+
+            //R2API.Utils.CommandHelper.AddToConsoleWhenReady();
+        }
+
+        //[ConCommand(commandName = "spawn_effect", flags = ConVarFlags.ExecuteOnServer, helpText = "")]
+        public static void ChangeLight(ConCommandArgs args)
+        {
+            var effect = Resources.Load<GameObject>(args.GetArgString(0));
+            if (effect)
+            {
+                EffectManager.SpawnEffect(effect, new EffectData
+                {
+                    origin = args.senderBody.corePosition,
+                    scale = JellyShockSkill.novaRadius
+                }, true);
+            }
         }
 
         private void Language_onCurrentLanguageChanged()
         {
+            if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("com.ThinkInvisible.TILER2") && incremeter == 0)
+            {
+                _logger.LogMessage("TILER2 Detecting, delaying setup to ensure config setup and localisation.");
+                incremeter++;
+                return;
+            }
             SetupConfig();
             SetupLanguage();
             SetupBody();
             SetupSkills();
             Language.onCurrentLanguageChanged -= Language_onCurrentLanguageChanged;
+        }
+
+        public static void CreateShockEffect()
+        {
+            shockEffect = PrefabAPI.InstantiateClone(Resources.Load<GameObject>("prefabs/effects/impacteffects/LightningStrikeImpact"), "OriginalJellyshockEffect", true); ;
+            //var ukuEffect = Resources.Load<GameObject>("Prefabs/Effects/OrbEffects/LightningOrbEffect");
+            shockEffect.transform.localScale *= 0.25f;
+            Destroy(shockEffect.transform.Find("LightningRibbon").gameObject);
+            shockEffect.transform.Find("Flash").transform.localScale *= 0.5f;
+            Destroy(shockEffect.GetComponent<EffectComponent>());
+            shockEffect.AddComponent<EffectComponent>();
+            //shockEffect.GetComponent<EffectComponent>().soundName = ukuEffect.GetComponent<EffectComponent>().soundName;
+
+            Debug.Log("Adding shock effect to prefab");
+            if (EffectAPI.AddEffect(shockEffect))
+            {
+                Debug.Log("Added!");
+            } else
+            {
+                Debug.LogWarning("Did not add!");
+            }
         }
 
         public void SetupConfig()
@@ -151,7 +201,7 @@ namespace JellyfishShock
             myCharacter.GetComponent<SetStateOnHurt>().canBeHitStunned = JellyfishHitstun.Value;
             myCharacter.GetComponent<SetStateOnHurt>().canBeStunned = JellyfishStun.Value;
             myCharacter.GetComponent<SphereCollider>().enabled = JellyfishCollision.Value;
-            if (!JellyfishKnockback.Value) myCharacter.GetComponent<Rigidbody>().mass = 999999f;
+            if (!JellyfishKnockback.Value) myCharacter.GetComponent<Rigidbody>().mass = 99999999;
 
             var characterBody = myCharacter.GetComponent<CharacterBody>();
             characterBody.baseDamage = JellyfishBaseDamage.Value;
@@ -159,7 +209,6 @@ namespace JellyfishShock
 
             myCharacter.GetComponent<CharacterDeathBehavior>().deathState = new SerializableEntityStateType(typeof(JellyfishFixedDeathState));
         }
-
         private static void SetupLanguage()
         {
             if (JellyfishLoreChange.Value)
