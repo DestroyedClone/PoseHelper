@@ -25,18 +25,79 @@ namespace JellyfishShock
 
         public void Awake()
         {
+            Language.onCurrentLanguageChanged += Language_onCurrentLanguageChanged;
+        }
+
+        private void Language_onCurrentLanguageChanged()
+        {
             SetupConfig();
+            SetupLanguage();
             SetupBody();
             SetupSkills();
-            SetupLanguage();
+            Language.onCurrentLanguageChanged -= Language_onCurrentLanguageChanged;
         }
 
         public void SetupConfig()
         {
-            JellyfishBaseDamage = Config.Bind("Body", "Base Damage", 10f, "");
-            JellyfishLevelDamage = Config.Bind("Body", "Damage Per Level", 1.5f, "");
-            JellyfishDischargeDamageCoefficient = Config.Bind("Discharge", "Damage Coefficient", 1f, "");
-            JellyfishLoreChange = Config.Bind("Other", "Replace Lore with Risk of Rain 1", true, "If true, replaces the lore with the one from Risk of Rain 1.");
+            var bodyBaseDamage = "Base Damage";
+            var bodyLevelDamage = "Level Damage";
+            var skillNameDamageCoefficient = "Damage Coefficient";
+            var loreOverride = "Lore Override";
+            var loreOverrideDesc = "If true, replaces the lore with the one from \"Risk of Rain 1\"";
+
+            var localizeKey = "Current Config Language:";
+            var localizeDesc = "If you want this config to become localized:" +
+                "\n1. In-game, select your language to either: English, Spanish, Japanese, or Russian." +
+                "\n2. Close the game, and delete your config file for this mod." +
+                "\n3. Start the game.";
+
+            var currentLanguage = Language.currentLanguageName;
+
+            switch (currentLanguage)
+            {
+                case "es-419":
+                    localizeKey = "Idioma de configuración actual:";
+                    localizeDesc = "Si quieres que esta configuración se localice:" +
+                        "\n1. En el juego, seleccione su idioma a cualquiera: Inglés, español, japonés o ruso" +
+                        "\n2. Cierra el juego, y borra tu archivo de configuración para este mod" +
+                        "\n3. Inicie el juego";
+                    bodyBaseDamage = "Daño de base";
+                    bodyLevelDamage = "Daño por nivel";
+                    skillNameDamageCoefficient = "Coeficiente de daños";
+                    loreOverride = "Anulación de Lore";
+                    loreOverrideDesc = "Si es cierto, sustituye el lore por el de \"Risk of Rain 1\"";
+                    break;
+                case "ja":
+                    localizeKey = "現在の設定言語。";
+                    localizeDesc = "このコンフィグを翻訳させたい場合には" +
+                        "\n1. ゲーム内では、言語を次のいずれかに選択します。英語」「スペイン語」「日本語」「ロシア語」のいずれかを選択します。" +
+                        "\n2. ゲームを終了して、このMODの設定ファイルを削除してください。" +
+                        "\n3. ゲームを開始する。";
+                    bodyBaseDamage = "ベースダメージ";
+                    bodyLevelDamage = "レベルダメージ";
+                    skillNameDamageCoefficient = "ダメージ係数";
+                    loreOverride = "伝承の上書き";
+                    loreOverrideDesc = "本当ならば、「Risk of Rain 1」に登場する伝承者と入れ替わる。";
+                    break;
+                case "RU":
+                    localizeKey = "Текущий язык конфигурации:";
+                    localizeDesc = "Если вы хотите, чтобы этот конфиг стал локализованным:" +
+                        "\n1. В игре выберите язык: Английский, Испанский, Японский или Русский." +
+                        "\n2. Закройте игру и удалите ваш файл конфигурации для этого мода." +
+                        "\n3. Запустите игру.";
+                    bodyBaseDamage = "Базовое повреждение";
+                    bodyLevelDamage = "Уровневое повреждение";
+                    skillNameDamageCoefficient = "Коэффициент повреждения";
+                    loreOverride = "Переопределение знаний";
+                    loreOverrideDesc = "Если верно, заменяет историю на историю из \"Risk of Rain 1\".";
+                    break;
+            }
+
+            Config.Bind("0", localizeKey, $"{Language.currentLanguage.selfName}", localizeDesc);
+            JellyfishBaseDamage = Config.Bind(string.Empty, bodyBaseDamage, 10f, string.Empty);
+            JellyfishLevelDamage = Config.Bind(string.Empty, bodyLevelDamage, 1.5f, string.Empty);
+            JellyfishDischargeDamageCoefficient = Config.Bind(string.Empty, skillNameDamageCoefficient, 1f, string.Empty);
+            JellyfishLoreChange = Config.Bind(string.Empty, loreOverride, true, loreOverrideDesc);
         }
 
         private static void SetupBody()
@@ -85,10 +146,10 @@ namespace JellyfishShock
                 LanguageAPI.Add(descString, $"Shocks nearby enemies for <style=cIsDamage>{damage}% damage</style>.", "en");
                 LanguageAPI.Add(nameString, "Descarga", "en");
                 LanguageAPI.Add(descString, $"Golpea a los enemigos cercanos con <style=cIsDamage>{damage}% de daño</style>.", "es");
-                LanguageAPI.Add(nameString, "放電", "jp");
-                LanguageAPI.Add(descString, $"近くの敵にショックを与える<style=cIsDamage>{damage}％ダメージ</style>.", "jp");
-                LanguageAPI.Add(nameString, "Разряд", "ru");
-                LanguageAPI.Add(descString, $"Сотрясает ближайших врагов на <style=cIsDamage>{damage}% урона</style>.", "ru");
+                LanguageAPI.Add(nameString, "放電", "ja");
+                LanguageAPI.Add(descString, $"近くの敵にショックを与える<style=cIsDamage>{damage}％ダメージ</style>.", "ja");
+                LanguageAPI.Add(nameString, "Разряд", "RU");
+                LanguageAPI.Add(descString, $"Сотрясает ближайших врагов на <style=cIsDamage>{damage}% урона</style>.", "RU");
             }
         }
 
