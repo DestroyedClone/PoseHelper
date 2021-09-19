@@ -14,6 +14,7 @@ namespace JellyfishShock
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.DifferentModVersionsAreOk)]
     [R2APISubmoduleDependency(nameof(LanguageAPI), nameof(LoadoutAPI), nameof(EffectAPI))]
+    [BepInDependency("com.ThinkInvisible.TILER2", BepInDependency.DependencyFlags.SoftDependency)]
     public class JellyfishShockPlugin : BaseUnityPlugin
     {
         public static GameObject myCharacter = Resources.Load<GameObject>("prefabs/characterbodies/JellyfishBody");
@@ -60,7 +61,6 @@ namespace JellyfishShock
         {
             if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("com.ThinkInvisible.TILER2") && incremeter == 0)
             {
-                _logger.LogMessage("TILER2 Detecting, delaying setup to ensure config setup and localisation.");
                 incremeter++;
                 return;
             }
