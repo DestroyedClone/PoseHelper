@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace HideNamesPatch
 {
-    [BepInPlugin("com.DestroyedClone.HideNamesPlus", "HideNamesPlus", "1.0.0")]
+    [BepInPlugin("com.DestroyedClone.HideNamesPatch", "HideNamesPatch", "1.0.0")]
     public class HideNames : BaseUnityPlugin
     {
         public ConfigEntry<string> NameOverride;
@@ -19,8 +19,17 @@ namespace HideNamesPatch
             SetupConfig();
 
             On.RoR2.NetworkUser.GetNetworkPlayerName += NetworkUser_GetNetworkPlayerName;
-            //On.RoR2.NetworkUser.UpdateUserName += NetworkUser_UpdateUserName;
             On.RoR2.NetworkUser.Start += NetworkUser_Start;
+            On.RoR2.NetworkUser.OnDestroy += NetworkUser_OnDestroy;
+        }
+
+        private void NetworkUser_OnDestroy(On.RoR2.NetworkUser.orig_OnDestroy orig, NetworkUser self)
+        {
+            orig(self);
+            if (self && self.id.steamId != null && SteamID_to_DisplayName.ContainsKey(self.id.steamId))
+            {
+                SteamID_to_DisplayName.Remove(self.id.steamId);
+            }
         }
 
         private void NetworkUser_Start(On.RoR2.NetworkUser.orig_Start orig, NetworkUser self)
