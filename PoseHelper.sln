@@ -89,19 +89,21 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConCommandConnectWithPasswo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeathMessageAboveCorpse", "DeathMessageAboveCorpse\DeathMessageAboveCorpse.csproj", "{30EA30EC-00AC-498F-9114-0EA0F414D333}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LobbySkillPreview", "LobbySkillPreview\LobbySkillPreview.csproj", "{C3C99C46-E281-4970-A93B-0F6388B491A8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LobbySkillPreview", "LobbySkillPreview\LobbySkillPreview.csproj", "{C3C99C46-E281-4970-A93B-0F6388B491A8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NoUnlocksDrizzle", "NoUnlocksDrizzle\NoUnlocksDrizzle.csproj", "{27364D54-570D-4530-867D-6002695275D1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NoUnlocksDrizzle", "NoUnlocksDrizzle\NoUnlocksDrizzle.csproj", "{27364D54-570D-4530-867D-6002695275D1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JellyfishShock", "JellyfishShock\JellyfishShock.csproj", "{14C4CBAB-839C-4FD2-95CF-DF459EEBC496}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JellyfishShock", "JellyfishShock\JellyfishShock.csproj", "{14C4CBAB-839C-4FD2-95CF-DF459EEBC496}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TargetedNotifier", "TargetedNotifier\TargetedNotifier.csproj", "{63142FA2-4205-4789-9F8C-5405FCBE0798}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TargetedNotifier", "TargetedNotifier\TargetedNotifier.csproj", "{63142FA2-4205-4789-9F8C-5405FCBE0798}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmergencyCleaner", "EmergencyCleaner\EmergencyCleaner.csproj", "{F1DB9B9B-01EA-461F-99A3-8016927B4D7B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmergencyCleaner", "EmergencyCleaner\EmergencyCleaner.csproj", "{F1DB9B9B-01EA-461F-99A3-8016927B4D7B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RandomLoadoutMonsterArtifact", "RandomLoadoutMonsterArtifact\RandomLoadoutMonsterArtifact.csproj", "{62CFAE75-6CB4-4991-903D-35C5631757D6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RandomLoadoutMonsterArtifact", "RandomLoadoutMonsterArtifact\RandomLoadoutMonsterArtifact.csproj", "{62CFAE75-6CB4-4991-903D-35C5631757D6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HideNamesPatch", "HideNamesPatch\HideNamesPatch.csproj", "{B6F5B2D5-5066-404C-9F80-50A83419C9EE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HideNamesPatch", "HideNamesPatch\HideNamesPatch.csproj", "{B6F5B2D5-5066-404C-9F80-50A83419C9EE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ROR1AltSkills", "ROR1AltSkills\ROR1AltSkills.csproj", "{755A1E85-6ECF-49A2-99F2-F9AE4BDFAC82}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -309,6 +311,10 @@ Global
 		{B6F5B2D5-5066-404C-9F80-50A83419C9EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B6F5B2D5-5066-404C-9F80-50A83419C9EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B6F5B2D5-5066-404C-9F80-50A83419C9EE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{755A1E85-6ECF-49A2-99F2-F9AE4BDFAC82}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{755A1E85-6ECF-49A2-99F2-F9AE4BDFAC82}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{755A1E85-6ECF-49A2-99F2-F9AE4BDFAC82}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{755A1E85-6ECF-49A2-99F2-F9AE4BDFAC82}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
