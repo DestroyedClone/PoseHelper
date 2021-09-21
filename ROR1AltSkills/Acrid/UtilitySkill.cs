@@ -7,17 +7,21 @@ namespace ROR1AltSkills.Acrid
 {
     public class UtilitySkill : BaseSkillState
     {
-		public static float baseDuration = 2f;
+		public static float baseDuration = AcridMain.CausticSludgeDuration;
 		private float duration;
-		public static GameObject projectilePrefab = EntityStates.Croco.BaseLeap.projectilePrefab;
+		public static GameObject projectilePrefab = AcridMain.acidPool; //EntityStates.Croco.BaseLeap.projectilePrefab;
 		bool isCritAuthority = false;
 
 		private int counter = 0;
 
+		private readonly float acidPoolSize = AcridMain.CausticSludgeActualScale;
+		private Vector3 lastPosition;
+		private readonly float distanceLeniency = 0.9f;
+
 		public override void OnEnter()
 		{
 			base.OnEnter();
-
+			lastPosition = Vector3.zero;
 			this.duration = baseDuration;
 
 			this.isCritAuthority = base.RollCrit();
@@ -49,17 +53,21 @@ namespace ROR1AltSkills.Acrid
 				if (counter % frequency == 0)
 				{
 					Vector3 footPosition = base.characterBody.footPosition;
-					FireProjectileInfo fireProjectileInfo = new FireProjectileInfo
+					if (Vector3.Distance(characterBody.corePosition, lastPosition) >= acidPoolSize * distanceLeniency)
 					{
-						projectilePrefab = projectilePrefab,
-						crit = this.isCritAuthority,
-						force = 0f,
-						damage = characterBody.damage * 0.25f,
-						owner = base.gameObject,
-						rotation = Quaternion.identity,
-						position = footPosition
-					};
-					ProjectileManager.instance.FireProjectile(fireProjectileInfo);
+						FireProjectileInfo fireProjectileInfo = new FireProjectileInfo
+						{
+							projectilePrefab = projectilePrefab,
+							crit = this.isCritAuthority,
+							force = 0f,
+							damage = characterBody.damage * 0.25f,
+							owner = base.gameObject,
+							rotation = Quaternion.identity,
+							position = footPosition
+						};
+						ProjectileManager.instance.FireProjectile(fireProjectileInfo);
+						lastPosition = characterBody.corePosition;
+					}
 				}
 				counter++;
 			}

@@ -10,6 +10,7 @@ using System;
 using EntityStates;
 using R2API;
 using RoR2.Skills;
+using RoR2.Projectile;
 
 namespace ROR1AltSkills.Acrid
 {
@@ -18,19 +19,104 @@ namespace ROR1AltSkills.Acrid
         public static GameObject myCharacter = Resources.Load<GameObject>("prefabs/characterbodies/CrocoBody");
         public static BodyIndex bodyIndex = myCharacter.GetComponent<CharacterBody>().bodyIndex;
 
+        #region passive
+        public static DamageAPI.ModdedDamageType OriginalPoisonOnHit;
+        public static readonly float OriginalPoisonDamageCoefficient = 0.24f;
+
+        public static DotController.DotIndex OriginalPoisonDot;
+        public static CustomBuff OriginalPoisonBuff;
+        #endregion
+        #region primary
+        public static readonly float FesteringWoundsDamageCoefficient = 1.2f;
+        public static readonly float FesteringWoundsDPSCoefficient = 0.9f;
+        #endregion
+
+        #region utility
+        public static GameObject acidPool;
+
+        internal static float acidPoolScale = 0.5f;
+        private static readonly float buffWard_to_acidPoolScale_ratio = 5f; //shouldn't be changed
+        internal static float CausticSludgeBuffDuration = 3f;
+
+        internal static float CausticSludgeActualScale = acidPoolScale * buffWard_to_acidPoolScale_ratio;
+
+        public static readonly float CausticSludgeLifetime = 12f;
+        public static readonly float CausticSludgeDuration = 2f;
+        public static readonly float CausticSludgeSlowDuration = 3f;
+        public static readonly float CausticSludgeDamageCoefficient = 0.9f;
+        #endregion
+
+        internal static void AddPassiveSkill(GameObject targetPrefab, SkillDef skillDef)
+        {
+            SkillFamily skillFamily = null;
+            foreach (var gs in targetPrefab.GetComponents<GenericSkill>())
+            {
+                skillFamily = gs.skillFamily;
+                break;
+            }
+            if (!skillFamily)
+            {
+                Debug.LogWarning("Passive skill family not found");
+                return;
+            }
+
+            Array.Resize(ref skillFamily.variants, skillFamily.variants.Length + 1);
+            skillFamily.variants[skillFamily.variants.Length - 1] = new SkillFamily.Variant
+            {
+                skillDef = skillDef,
+                viewableNode = new ViewablesCatalog.Node(skillDef.skillNameToken, false, null)
+            };
+        }
+
+
         public static void Init()
         {
+            SetupProjectiles();
             SetupSkills();
+            SetupBuffs();
+            SetupModdedDamageTypes();
+            SetupModdedDots();
+            Hooks();
         }
 
         private static void SetupSkills()
         {
+            var skillLocator = myCharacter.GetComponent<SkillLocator>();
+
+            #region passive
+            LanguageAPI.Add("DC_CROCO_PASSIVE_POISON_NAME", "ROR1 Poison");
+            LanguageAPI.Add("DC_CROCO_PASSIVE_POISON_DESCRIPTION", $"Deals {OriginalPoisonDamageCoefficient * 100f}% damage per second to enemies.");
+
+            var passiveSkillDef = ScriptableObject.CreateInstance<SkillDef>();
+            passiveSkillDef.activationState = new SerializableEntityStateType(typeof(OriginalPoison));
+            passiveSkillDef.baseMaxStock = 1;
+            passiveSkillDef.baseRechargeInterval = 0f;
+            passiveSkillDef.beginSkillCooldownOnSkillEnd = true;
+            passiveSkillDef.canceledFromSprinting = false;
+            passiveSkillDef.fullRestockOnAssign = true;
+            passiveSkillDef.interruptPriority = InterruptPriority.Any;
+            passiveSkillDef.isCombatSkill = true;
+            passiveSkillDef.mustKeyPress = true;
+            passiveSkillDef.rechargeStock = 1;
+            passiveSkillDef.requiredStock = 1;
+            passiveSkillDef.stockToConsume = 1;
+            passiveSkillDef.icon = Resources.Load<Sprite>("textures/bufficons/texBuffLunarShellIcon");
+            passiveSkillDef.skillDescriptionToken = "DC_CROCO_PASSIVE_POISON_DESCRIPTION";
+            passiveSkillDef.skillName = "DC_CROCO_PASSIVE_POISON_NAME";
+            passiveSkillDef.skillNameToken = passiveSkillDef.skillName;
+
+            LoadoutAPI.AddSkillDef(passiveSkillDef);
+            AddPassiveSkill(myCharacter, passiveSkillDef);
+            #endregion
+
+            #region primary
             LanguageAPI.Add("DC_CROCO_PRIMARY_FESTERINGWOUNDS_NAME", "Festering Wounds");
-            LanguageAPI.Add("DC_CROCO_PRIMARY_FESTERINGWOUNDS_DESCRIPTION", "Maul an enemy for <style=cIsDamage>120% damage</style>. The target is poisoned for <style=cIsDamage>24% damage per second</style>.");
+            LanguageAPI.Add("DC_CROCO_PRIMARY_FESTERINGWOUNDS_DESCRIPTION", $"Maul an enemy for <style=cIsDamage>{FesteringWoundsDamageCoefficient * 100f}% damage</style>." +
+                $" The target is poisoned for <style=cIsDamage>{FesteringWoundsDPSCoefficient * 100f}% damage per second</style>.");
 
             var mySkillDef = ScriptableObject.CreateInstance<SkillDef>();
             mySkillDef.activationState = new SerializableEntityStateType(typeof(EntityStates.Croco.Bite));
-            mySkillDef.activationStateMachineName = "Weapon";
+            mySkillDef.activationStateMachineName = "Mouth";
             mySkillDef.baseMaxStock = 1;
             mySkillDef.baseRechargeInterval = 0f;
             mySkillDef.beginSkillCooldownOnSkillEnd = true;
@@ -49,7 +135,6 @@ namespace ROR1AltSkills.Acrid
 
             LoadoutAPI.AddSkillDef(mySkillDef);
 
-            var skillLocator = myCharacter.GetComponent<SkillLocator>();
 
             var skillFamily = skillLocator.primary.skillFamily;
 
@@ -60,20 +145,21 @@ namespace ROR1AltSkills.Acrid
                 unlockableDef = null,
                 viewableNode = new ViewablesCatalog.Node(mySkillDef.skillNameToken, false, null)
             };
-
+            #endregion
 
             LanguageAPI.Add("DC_CROCO_UTILITY_CAUSTICSLUDGE_NAME", "Caustic Sludge");
-            LanguageAPI.Add("DC_CROCO_UTILITY_CAUSTICSLUDGE_DESCRIPTION", "Secrete <style=cIsDamage>poisonous sludge</style> for 2 seconds. <style=cIsUtility>Speeds up allies,</style> while <style=cIsDamage>slowing and hurting enemies</style> for <style=cIsDamage>90% damage</style>");
+            LanguageAPI.Add("DC_CROCO_UTILITY_CAUSTICSLUDGE_DESCRIPTION", $"Secrete <style=cIsDamage>poisonous sludge</style> for {CausticSludgeDuration} seconds." +
+                $" <style=cIsUtility>Speeds up allies,</style> while <style=cIsDamage>slowing and hurting enemies</style> for <style=cIsDamage>{CausticSludgeDamageCoefficient  * 100f}% damage</style>");
 
             var mySkillDefUtil = ScriptableObject.CreateInstance<SkillDef>();
             mySkillDefUtil.activationState = new SerializableEntityStateType(typeof(Acrid.UtilitySkill));
-            mySkillDefUtil.activationStateMachineName = "Body";
+            mySkillDefUtil.activationStateMachineName = "Weapon";
             mySkillDefUtil.baseMaxStock = 1;
-            mySkillDefUtil.baseRechargeInterval = 12f;
+            mySkillDefUtil.baseRechargeInterval = CausticSludgeLifetime + 3f;
             mySkillDefUtil.beginSkillCooldownOnSkillEnd = true;
             mySkillDefUtil.canceledFromSprinting = false;
             mySkillDefUtil.fullRestockOnAssign = true;
-            mySkillDefUtil.interruptPriority = InterruptPriority.Any;
+            mySkillDefUtil.interruptPriority = InterruptPriority.Frozen;
             mySkillDefUtil.isCombatSkill = false;
             mySkillDefUtil.mustKeyPress = true;
             mySkillDefUtil.rechargeStock = 1;
@@ -95,6 +181,94 @@ namespace ROR1AltSkills.Acrid
                 unlockableDef = null,
                 viewableNode = new ViewablesCatalog.Node(mySkillDefUtil.skillNameToken, false, null)
             };
+        }
+
+        private static void SetupProjectiles()
+        {
+            acidPool = PrefabAPI.InstantiateClone(Resources.Load<GameObject>("prefabs/projectiles/CrocoLeapAcid"), "CrocoSpeedAcid");
+            acidPool.transform.localScale *= acidPoolScale;
+            var buffWard = acidPool.AddComponent<BuffWard>();
+            buffWard.buffDef = RoR2Content.Buffs.CloakSpeed;
+            buffWard.buffDuration = CausticSludgeBuffDuration;
+            buffWard.expires = false;
+            buffWard.floorWard = true;
+            buffWard.radius = CausticSludgeActualScale;
+            buffWard.requireGrounded = true;
+
+            var enemyBuffWard = acidPool.AddComponent<BuffWard>();
+            enemyBuffWard.buffDef = RoR2Content.Buffs.Slow60;
+            enemyBuffWard.buffDuration = CausticSludgeBuffDuration;
+            enemyBuffWard.expires = false;
+            enemyBuffWard.floorWard = true;
+            enemyBuffWard.radius = CausticSludgeActualScale;
+            enemyBuffWard.requireGrounded = true;
+            enemyBuffWard.invertTeamFilter = true;
+
+            ProjectileDotZone projectileDotZone = acidPool.GetComponent<ProjectileDotZone>();
+            projectileDotZone.damageCoefficient = CausticSludgeDamageCoefficient;
+            projectileDotZone.lifetime = CausticSludgeLifetime;
+            projectileDotZone.overlapProcCoefficient = 0f;
+
+
+
+            ProjectileAPI.Add(acidPool);
+        }
+
+        private static void SetupBuffs()
+        {
+            var buffDef = ScriptableObject.CreateInstance<BuffDef>();
+            buffDef.buffColor = Color.green;
+            buffDef.canStack = true;
+            buffDef.isDebuff = true;
+            buffDef.iconSprite = RoR2Content.Buffs.Poisoned.iconSprite;
+
+            OriginalPoisonBuff = new CustomBuff(buffDef);
+        }
+
+        private static void Hooks()
+        {
+            On.RoR2.CrocoDamageTypeController.GetDamageType += CrocoDamageTypeController_GetDamageType;
+            On.RoR2.GlobalEventManager.OnHitEnemy += GlobalEventManager_OnHitEnemy;
+        }
+
+        private static void GlobalEventManager_OnHitEnemy(On.RoR2.GlobalEventManager.orig_OnHitEnemy orig, GlobalEventManager self, DamageInfo damageInfo, GameObject victim)
+        {
+            if (damageInfo.HasModdedDamageType(OriginalPoisonOnHit))
+            {
+                DotController.InflictDot(victim, damageInfo.attacker, OriginalPoisonDot, 2f, 1f);
+            }
+            orig(self, damageInfo, victim);
+        }
+
+        private static DamageType CrocoDamageTypeController_GetDamageType(On.RoR2.CrocoDamageTypeController.orig_GetDamageType orig, CrocoDamageTypeController self)
+        {
+            if (self.passiveSkillSlot)
+            {
+                if (self.passiveSkillSlot.skillDef == self.poisonSkillDef)
+                {
+                    Debug.LogWarning("OriginalPoison Selected");
+                    return (DamageType)OriginalPoisonOnHit;
+                }
+            }
+            return orig(self);
+        }
+
+        private static void SetupModdedDamageTypes()
+        {
+            OriginalPoisonOnHit = DamageAPI.ReserveDamageType();
+        }
+
+        private static void SetupModdedDots()
+        {
+            DotController.DotDef dotDef = new DotController.DotDef()
+            {
+                associatedBuff = OriginalPoisonBuff.BuffDef,
+                damageCoefficient = OriginalPoisonDamageCoefficient,
+                damageColorIndex = DamageColorIndex.Poison,
+                interval = 0.333f
+            };
+
+            OriginalPoisonDot = DotAPI.RegisterDotDef(dotDef);
         }
     }
 }

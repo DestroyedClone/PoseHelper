@@ -22,12 +22,14 @@ namespace ROR1AltSkills
     [BepInPlugin("com.DestroyedClone.ROR1AltSkills", "ROR1 Alt Skills", "1.0.0")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.DifferentModVersionsAreOk)]
-    [R2APISubmoduleDependency(nameof(LoadoutAPI), nameof(SurvivorAPI), nameof(LanguageAPI), nameof(ProjectileAPI), nameof(DamageAPI))]
+    [R2APISubmoduleDependency(nameof(LoadoutAPI), nameof(SurvivorAPI), nameof(LanguageAPI), nameof(ProjectileAPI), nameof(DamageAPI), nameof(BuffAPI), nameof(DotAPI))]
     public class ROR1AltSkillsPlugin : BaseUnityPlugin
     {
         public void Awake()
         {
             Acrid.AcridMain.Init();
+            Huntress.HuntressMain.Init();
+            Loader.LoaderMain.Init();
         }
     }
 }
