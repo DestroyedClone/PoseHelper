@@ -18,6 +18,11 @@ namespace ROR1AltSkills.Loader
             gauntlet = i;
         }
 
+        public override void OnMeleeHitAuthority()
+        {
+            base.OnMeleeHitAuthority();
+        }
+
         public float comboFinisherDamageCoefficient = 2.4f;
         public Vector3 force = Vector3.up * 2f;
 

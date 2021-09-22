@@ -82,7 +82,7 @@ namespace ROR1AltSkills.Huntress
             projectileImpactExplosion.blastDamageCoefficient = 0;
             projectileImpactExplosion.blastProcCoefficient = 0;
             projectileImpactExplosion.blastAttackerFiltering = AttackerFiltering.Default;
-            projectileImpactExplosion.fireChildren = Resources.Load<GameObject>("prefabs/projectiles/SyringeProjectile");
+            projectileImpactExplosion.fireChildren = Resources.Load<GameObject>("prefabs/projectiles/CryoCanisterBombletsProjectile");
             projectileImpactExplosion.childrenCount = 6;
             projectileImpactExplosion.childrenDamageCoefficient = 0.8f;
             projectileImpactExplosion.minAngleOffset = new Vector3(-2, -2, -2);

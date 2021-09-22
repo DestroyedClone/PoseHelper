@@ -33,6 +33,7 @@ namespace ROR1AltSkills.Acrid
 
         #region utility
         public static GameObject acidPool;
+        public static GameObject acidPoolDrop;
 
         internal static float acidPoolScale = 0.5f;
         private static readonly float buffWard_to_acidPoolScale_ratio = 5f; //shouldn't be changed
@@ -44,6 +45,8 @@ namespace ROR1AltSkills.Acrid
         public static readonly float CausticSludgeDuration = 2f;
         public static readonly float CausticSludgeSlowDuration = 3f;
         public static readonly float CausticSludgeDamageCoefficient = 0.9f;
+
+        public static readonly float CausticSludgeLeapLandDamageCoefficient = 2f;
         #endregion
 
         internal static void AddPassiveSkill(GameObject targetPrefab, SkillDef skillDef)
@@ -152,7 +155,7 @@ namespace ROR1AltSkills.Acrid
                 $" <style=cIsUtility>Speeds up allies,</style> while <style=cIsDamage>slowing and hurting enemies</style> for <style=cIsDamage>{CausticSludgeDamageCoefficient  * 100f}% damage</style>");
 
             var mySkillDefUtil = ScriptableObject.CreateInstance<SkillDef>();
-            mySkillDefUtil.activationState = new SerializableEntityStateType(typeof(Acrid.UtilitySkill));
+            mySkillDefUtil.activationState = new SerializableEntityStateType(typeof(Acrid.LeapDropAcid));
             mySkillDefUtil.activationStateMachineName = "Weapon";
             mySkillDefUtil.baseMaxStock = 1;
             mySkillDefUtil.baseRechargeInterval = CausticSludgeLifetime + 3f;
@@ -185,33 +188,59 @@ namespace ROR1AltSkills.Acrid
 
         private static void SetupProjectiles()
         {
-            acidPool = PrefabAPI.InstantiateClone(Resources.Load<GameObject>("prefabs/projectiles/CrocoLeapAcid"), "CrocoSpeedAcid");
-            acidPool.transform.localScale *= acidPoolScale;
-            var buffWard = acidPool.AddComponent<BuffWard>();
-            buffWard.buffDef = RoR2Content.Buffs.CloakSpeed;
-            buffWard.buffDuration = CausticSludgeBuffDuration;
-            buffWard.expires = false;
-            buffWard.floorWard = true;
-            buffWard.radius = CausticSludgeActualScale;
-            buffWard.requireGrounded = true;
+            SetupAcidPool();
+            SetupAcidPoolDrop();
+            void SetupAcidPool()
+            {
+                acidPool = PrefabAPI.InstantiateClone(Resources.Load<GameObject>("prefabs/projectiles/CrocoLeapAcid"), "CrocoSpeedAcid");
+                acidPool.transform.localScale *= acidPoolScale;
+                var buffWard = acidPool.AddComponent<BuffWard>();
+                buffWard.buffDef = RoR2Content.Buffs.CloakSpeed;
+                buffWard.buffDuration = CausticSludgeBuffDuration;
+                buffWard.expires = false;
+                buffWard.floorWard = true;
+                buffWard.radius = CausticSludgeActualScale;
+                buffWard.requireGrounded = true;
 
-            var enemyBuffWard = acidPool.AddComponent<BuffWard>();
-            enemyBuffWard.buffDef = RoR2Content.Buffs.Slow60;
-            enemyBuffWard.buffDuration = CausticSludgeBuffDuration;
-            enemyBuffWard.expires = false;
-            enemyBuffWard.floorWard = true;
-            enemyBuffWard.radius = CausticSludgeActualScale;
-            enemyBuffWard.requireGrounded = true;
-            enemyBuffWard.invertTeamFilter = true;
+                var enemyBuffWard = acidPool.AddComponent<BuffWard>();
+                enemyBuffWard.buffDef = RoR2Content.Buffs.Slow60;
+                enemyBuffWard.buffDuration = CausticSludgeBuffDuration;
+                enemyBuffWard.expires = false;
+                enemyBuffWard.floorWard = true;
+                enemyBuffWard.radius = CausticSludgeActualScale;
+                enemyBuffWard.requireGrounded = true;
+                enemyBuffWard.invertTeamFilter = true;
 
-            ProjectileDotZone projectileDotZone = acidPool.GetComponent<ProjectileDotZone>();
-            projectileDotZone.damageCoefficient = CausticSludgeDamageCoefficient;
-            projectileDotZone.lifetime = CausticSludgeLifetime;
-            projectileDotZone.overlapProcCoefficient = 0f;
+                ProjectileDotZone projectileDotZone = acidPool.GetComponent<ProjectileDotZone>();
+                projectileDotZone.damageCoefficient = CausticSludgeDamageCoefficient;
+                projectileDotZone.lifetime = CausticSludgeLifetime;
+                projectileDotZone.overlapProcCoefficient = 0f;
 
+                ProjectileAPI.Add(acidPool);
 
+                LeapDropAcid.groundedAcid = acidPool;
+            }
+            
+            void SetupAcidPoolDrop()
+            {
+                Debug.Log("Setting up AcidPoolDrop");
+                acidPoolDrop = PrefabAPI.InstantiateClone(Resources.Load<GameObject>("prefabs/projectiles/SporeGrenadeProjectile"), "CrocoSpeedAcidDrop");
 
-            ProjectileAPI.Add(acidPool);
+                acidPoolDrop.GetComponent<ProjectileSimple>().desiredForwardSpeed = 0;
+
+                var atos = acidPoolDrop.AddComponent<ApplyTorqueOnStart>();
+                atos.localTorque = Vector3.down * 3f;
+                atos.randomize = false;
+
+                var projectileImpactExplosion = acidPoolDrop.GetComponent<ProjectileImpactExplosion>();
+                projectileImpactExplosion.blastDamageCoefficient = 0f;
+                projectileImpactExplosion.childrenProjectilePrefab = acidPool;
+                projectileImpactExplosion.impactEffect = null;
+                projectileImpactExplosion.destroyOnEnemy = false;
+
+                ProjectileAPI.Add(acidPoolDrop);
+            }
+            LeapDropAcid.projectilePrefab = acidPoolDrop;
         }
 
         private static void SetupBuffs()
@@ -246,7 +275,7 @@ namespace ROR1AltSkills.Acrid
             {
                 if (self.passiveSkillSlot.skillDef == self.poisonSkillDef)
                 {
-                    Debug.LogWarning("OriginalPoison Selected");
+                    Chat.AddMessage("OriginalPoison Selected");
                     return (DamageType)OriginalPoisonOnHit;
                 }
             }
