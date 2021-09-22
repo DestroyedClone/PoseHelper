@@ -109,7 +109,7 @@ namespace ROR1AltSkills.Acrid
 		}
 
 		// Token: 0x0600445D RID: 17501 RVA: 0x00113A3D File Offset: 0x00111C3D
-		protected override void BeginMeleeAttackEffect()
+		public override void BeginMeleeAttackEffect()
 		{
 			base.AddRecoil(0.9f * Bite.recoilAmplitude, 1.1f * Bite.recoilAmplitude, -0.1f * Bite.recoilAmplitude, 0.1f * Bite.recoilAmplitude);
 			base.BeginMeleeAttackEffect();

@@ -55,7 +55,7 @@ namespace ROR1AltSkills
 		protected float duration = 2f;
 		protected HitBoxGroup hitBoxGroup;
 		protected Animator animator;
-		private OverlapAttack overlapAttack;
+		public OverlapAttack overlapAttack;
 		protected bool authorityHitThisFixedUpdate;
 		protected float hitPauseTimer;
 		protected Vector3 storedHitPauseVelocity;
@@ -205,7 +205,7 @@ namespace ROR1AltSkills
 		}
 
 		// Token: 0x060039AE RID: 14766 RVA: 0x000E2980 File Offset: 0x000E0B80
-		protected virtual void BeginMeleeAttackEffect()
+		public virtual void BeginMeleeAttackEffect()
 		{
 			if (this.meleeAttackStartTime != Run.FixedTimeStamp.positiveInfinity)
 			{

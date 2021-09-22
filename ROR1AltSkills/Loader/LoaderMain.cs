@@ -164,6 +164,56 @@ namespace ROR1AltSkills.Loader
         private static void Hooks()
         {
             On.RoR2.Projectile.ProjectileGrappleController.FlyState.FixedUpdateBehavior += FlyState_FixedUpdateBehavior;
+            //On.EntityStates.Loader.SwingComboFist.PlayAnimation += SwingComboFist_PlayAnimation;
+        }
+
+        private static void SwingComboFist_PlayAnimation(On.EntityStates.Loader.SwingComboFist.orig_PlayAnimation orig, EntityStates.Loader.SwingComboFist self)
+        {
+            string[] a = new string[]
+            {
+                $"hitBoxGroupName = \"{self.hitBoxGroupName}\";",
+                $"hitEffectPrefab = {self.hitEffectPrefab.name}; //Resources.Load",
+                $"procCoefficient = {self.procCoefficient};",
+                $"pushAwayForce = {self.pushAwayForce};",
+                $"forceVector = new Vector3{self.forceVector};",
+                $"hitPauseDuration = {self.hitPauseDuration};",
+                $"swingEffectPrefab = \"{self.swingEffectPrefab}\"; //Resources.Load",
+                $"swingEffectMuzzleString = \"{self.swingEffectMuzzleString}\";",
+                $"mecanimHitboxActiveParameter = \"{self.mecanimHitboxActiveParameter}\";",
+                $"shorthopVelocityFromHit = {self.shorthopVelocityFromHit};",
+                $"beginStateSoundString = \"{self.beginStateSoundString}\";",
+                $"beginSwingSoundString = \"{self.beginSwingSoundString}\";",
+                $"forceForwardVelocity = {self.forceForwardVelocity.ToString().ToLower()};",
+                $"forwardVelocityCurve = null;",
+                $"scaleHitPauseDurationAndVelocityWithAttackSpeed = {self.scaleHitPauseDurationAndVelocityWithAttackSpeed.ToString().ToLower()};",
+                $"ignoreAttackSpeed = {self.ignoreAttackSpeed.ToString().ToLower()};"
+            };
+
+            //foreach (var b in a) { Chat.AddMessage(b); };
+
+            var curve = self.forwardVelocityCurve;
+            string[] aa = new string[]
+            {
+                $"Keys Length: {curve.keys.Length}",
+                $"postWrapMode = {curve.postWrapMode}",
+                $"preWrapMode = {curve.preWrapMode}",
+            };
+            Chat.AddMessage($"Keys Length: {curve.keys.Length}");
+            Chat.AddMessage($"postWrapMode = {curve.postWrapMode}");
+            Chat.AddMessage($"preWrapMode = {curve.preWrapMode}");
+            foreach (var keyframe in curve.keys)
+            {
+                Chat.AddMessage($"value = {keyframe.value}");
+                Chat.AddMessage($"time = {keyframe.time}");
+                Chat.AddMessage($"tangentMode = {keyframe.tangentMode} //obsolete");
+                Chat.AddMessage($"inTangent = {keyframe.inTangent}");
+                Chat.AddMessage($"outTangent = {keyframe.outTangent}");
+                Chat.AddMessage($"weightedMode = {keyframe.weightedMode}");
+                Chat.AddMessage($"inWeight = {keyframe.inWeight}");
+                Chat.AddMessage($"outWeight = {keyframe.outWeight}");
+            }
+
+            orig(self);
         }
 
         private static void FlyState_FixedUpdateBehavior(On.RoR2.Projectile.ProjectileGrappleController.FlyState.orig_FixedUpdateBehavior orig, BaseState self)
