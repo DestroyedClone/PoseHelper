@@ -74,6 +74,13 @@ namespace ROR1AltSkills.Acrid
 
         public static void Init()
         {
+            var a = myCharacter.transform.GetComponentsInChildren<HitBox>();
+            foreach (var b in a)
+            {
+                Debug.Log(b);
+            }
+
+
             SetupProjectiles();
             SetupSkills();
             SetupBuffs();
@@ -118,7 +125,7 @@ namespace ROR1AltSkills.Acrid
                 $" The target is poisoned for <style=cIsDamage>{FesteringWoundsDPSCoefficient * 100f}% damage per second</style>.");
 
             var mySkillDef = ScriptableObject.CreateInstance<SkillDef>();
-            mySkillDef.activationState = new SerializableEntityStateType(typeof(EntityStates.Croco.Bite));
+            mySkillDef.activationState = new SerializableEntityStateType(typeof(PoisonBite));
             mySkillDef.activationStateMachineName = "Mouth";
             mySkillDef.baseMaxStock = 1;
             mySkillDef.baseRechargeInterval = 0f;
@@ -275,7 +282,6 @@ namespace ROR1AltSkills.Acrid
             {
                 if (self.passiveSkillSlot.skillDef == self.poisonSkillDef)
                 {
-                    Chat.AddMessage("OriginalPoison Selected");
                     return (DamageType)OriginalPoisonOnHit;
                 }
             }
