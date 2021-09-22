@@ -50,24 +50,27 @@ namespace ROR1AltSkills.Loader
             LanguageAPI.Add("DC_LOADER_PRIMARY_KNUCKLEBOOM_NAME", "Knuckleboom");
             LanguageAPI.Add("DC_LOADER_PRIMARY_KNUCKLEBOOM_DESCRIPTION", "Batter nearby enemies for <style=cIsDamage>120%</style>. Every third hit deals <style=cIsDamage>240% and knocks up enemies</style>.");
 
-            var mySkillDef = ScriptableObject.CreateInstance<SkillDef>();
+            var oldDef = Resources.Load<SteppedSkillDef>("skilldefs/loaderbody/SwingFist");
+            var mySkillDef = ScriptableObject.CreateInstance<SteppedSkillDef>();
             mySkillDef.activationState = new SerializableEntityStateType(typeof(SwingComboFistAlt));
-            mySkillDef.activationStateMachineName = "Weapon";
-            mySkillDef.baseMaxStock = 1;
-            mySkillDef.baseRechargeInterval = 0f;
-            mySkillDef.beginSkillCooldownOnSkillEnd = true;
-            mySkillDef.canceledFromSprinting = false;
-            mySkillDef.fullRestockOnAssign = true;
-            mySkillDef.interruptPriority = InterruptPriority.Any;
-            mySkillDef.isCombatSkill = true;
-            mySkillDef.mustKeyPress = false;
-            mySkillDef.rechargeStock = 1;
-            mySkillDef.requiredStock = 1;
-            mySkillDef.stockToConsume = 1;
-            mySkillDef.icon = Resources.Load<Sprite>("textures/bufficons/texBuffLunarShellIcon");
+            mySkillDef.activationStateMachineName = oldDef.activationStateMachineName;
+            mySkillDef.baseMaxStock = oldDef.baseMaxStock;
+            mySkillDef.baseRechargeInterval = oldDef.baseRechargeInterval;
+            mySkillDef.beginSkillCooldownOnSkillEnd = oldDef.beginSkillCooldownOnSkillEnd;
+            mySkillDef.canceledFromSprinting = oldDef.canceledFromSprinting;
+            mySkillDef.fullRestockOnAssign = oldDef.fullRestockOnAssign;
+            mySkillDef.interruptPriority = oldDef.interruptPriority;
+            mySkillDef.isCombatSkill = oldDef.isCombatSkill;
+            mySkillDef.mustKeyPress = oldDef.mustKeyPress;
+            mySkillDef.rechargeStock = oldDef.rechargeStock;
+            mySkillDef.requiredStock = oldDef.requiredStock;
+            mySkillDef.stockToConsume = oldDef.stockToConsume;
+            mySkillDef.icon = oldDef.icon;
             mySkillDef.skillDescriptionToken = "DC_LOADER_PRIMARY_KNUCKLEBOOM_DESCRIPTION";
             mySkillDef.skillName = "DC_LOADER_PRIMARY_KNUCKLEBOOM_NAME";
             mySkillDef.skillNameToken = mySkillDef.skillName;
+            mySkillDef.stepCount = 3;
+            mySkillDef.resetStepsOnIdle = true;
 
             LoadoutAPI.AddSkillDef(mySkillDef);
 
@@ -89,7 +92,7 @@ namespace ROR1AltSkills.Loader
 
             var mySkillDefSecondary = ScriptableObject.CreateInstance<SkillDef>();
             mySkillDefSecondary.activationState = new SerializableEntityStateType(typeof(ActivateShield));
-            mySkillDefSecondary.activationStateMachineName = "Body";
+            mySkillDefSecondary.activationStateMachineName = "Pylon";
             mySkillDefSecondary.baseMaxStock = 1;
             mySkillDefSecondary.baseRechargeInterval = 5f;
             mySkillDefSecondary.beginSkillCooldownOnSkillEnd = true;

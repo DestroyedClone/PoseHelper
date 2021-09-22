@@ -1,18 +1,23 @@
 ﻿using EntityStates;
+using RoR2;
 using RoR2.Skills;
 using UnityEngine;
 using UnityEngine.Networking;
 
 namespace ROR1AltSkills.Loader
 {
-    public class SwingComboFistAlt : BasicMeleeAttack, SteppedSkillDef.IStepSetter
+    public class SwingComboFistAlt : EntityStates.Loader.SwingComboFist//EntityStates.Loader.LoaderMeleeAttack//, SteppedSkillDef.IStepSetter
     {
         public SwingComboFistAlt()
         {
             damageCoefficient = 1.2f;
+            barrierPercentagePerHit = 0f;
+        }
+        public void SetStep(int i)
+        {
+            gauntlet = i;
         }
 
-        public int gauntlet;
         public float comboFinisherDamageCoefficient = 2.4f;
         public Vector3 force = Vector3.up * 2f;
 
@@ -34,12 +39,6 @@ namespace ROR1AltSkills.Loader
             }
             base.OnEnter();
         }
-
-        public void SetStep(int i)
-        {
-            gauntlet = i;
-        }
-
         public override void PlayAnimation()
         {
             string animationStateName = "";
@@ -75,8 +74,8 @@ namespace ROR1AltSkills.Loader
                 case 1:
                     swingEffectMuzzleString = "SwingLeft";
                     break;
-
                 case 2:
+                    swingEffectMuzzleString = "SwingLeft";
                     break;
             }
             base.BeginMeleeAttackEffect();
