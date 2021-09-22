@@ -87,7 +87,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MultiplayerStatusIndicators
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConCommandConnectWithPassword", "ConCommandConnectWithPassword\ConCommandConnectWithPassword.csproj", "{C1A4CB6D-FF8A-42C2-8FFF-BCF3983396FD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeathMessageAboveCorpse", "DeathMessageAboveCorpse\DeathMessageAboveCorpse.csproj", "{30EA30EC-00AC-498F-9114-0EA0F414D333}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeathMessageAboveCorpse", "DeathMessageAboveCorpse\DeathMessageAboveCorpse.csproj", "{30EA30EC-00AC-498F-9114-0EA0F414D333}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LobbySkillPreview", "LobbySkillPreview\LobbySkillPreview.csproj", "{C3C99C46-E281-4970-A93B-0F6388B491A8}"
 EndProject
@@ -103,7 +103,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RandomLoadoutMonsterArtifac
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HideNamesPatch", "HideNamesPatch\HideNamesPatch.csproj", "{B6F5B2D5-5066-404C-9F80-50A83419C9EE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ROR1AltSkills", "ROR1AltSkills\ROR1AltSkills.csproj", "{755A1E85-6ECF-49A2-99F2-F9AE4BDFAC82}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ROR1AltSkills", "ROR1AltSkills\ROR1AltSkills.csproj", "{755A1E85-6ECF-49A2-99F2-F9AE4BDFAC82}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HereticSplitsVsMithrix", "HereticSplitsVsMithrix\HereticSplitsVsMithrix.csproj", "{815D1931-0136-4057-889E-E06CEBAB0A01}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -315,6 +317,10 @@ Global
 		{755A1E85-6ECF-49A2-99F2-F9AE4BDFAC82}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{755A1E85-6ECF-49A2-99F2-F9AE4BDFAC82}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{755A1E85-6ECF-49A2-99F2-F9AE4BDFAC82}.Release|Any CPU.Build.0 = Release|Any CPU
+		{815D1931-0136-4057-889E-E06CEBAB0A01}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{815D1931-0136-4057-889E-E06CEBAB0A01}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{815D1931-0136-4057-889E-E06CEBAB0A01}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{815D1931-0136-4057-889E-E06CEBAB0A01}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

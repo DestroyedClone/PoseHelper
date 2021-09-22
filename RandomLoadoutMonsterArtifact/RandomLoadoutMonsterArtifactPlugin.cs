@@ -26,6 +26,7 @@ namespace RandomLoadoutMonsterArtifact
     {
         public static ArtifactDef RandomLoadoutAll = ScriptableObject.CreateInstance<ArtifactDef>();
         public static ArtifactDef RandomLoadoutMonster = ScriptableObject.CreateInstance<ArtifactDef>();
+        public static ArtifactDef RandomLoadoutUmbra = ScriptableObject.CreateInstance<ArtifactDef>();
         public static ArtifactDef EvolRef = Resources.Load<ArtifactDef>("artifactdefs/MonsterTeamGainsItems");
 
         public void Awake()
