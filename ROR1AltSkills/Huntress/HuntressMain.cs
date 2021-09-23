@@ -31,7 +31,7 @@ namespace ROR1AltSkills.Huntress
         private static void SetupSkills()
         {
             LanguageAPI.Add("DC_HUNTRESS_SPECIAL_CLUSTERBOMBS_NAME", "Cluster Bombs");
-            LanguageAPI.Add("DC_HUNTRESS_SPECIAL_CLUSTERBOMBS_DESCRIPTION", "Fire an <style=cIsDamage>explosive arrow</style> for <style=cIsDamage>320% damage</style>. The arrow drops bomblets that detonate for <style=cIsDamage6x80%.</style>");
+            LanguageAPI.Add("DC_HUNTRESS_SPECIAL_CLUSTERBOMBS_DESCRIPTION", "Fire an <style=cIsDamage>explosive arrow</style> for <style=cIsDamage>320% damage</style>. The arrow drops bomblets that detonate for <style=cIsDamage>6x80%.</style>");
 
             var mySkillDef = ScriptableObject.CreateInstance<SkillDef>();
             mySkillDef.activationState = new SerializableEntityStateType(typeof(FireClusterBombs));
@@ -69,9 +69,9 @@ namespace ROR1AltSkills.Huntress
 
         private static void SetupProjectiles()
         {
-            //projectileBombletsPrefab = PrefabAPI.InstantiateClone(Resources.Load<GameObject>("prefabs/projectiles/SyringeProjectile"), "ClusterBombletsArrow");
+            projectileBombletsPrefab = PrefabAPI.InstantiateClone(Resources.Load<GameObject>("prefabs/projectiles/CryoCanisterBombletsProjectile"), "ClusterBombletsArrow");
 
-            //ProjectileAPI.Add(projectileBombletsPrefab);
+            ProjectileAPI.Add(projectileBombletsPrefab);
 
 
             projectilePrefab = PrefabAPI.InstantiateClone(Resources.Load<GameObject>("prefabs/projectiles/PaladinRocket"), "ClusterBombArrow");
@@ -82,7 +82,8 @@ namespace ROR1AltSkills.Huntress
             projectileImpactExplosion.blastDamageCoefficient = 0;
             projectileImpactExplosion.blastProcCoefficient = 0;
             projectileImpactExplosion.blastAttackerFiltering = AttackerFiltering.Default;
-            projectileImpactExplosion.fireChildren = Resources.Load<GameObject>("prefabs/projectiles/CryoCanisterBombletsProjectile");
+            projectileImpactExplosion.fireChildren = true;
+            projectileImpactExplosion.childrenProjectilePrefab = projectileBombletsPrefab;
             projectileImpactExplosion.childrenCount = 6;
             projectileImpactExplosion.childrenDamageCoefficient = 0.8f;
             projectileImpactExplosion.minAngleOffset = new Vector3(-2, -2, -2);

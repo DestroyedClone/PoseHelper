@@ -35,7 +35,7 @@ namespace ROR1AltSkills.Acrid
         public static GameObject acidPool;
         public static GameObject acidPoolDrop;
 
-        internal static float acidPoolScale = 0.5f;
+        internal static float acidPoolScale = 1f;
         private static readonly float buffWard_to_acidPoolScale_ratio = 5f; //shouldn't be changed
         internal static float CausticSludgeBuffDuration = 3f;
 
@@ -94,7 +94,7 @@ namespace ROR1AltSkills.Acrid
             var skillLocator = myCharacter.GetComponent<SkillLocator>();
 
             #region passive
-            LanguageAPI.Add("DC_CROCO_PASSIVE_POISON_NAME", "ROR1 Poison");
+            LanguageAPI.Add("DC_CROCO_PASSIVE_POISON_NAME", "Poison");
             LanguageAPI.Add("DC_CROCO_PASSIVE_POISON_DESCRIPTION", $"Deals {OriginalPoisonDamageCoefficient * 100f}% damage per second to enemies.");
 
             var passiveSkillDef = ScriptableObject.CreateInstance<SkillDef>();
@@ -114,6 +114,10 @@ namespace ROR1AltSkills.Acrid
             passiveSkillDef.skillDescriptionToken = "DC_CROCO_PASSIVE_POISON_DESCRIPTION";
             passiveSkillDef.skillName = "DC_CROCO_PASSIVE_POISON_NAME";
             passiveSkillDef.skillNameToken = passiveSkillDef.skillName;
+            passiveSkillDef.keywordTokens = new string[]
+            {
+                OriginalSkillsPlugin.modkeyword
+            };
 
             LoadoutAPI.AddSkillDef(passiveSkillDef);
             AddPassiveSkill(myCharacter, passiveSkillDef);
@@ -134,7 +138,7 @@ namespace ROR1AltSkills.Acrid
             mySkillDef.fullRestockOnAssign = true;
             mySkillDef.interruptPriority = InterruptPriority.Any;
             mySkillDef.isCombatSkill = true;
-            mySkillDef.mustKeyPress = true;
+            mySkillDef.mustKeyPress = false;
             mySkillDef.rechargeStock = 1;
             mySkillDef.requiredStock = 1;
             mySkillDef.stockToConsume = 1;
@@ -142,6 +146,13 @@ namespace ROR1AltSkills.Acrid
             mySkillDef.skillDescriptionToken = "DC_CROCO_PRIMARY_FESTERINGWOUNDS_DESCRIPTION";
             mySkillDef.skillName = "DC_CROCO_PRIMARY_FESTERINGWOUNDS_NAME";
             mySkillDef.skillNameToken = mySkillDef.skillName;
+            mySkillDef.keywordTokens = new string[]
+            {
+                OriginalSkillsPlugin.modkeyword,
+                "KEYWORD_POISON",
+                "KEYWORD_SLAYER",
+                "KEYWORD_RAPID_REGEN",
+            };
 
             LoadoutAPI.AddSkillDef(mySkillDef);
 
@@ -158,8 +169,9 @@ namespace ROR1AltSkills.Acrid
             #endregion
 
             LanguageAPI.Add("DC_CROCO_UTILITY_CAUSTICSLUDGE_NAME", "Caustic Sludge");
-            LanguageAPI.Add("DC_CROCO_UTILITY_CAUSTICSLUDGE_DESCRIPTION", $"Secrete <style=cIsDamage>poisonous sludge</style> for {CausticSludgeDuration} seconds." +
-                $" <style=cIsUtility>Speeds up allies,</style> while <style=cIsDamage>slowing and hurting enemies</style> for <style=cIsDamage>{CausticSludgeDamageCoefficient  * 100f}% damage</style>");
+            LanguageAPI.Add("DC_CROCO_UTILITY_CAUSTICSLUDGE_DESCRIPTION", $"<style=cIsUtility>Leap in the air</style>, and secrete <style=cIsDamage>poisonous sludge</style> for {CausticSludgeDuration} seconds." +
+                $" <style=cIsUtility>Speeds up allies,</style> while <style=cIsDamage>slowing and hurting enemies</style> for <style=cIsDamage>{CausticSludgeDamageCoefficient  * 100f}% damage</style>." +
+                $" If you are leaping, the impact deals <style=cIsDamage>{CausticSludgeLeapLandDamageCoefficient * 100}% damage</style>.");
 
             var mySkillDefUtil = ScriptableObject.CreateInstance<SkillDef>();
             mySkillDefUtil.activationState = new SerializableEntityStateType(typeof(Acrid.LeapDropAcid));
@@ -179,6 +191,11 @@ namespace ROR1AltSkills.Acrid
             mySkillDefUtil.skillDescriptionToken = "DC_CROCO_UTILITY_CAUSTICSLUDGE_DESCRIPTION";
             mySkillDefUtil.skillName = "DC_CROCO_UTILITY_CAUSTICSLUDGE_NAME";
             mySkillDefUtil.skillNameToken = mySkillDefUtil.skillName;
+            mySkillDefUtil.keywordTokens = new string[]
+            {
+                OriginalSkillsPlugin.modkeyword,
+                "KEYWORD_POISON",
+            };
 
             LoadoutAPI.AddSkillDef(mySkillDefUtil);
 

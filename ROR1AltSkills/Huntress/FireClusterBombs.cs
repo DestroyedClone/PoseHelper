@@ -24,7 +24,8 @@ namespace ROR1AltSkills.Huntress
         {
             base.OnEnter();
             this.duration = baseDuration / this.attackSpeedStat;
-            base.PlayAnimation("Body", "FireArrowSnipe", "FireArrowSnipe.playbackRate", this.duration);
+            base.PlayAnimation("Gesture, Additive", "FireArrow", "FireArrow.playbackRate", this.duration);
+            base.PlayAnimation("Gesture, Override", "FireArrow", "FireArrow.playbackRate", this.duration);
             Util.PlaySound(attackString, base.gameObject);
             Ray aimRay = base.GetAimRay();
             if (isAuthority)
@@ -54,6 +55,7 @@ namespace ROR1AltSkills.Huntress
 
         public override void OnExit()
         {
+            //base.PlayAnimation("FullBody, Override", "FireArrowRain");
             base.OnExit();
         }
 

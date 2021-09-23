@@ -205,7 +205,7 @@ namespace ROR1AltSkills.Loader
             {
                 Chat.AddMessage($"value = {keyframe.value}");
                 Chat.AddMessage($"time = {keyframe.time}");
-                Chat.AddMessage($"tangentMode = {keyframe.tangentMode} //obsolete");
+                //Chat.AddMessage($"tangentMode = {keyframe.tangentMode} //obsolete");
                 Chat.AddMessage($"inTangent = {keyframe.inTangent}");
                 Chat.AddMessage($"outTangent = {keyframe.outTangent}");
                 Chat.AddMessage($"weightedMode = {keyframe.weightedMode}");

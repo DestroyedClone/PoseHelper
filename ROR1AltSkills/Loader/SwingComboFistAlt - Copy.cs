@@ -6,30 +6,9 @@ using UnityEngine.Networking;
 
 namespace ROR1AltSkills.Loader
 {
-    public class SwingComboFistAlt : ModifiedBasicMeleeAttack, SteppedSkillDef.IStepSetter
+    public class SwingComboFistAlt : EntityStates.Loader.SwingComboFist, SteppedSkillDef.IStepSetter
     {
         public SwingComboFistAlt()
-        {
-        }
-        void SteppedSkillDef.IStepSetter.SetStep(int i)
-        {
-            this.gauntlet = i;
-            Chat.AddMessage($"{gauntlet} v {i}");
-        }
-
-        public float comboFinisherDamageCoefficient = 2.4f;
-        public Vector3 force = Vector3.up * 2f;
-        public int gauntlet = 0;
-
-        private bool IsComboFinisher
-        {
-            get
-            {
-                return gauntlet == 2;
-            }
-        }
-
-        public override void OnEnter()
         {
             damageCoefficient = 1.2f;
             hitBoxGroupName = "Punch";
@@ -82,14 +61,33 @@ namespace ROR1AltSkills.Loader
                         outWeight = 0,
                     }
 
-                })
-            {
-                preWrapMode = WrapMode.ClampForever,
-                postWrapMode = WrapMode.ClampForever
-            };
+                });
+            animationCurve.preWrapMode = WrapMode.ClampForever;
+            animationCurve.postWrapMode = WrapMode.ClampForever;
             forwardVelocityCurve = animationCurve;
             scaleHitPauseDurationAndVelocityWithAttackSpeed = true;
             ignoreAttackSpeed = false;
+        }
+        void SteppedSkillDef.IStepSetter.SetStep(int i)
+        {
+            this.gauntlet = i;
+            Chat.AddMessage($"{gauntlet} v {i}");
+        }
+
+        public float comboFinisherDamageCoefficient = 2.4f;
+        public Vector3 force = Vector3.up * 2f;
+        public int gauntlet = 0;
+
+        private bool IsComboFinisher
+        {
+            get
+            {
+                return gauntlet == 2;
+            }
+        }
+
+        public override void OnEnter()
+        {
             if (IsComboFinisher)
             {
                 damageCoefficient = comboFinisherDamageCoefficient;
@@ -98,7 +96,7 @@ namespace ROR1AltSkills.Loader
             }
             base.OnEnter();
         }
-        protected override void PlayAnimation()
+        public override void PlayAnimation()
         {
             string animationStateName = "";
             float duration = Mathf.Max(this.duration, 0.2f);

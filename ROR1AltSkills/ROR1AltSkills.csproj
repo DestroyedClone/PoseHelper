@@ -3,6 +3,10 @@
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
 	</PropertyGroup>
+
+	<ItemGroup>
+	  <Compile Remove="Loader\SwingComboFistAlt - Copy.cs" />
+	</ItemGroup>
 	<ItemGroup>
 		<Reference Include="0Harmony">
 			<HintPath>..\PoseHelper\lib\0Harmony.dll</HintPath>
