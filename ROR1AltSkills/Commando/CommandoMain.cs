@@ -19,6 +19,8 @@ namespace ROR1AltSkills.Commando
         public static GameObject myCharacter = Resources.Load<GameObject>("prefabs/characterbodies/CommandoBody");
         public static BodyIndex bodyIndex = myCharacter.GetComponent<CharacterBody>().bodyIndex;
 
+        public static SkillDef rollSkillDef;
+
 
         public static void Init()
         {
@@ -30,8 +32,10 @@ namespace ROR1AltSkills.Commando
         private static void DodgeState_OnEnter(On.EntityStates.Commando.DodgeState.orig_OnEnter orig, EntityStates.Commando.DodgeState self)
         {
             orig(self);
-            Chat.AddMessage(self.initialSpeedCoefficient.ToString());
-            Chat.AddMessage(self.finalSpeedCoefficient.ToString());
+            if (self.outer.commonComponents.characterBody?.skillLocator?.utility?.skillDef && self.outer.commonComponents.characterBody.skillLocator.utility.skillDef == rollSkillDef)
+            {
+                self.outer.commonComponents.characterBody.AddTimedBuff(RoR2Content.Buffs.Immune, self.duration);
+            }
         }
 
         private static void SetupSkills()
@@ -39,26 +43,27 @@ namespace ROR1AltSkills.Commando
             LanguageAPI.Add("DC_COMMANDO_UTILITY_TACTICALDIVE_NAME", "Tactical Dive");
             LanguageAPI.Add("DC_COMMANDO_UTILITY_TACTICALDIVE_DESCRIPTION", "<style=cIsDamage>Roll forward</style> a small distance. You <style=cIsUtility>cannot be hit</style> while rolling.");
 
-            var mySkillDef = ScriptableObject.CreateInstance<SkillDef>();
-            mySkillDef.activationState = new SerializableEntityStateType(typeof(TacticalDive));
-            mySkillDef.activationStateMachineName = "Body";
-            mySkillDef.baseMaxStock = 1;
-            mySkillDef.baseRechargeInterval = 4f;
-            mySkillDef.beginSkillCooldownOnSkillEnd = true;
-            mySkillDef.canceledFromSprinting = false;
-            mySkillDef.fullRestockOnAssign = true;
-            mySkillDef.interruptPriority = InterruptPriority.Skill;
-            mySkillDef.isCombatSkill = false;
-            mySkillDef.mustKeyPress = false;
-            mySkillDef.rechargeStock = 1;
-            mySkillDef.requiredStock = 1;
-            mySkillDef.stockToConsume = 1;
-            mySkillDef.icon = Resources.Load<Sprite>("textures/bufficons/texBuffLunarShellIcon");
-            mySkillDef.skillDescriptionToken = "DC_COMMANDO_UTILITY_TACTICALDIVE_DESCRIPTION";
-            mySkillDef.skillName = "DC_COMMANDO_UTILITY_TACTICALDIVE_NAME";
-            mySkillDef.skillNameToken = mySkillDef.skillName;
+            var oldDef = Resources.Load<SkillDef>("skilldefs/commandobody/CommandoBodyRoll");
+            rollSkillDef = ScriptableObject.CreateInstance<SkillDef>();
+            rollSkillDef.activationState = oldDef.activationState;
+            rollSkillDef.activationStateMachineName = "Body";
+            rollSkillDef.baseMaxStock = 1;
+            rollSkillDef.baseRechargeInterval = 4f;
+            rollSkillDef.beginSkillCooldownOnSkillEnd = true;
+            rollSkillDef.canceledFromSprinting = false;
+            rollSkillDef.fullRestockOnAssign = true;
+            rollSkillDef.interruptPriority = oldDef.interruptPriority;
+            rollSkillDef.isCombatSkill = false;
+            rollSkillDef.mustKeyPress = false;
+            rollSkillDef.rechargeStock = 1;
+            rollSkillDef.requiredStock = 1;
+            rollSkillDef.stockToConsume = 1;
+            rollSkillDef.icon = Resources.Load<Sprite>("textures/bufficons/texBuffLunarShellIcon");
+            rollSkillDef.skillDescriptionToken = "DC_COMMANDO_UTILITY_TACTICALDIVE_DESCRIPTION";
+            rollSkillDef.skillName = "DC_COMMANDO_UTILITY_TACTICALDIVE_NAME";
+            rollSkillDef.skillNameToken = rollSkillDef.skillName;
 
-            LoadoutAPI.AddSkillDef(mySkillDef);
+            LoadoutAPI.AddSkillDef(rollSkillDef);
 
             var skillLocator = myCharacter.GetComponent<SkillLocator>();
 
@@ -67,9 +72,9 @@ namespace ROR1AltSkills.Commando
             Array.Resize(ref skillFamily.variants, skillFamily.variants.Length + 1);
             skillFamily.variants[skillFamily.variants.Length - 1] = new SkillFamily.Variant
             {
-                skillDef = mySkillDef,
+                skillDef = rollSkillDef,
                 unlockableDef = null,
-                viewableNode = new ViewablesCatalog.Node(mySkillDef.skillNameToken, false, null)
+                viewableNode = new ViewablesCatalog.Node(rollSkillDef.skillNameToken, false, null)
             };
         }
     }

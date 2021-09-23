@@ -7,8 +7,9 @@ using RoR2.CharacterAI;
 using System.Security;
 using System.Security.Permissions;
 using UnityEngine;
-
+using System.Collections.Generic;
 using EntityStates.AI;
+using System.Linq;
 
 
 [module: UnverifiableCode]
@@ -26,29 +27,59 @@ namespace RandomLoadoutMonsterArtifact
     {
         public static ArtifactDef RandomLoadoutAll = ScriptableObject.CreateInstance<ArtifactDef>();
         public static ArtifactDef RandomLoadoutMonster = ScriptableObject.CreateInstance<ArtifactDef>();
-        public static ArtifactDef RandomLoadoutUmbra = ScriptableObject.CreateInstance<ArtifactDef>();
+        public static ArtifactDef RandomLoadoutMonsterSurvivors = ScriptableObject.CreateInstance<ArtifactDef>();
         public static ArtifactDef EvolRef = Resources.Load<ArtifactDef>("artifactdefs/MonsterTeamGainsItems");
+
+        public static BodyIndex[] survivorBodyIndices = new BodyIndex[] { };
 
         public void Awake()
         {
             InitializeArtifact();
             CharacterBody.onBodyStartGlobal += CharacterBody_onBodyStartGlobal;
+            On.RoR2.UI.MainMenu.MainMenuController.Start += MainMenuController_Start;
+        }
+
+        private void MainMenuController_Start(On.RoR2.UI.MainMenu.MainMenuController.orig_Start orig, RoR2.UI.MainMenu.MainMenuController self)
+        {
+            orig(self);
+            List<BodyIndex> bodyIndices = new List<BodyIndex>();
+            foreach (var survivor in SurvivorCatalog.allSurvivorDefs)
+            {
+                if (survivor.bodyPrefab.GetComponent<CharacterBody>())
+                {
+                    bodyIndices.Add(survivor.bodyPrefab.GetComponent<CharacterBody>().bodyIndex);
+                }
+                survivorBodyIndices = bodyIndices.ToArray();
+            }
+
+
+            On.RoR2.UI.MainMenu.MainMenuController.Start -= MainMenuController_Start;
         }
 
         private void CharacterBody_onBodyStartGlobal(CharacterBody obj)
         {
             if (!obj.master) return;
+            bool randomize = false;
             if (RunArtifactManager.instance.IsArtifactEnabled(RandomLoadoutAll))
             {
-                ApplyRandomLoadout(obj);
+                randomize = true;
             }
-            else if (RunArtifactManager.instance.IsArtifactEnabled(RandomLoadoutMonster))
+            else
             {
-                if (obj.teamComponent.teamIndex != TeamIndex.Player)
+                if (obj.teamComponent && obj.teamComponent.teamIndex != TeamIndex.Player)
                 {
-                    ApplyRandomLoadout(obj);
+                    if (RunArtifactManager.instance.IsArtifactEnabled(RandomLoadoutMonster))
+                    {
+                        randomize = true;
+                    } else if (RunArtifactManager.instance.IsArtifactEnabled(RandomLoadoutMonsterSurvivors) && survivorBodyIndices.Contains(obj.bodyIndex))
+                    {
+                        randomize = true;
+                    }
                 }
             }
+            if (randomize) ApplyRandomLoadout(obj);
+            
+            
         }
 
         private static void ApplyRandomLoadout(CharacterBody characterBody)
@@ -82,18 +113,24 @@ namespace RandomLoadoutMonsterArtifact
 
         public static void InitializeArtifact()
         {
-            RandomLoadoutAll.nameToken = "Artifact of Random Loadout (All)";
+            RandomLoadoutAll.nameToken = "Artifact of Tyfortosi (All)";
             RandomLoadoutAll.descriptionToken = "Randomizes loadouts for survivors and monsters alike.";
             RandomLoadoutAll.smallIconDeselectedSprite = EvolRef.smallIconDeselectedSprite;
             RandomLoadoutAll.smallIconSelectedSprite = EvolRef.smallIconSelectedSprite;
             ArtifactAPI.Add(RandomLoadoutAll);
 
 
-            RandomLoadoutMonster.nameToken = "Artifact of Random Loadout (Monster)";
-            RandomLoadoutMonster.descriptionToken = "Randomizes loadouts for monsters.";
+            RandomLoadoutMonster.nameToken = "Artifact of Tyfortosi (Monster)";
+            RandomLoadoutMonster.descriptionToken = "Randomizes loadouts for all monsters. Has minimal effect.";
             RandomLoadoutMonster.smallIconDeselectedSprite = EvolRef.smallIconDeselectedSprite;
             RandomLoadoutMonster.smallIconSelectedSprite = EvolRef.smallIconSelectedSprite;
             ArtifactAPI.Add(RandomLoadoutMonster);
+
+            RandomLoadoutMonsterSurvivors.nameToken = "Artifact of Tyfortosi (Enemy Survivor)";
+            RandomLoadoutMonsterSurvivors.descriptionToken = "Randomizes loadouts for survivors that spawn as monsters.";
+            RandomLoadoutMonsterSurvivors.smallIconDeselectedSprite = EvolRef.smallIconDeselectedSprite;
+            RandomLoadoutMonsterSurvivors.smallIconSelectedSprite = EvolRef.smallIconSelectedSprite;
+            ArtifactAPI.Add(RandomLoadoutMonsterSurvivors);
         }
     }
 }

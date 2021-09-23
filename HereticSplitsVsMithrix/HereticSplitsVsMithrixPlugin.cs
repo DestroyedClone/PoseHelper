@@ -52,11 +52,14 @@ namespace HereticSplitsVsMithrix
         {
             // one is already consumed before calling this
             var spawnHeretic = false;
-            if (self && self.playerCharacterMasterController && self.inventory && self.inventory.GetItemCount(RoR2Content.Items.ExtraLife) > 0
-                && self.GetBody() && self.GetBody().name.StartsWith("Heretic"))
+            if (NetworkServer.active)
             {
-                spawnHeretic = true;
-                self.inventory.RemoveItem(RoR2Content.Items.ExtraLife); //heretic's
+                if (self && self.playerCharacterMasterController && self.inventory && self.inventory.GetItemCount(RoR2Content.Items.ExtraLife) > 0
+                    && self.GetBody() && self.GetBody().name.StartsWith("Heretic"))
+                {
+                    spawnHeretic = true;
+                    self.inventory.RemoveItem(RoR2Content.Items.ExtraLife); //heretic's
+                }
             }
             orig(self);
             if (spawnHeretic)
