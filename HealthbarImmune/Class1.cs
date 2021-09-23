@@ -32,9 +32,8 @@ namespace HealthbarImmune
 
         private void Language_onCurrentLanguageChanged()
         {
-            if (Language.currentLanguage == null)
-                return;
-            currentLanguageToken = Language.GetString(token);
+            if (Language.currentLanguage != null)
+                currentLanguageToken = Language.GetString(token);
         }
 
         //https://github.com/Nebby1999/VarianceAPI/blob/59744f91ea25f061562e961371b02d1a9dd5bf19/VarianceAPI/Assets/VarianceAPI/Modules/Pickups/Items/PurpleHealthbar.cs

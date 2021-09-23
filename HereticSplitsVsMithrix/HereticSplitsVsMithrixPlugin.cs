@@ -32,20 +32,20 @@ namespace HereticSplitsVsMithrix
 
         private void SetupLanguage()
         {
-            LanguageAPI.Add("DC_HERETIC_SEPERATES", "<style=cIsUtility>We've seperated?</style>");
+            LanguageAPI.Add("DC_HERETIC_SEPERATES", "<style=cIsUtility>Heretic: We've seperated?</style>");
             //First, her many eyes were plucked from her skull and sealed in boiling glass, forced to gaze upon her failure...”
             //Visions (Primary)
-            LanguageAPI.Add("DC_HERETIC_SEPERATES_NOPRIMARY", "<style=cIsUtility>{0}, it's still dark...</style>");
+            LanguageAPI.Add("DC_HERETIC_SEPERATES_NOPRIMARY", "<style=cIsUtility>Heretic: {0}, it's still dark...</style>");
             //“…her arms were warped into terrible blades, so she may no longer find joy in study or tooling…”
             //Hooks (Secondary)
-            LanguageAPI.Add("DC_HERETIC_SEPERATES_NOSECONDARY", "<style=cIsUtility>{0}, I can't feel my arms...</style>");
+            LanguageAPI.Add("DC_HERETIC_SEPERATES_NOSECONDARY", "<style=cIsUtility>Heretic: {0}, I can't feel my arms...</style>");
             //“Her legs were scattered to the two poles of the moon, twisted in a wicked position, in a field of obsidian thorns…"
             //Strides (Utility)
-            LanguageAPI.Add("DC_HERETIC_SEPERATES_NOUTILITY", "<style=cIsUtility>{0}, it's a bit hard to move...</style>");
+            LanguageAPI.Add("DC_HERETIC_SEPERATES_NOUTILITY", "<style=cIsUtility>Heretic: {0}, it's a bit hard to move...</style>");
             //“…and her heart, too wicked and full of hate, was left where she once stood – at the site of her betrayal.”
             //Essence (Special)
-            LanguageAPI.Add("DC_HERETIC_SEPERATES_NOSPECIAL", "<style=cIsUtility>{0}, it's chilling...</style>");
-            LanguageAPI.Add("DC_HERETIC_SEPERATES_AMPUTEE", "<style=cIsUtility>{0}, only you can put an end to this.</style>");
+            LanguageAPI.Add("DC_HERETIC_SEPERATES_NOSPECIAL", "<style=cIsUtility>Heretic: {0}, it's chilling...</style>");
+            LanguageAPI.Add("DC_HERETIC_SEPERATES_AMPUTEE", "<style=cIsUtility>Heretic: {0}, only you can put an end to this.</style>");
         }
 
         private void CharacterMaster_RespawnExtraLife(On.RoR2.CharacterMaster.orig_RespawnExtraLife orig, CharacterMaster self)
@@ -64,6 +64,7 @@ namespace HereticSplitsVsMithrix
                 self.inventory.GiveItem(RoR2Content.Items.ExtraLifeConsumed);
                 var summon = SummonHeretic(self.bodyInstanceObject, self.deathFootPosition);
                 var chatter = summon.gameObject.AddComponent<HereticChatter>();
+                chatter.characterMaster = self;
 
                 var preferredBody = self.playerCharacterMasterController.networkUser.bodyIndexPreference;
 
@@ -75,29 +76,33 @@ namespace HereticSplitsVsMithrix
                 bool special = true;
                 Chat.SendBroadcastChat(new SubjectChatMessage()
                 {
-                   baseToken = "DC_HERETIC_SEPERATES",
-                   subjectAsCharacterBody = self.GetBody(),
+                   baseToken = "PLAYER_CONNECTED",
+                   subjectAsCharacterBody = summon.GetBody(),
                 });
 
                 if (summon.inventory.GetItemCount(RoR2Content.Items.LunarPrimaryReplacement) == 0)
                 {
                     chatter.AddLine("DC_HERETIC_SEPERATES_NOPRIMARY");
                     primary = false;
+                    self.inventory.RemoveItem(RoR2Content.Items.LunarPrimaryReplacement, summon.inventory.GetItemCount(RoR2Content.Items.LunarPrimaryReplacement));
                 }
                 if (summon.inventory.GetItemCount(RoR2Content.Items.LunarSecondaryReplacement) == 0)
                 {
                     chatter.AddLine("DC_HERETIC_SEPERATES_NOSECONDARY");
                     secondary = false;
+                    self.inventory.RemoveItem(RoR2Content.Items.LunarSecondaryReplacement, summon.inventory.GetItemCount(RoR2Content.Items.LunarSecondaryReplacement));
                 }
                 if (summon.inventory.GetItemCount(RoR2Content.Items.LunarUtilityReplacement) == 0)
                 {
                     chatter.AddLine("DC_HERETIC_SEPERATES_NOUTILITY");
                     utility = false;
+                    self.inventory.RemoveItem(RoR2Content.Items.LunarUtilityReplacement, summon.inventory.GetItemCount(RoR2Content.Items.LunarUtilityReplacement));
                 }
                 if (summon.inventory.GetItemCount(RoR2Content.Items.LunarSpecialReplacement) == 0)
                 {
                     chatter.AddLine("DC_HERETIC_SEPERATES_NOSPECIAL");
                     special = false;
+                    self.inventory.RemoveItem(RoR2Content.Items.LunarSpecialReplacement, summon.inventory.GetItemCount(RoR2Content.Items.LunarSpecialReplacement));
                 }
                 if (!primary && !secondary && !utility && !special)
                 {
@@ -110,9 +115,16 @@ namespace HereticSplitsVsMithrix
 
         public class HereticChatter : MonoBehaviour
         {
+            public CharacterMaster characterMaster;
             public float ChatDelay = 4f;
             private float age;
             public List<string> ChatMessages = new List<string>();
+            string thing;
+
+            public void Start()
+            {
+                thing = characterMaster.playerCharacterMasterController ? characterMaster.GetBody().GetUserName() : characterMaster.GetBody().GetDisplayName();
+            }
 
             public void AddLine(string message)
             {
@@ -120,6 +132,7 @@ namespace HereticSplitsVsMithrix
             }
             public void FixedUpdate()
             {
+                age += Time.fixedDeltaTime;
                 if (age >= ChatDelay)
                 {
                     if (ChatMessages.Count > 0)
@@ -127,7 +140,11 @@ namespace HereticSplitsVsMithrix
                         age = 0;
                         Chat.SendBroadcastChat(new Chat.SimpleChatMessage()
                         {
-                            baseToken = ChatMessages[0]
+                            baseToken = ChatMessages[0],
+                            paramTokens = new string[]
+                            {
+                                thing
+                            }
                         });
                         ChatMessages.RemoveAt(0);
                     } else
