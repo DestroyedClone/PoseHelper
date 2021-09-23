@@ -23,6 +23,15 @@ namespace ROR1AltSkills.Commando
         public static void Init()
         {
             SetupSkills();
+
+            On.EntityStates.Commando.DodgeState.OnEnter += DodgeState_OnEnter;
+        }
+
+        private static void DodgeState_OnEnter(On.EntityStates.Commando.DodgeState.orig_OnEnter orig, EntityStates.Commando.DodgeState self)
+        {
+            orig(self);
+            Chat.AddMessage(self.initialSpeedCoefficient.ToString());
+            Chat.AddMessage(self.finalSpeedCoefficient.ToString());
         }
 
         private static void SetupSkills()
@@ -32,15 +41,15 @@ namespace ROR1AltSkills.Commando
 
             var mySkillDef = ScriptableObject.CreateInstance<SkillDef>();
             mySkillDef.activationState = new SerializableEntityStateType(typeof(TacticalDive));
-            mySkillDef.activationStateMachineName = "Weapon";
+            mySkillDef.activationStateMachineName = "Body";
             mySkillDef.baseMaxStock = 1;
-            mySkillDef.baseRechargeInterval = 7f;
+            mySkillDef.baseRechargeInterval = 4f;
             mySkillDef.beginSkillCooldownOnSkillEnd = true;
             mySkillDef.canceledFromSprinting = false;
             mySkillDef.fullRestockOnAssign = true;
-            mySkillDef.interruptPriority = InterruptPriority.Any;
-            mySkillDef.isCombatSkill = true;
-            mySkillDef.mustKeyPress = true;
+            mySkillDef.interruptPriority = InterruptPriority.Skill;
+            mySkillDef.isCombatSkill = false;
+            mySkillDef.mustKeyPress = false;
             mySkillDef.rechargeStock = 1;
             mySkillDef.requiredStock = 1;
             mySkillDef.stockToConsume = 1;
@@ -53,7 +62,7 @@ namespace ROR1AltSkills.Commando
 
             var skillLocator = myCharacter.GetComponent<SkillLocator>();
 
-            var skillFamily = skillLocator.special.skillFamily;
+            var skillFamily = skillLocator.utility.skillFamily;
 
             Array.Resize(ref skillFamily.variants, skillFamily.variants.Length + 1);
             skillFamily.variants[skillFamily.variants.Length - 1] = new SkillFamily.Variant

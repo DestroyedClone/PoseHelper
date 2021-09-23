@@ -33,52 +33,14 @@ namespace ROR1AltSkills
             SetupLanguage();
 
             Acrid.AcridMain.Init();
+            Commando.CommandoMain.Init();
             Huntress.HuntressMain.Init();
             //Loader.LoaderMain.Init();
-
-
-            On.RoR2.UI.HealthBar.UpdateBarInfos += HealthBar_UpdateBarInfos;
         }
 
         public void SetupLanguage()
         {
             LanguageAPI.Add(modkeyword, $"Original Skills Mod");
-        }
-
-
-        //https://github.com/Nebby1999/VarianceAPI/blob/59744f91ea25f061562e961371b02d1a9dd5bf19/VarianceAPI/Assets/VarianceAPI/Modules/Pickups/Items/PurpleHealthbar.cs
-        private static void HealthBar_UpdateBarInfos(On.RoR2.UI.HealthBar.orig_UpdateBarInfos orig, RoR2.UI.HealthBar self)
-        {
-            orig(self);
-            bool changeColor = false;
-            var healthComponent = self._source;
-            if (healthComponent)
-            {
-                var characterBody = healthComponent.body;
-                if (characterBody)
-                {
-                    changeColor = healthComponent.godMode
-                        || characterBody.HasBuff(RoR2Content.Buffs.HiddenInvincibility)
-                        || characterBody.HasBuff(RoR2Content.Buffs.Immune);
-                }
-            }
-            if (changeColor)
-            {
-                self.barInfoCollection.healthBarInfo.color = ImmuneColor;
-                self.currentHealthText.text = "IMMUNE";
-                self.fullHealthText.text = "";
-
-                if (self.scaleHealthbarWidth)
-                {
-                    float x = Util.Remap(
-                        self.maxHealthbarWidth,
-                        self.minHealthbarHealth,
-                        self.maxHealthbarHealth,
-                        self.minHealthbarWidth,
-                        self.maxHealthbarWidth);
-                    self.rectTransform.sizeDelta = new Vector2(x, self.rectTransform.sizeDelta.y);
-                }
-            }
         }
     }
 }

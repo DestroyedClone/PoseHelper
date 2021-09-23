@@ -107,6 +107,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ROR1AltSkills", "ROR1AltSki
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HereticSplitsVsMithrix", "HereticSplitsVsMithrix\HereticSplitsVsMithrix.csproj", "{815D1931-0136-4057-889E-E06CEBAB0A01}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthbarImmune", "HealthbarImmune\HealthbarImmune.csproj", "{D1520B1D-6D89-4E6E-9ABD-0F121B853294}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -321,6 +323,10 @@ Global
 		{815D1931-0136-4057-889E-E06CEBAB0A01}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{815D1931-0136-4057-889E-E06CEBAB0A01}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{815D1931-0136-4057-889E-E06CEBAB0A01}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D1520B1D-6D89-4E6E-9ABD-0F121B853294}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D1520B1D-6D89-4E6E-9ABD-0F121B853294}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D1520B1D-6D89-4E6E-9ABD-0F121B853294}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D1520B1D-6D89-4E6E-9ABD-0F121B853294}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
