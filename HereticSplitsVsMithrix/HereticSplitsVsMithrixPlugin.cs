@@ -1,13 +1,13 @@
-﻿using System;
+﻿using BepInEx;
+using BepInEx.Configuration;
 using R2API;
-using RoR2;
-using BepInEx;
-using UnityEngine;
 using R2API.Utils;
-using UnityEngine.Networking;
+using RoR2;
 using System.Collections.Generic;
 using System.Security;
 using System.Security.Permissions;
+using UnityEngine;
+using UnityEngine.Networking;
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -24,10 +24,44 @@ namespace HereticSplitsVsMithrix
         public static GameObject myCharacter = Resources.Load<GameObject>("prefabs/characterbodies/HereticBody");
         public static BodyIndex bodyIndex = myCharacter.GetComponent<CharacterBody>().bodyIndex;
 
+        public static bool currentlyInBattle = false;
+        public static CharacterMaster currentHereticInstance = null;
+        public static ConfigEntry<bool> onlyBrother;
+
         public void Awake()
         {
+            onlyBrother = Config.Bind("", "Only allow during Mithrix", true, "Not really supported beyond this.");
+
             SetupLanguage();
             On.RoR2.CharacterMaster.RespawnExtraLife += CharacterMaster_RespawnExtraLife;
+
+            if (onlyBrother.Value)
+            {
+                On.EntityStates.Missions.BrotherEncounter.Phase1.OnEnter += Phase1_OnEnter;
+                On.EntityStates.Missions.BrotherEncounter.BossDeath.OnEnter += BossDeath_OnEnter;
+                Run.onServerGameOver += Run_onServerGameOver;
+            }
+            else
+            {
+                currentlyInBattle = true;
+            }
+        }
+
+        private void Run_onServerGameOver(Run arg1, GameEndingDef arg2)
+        {
+            currentlyInBattle = false;
+        }
+
+        private void BossDeath_OnEnter(On.EntityStates.Missions.BrotherEncounter.BossDeath.orig_OnEnter orig, EntityStates.Missions.BrotherEncounter.BossDeath self)
+        {
+            orig(self);
+            currentlyInBattle = false;
+        }
+
+        private void Phase1_OnEnter(On.EntityStates.Missions.BrotherEncounter.Phase1.orig_OnEnter orig, EntityStates.Missions.BrotherEncounter.Phase1 self)
+        {
+            orig(self);
+            currentlyInBattle = true;
         }
 
         private void SetupLanguage()
@@ -52,7 +86,7 @@ namespace HereticSplitsVsMithrix
         {
             // one is already consumed before calling this
             var spawnHeretic = false;
-            if (NetworkServer.active)
+            if (NetworkServer.active && currentlyInBattle)
             {
                 if (self && self.playerCharacterMasterController && self.inventory && self.inventory.GetItemCount(RoR2Content.Items.ExtraLife) > 0
                     && self.GetBody() && self.GetBody().name.StartsWith("Heretic"))
@@ -71,16 +105,16 @@ namespace HereticSplitsVsMithrix
 
                 var preferredBody = self.playerCharacterMasterController.networkUser.bodyIndexPreference;
 
-
                 #region heretic chatting
+
                 bool primary = true;
                 bool secondary = true;
                 bool utility = true;
                 bool special = true;
                 Chat.SendBroadcastChat(new SubjectChatMessage()
                 {
-                   baseToken = "PLAYER_CONNECTED",
-                   subjectAsCharacterBody = summon.GetBody(),
+                    baseToken = "PLAYER_CONNECTED",
+                    subjectAsCharacterBody = summon.GetBody(),
                 });
 
                 if (summon.inventory.GetItemCount(RoR2Content.Items.LunarPrimaryReplacement) == 0)
@@ -88,30 +122,36 @@ namespace HereticSplitsVsMithrix
                     chatter.AddLine("DC_HERETIC_SEPERATES_NOPRIMARY");
                     primary = false;
                 }
-                self.inventory.RemoveItem(RoR2Content.Items.LunarPrimaryReplacement, summon.inventory.GetItemCount(RoR2Content.Items.LunarPrimaryReplacement));
+                else
+                    self.inventory.RemoveItem(RoR2Content.Items.LunarPrimaryReplacement, summon.inventory.GetItemCount(RoR2Content.Items.LunarPrimaryReplacement));
                 if (summon.inventory.GetItemCount(RoR2Content.Items.LunarSecondaryReplacement) == 0)
                 {
                     chatter.AddLine("DC_HERETIC_SEPERATES_NOSECONDARY");
                     secondary = false;
                 }
-                self.inventory.RemoveItem(RoR2Content.Items.LunarSecondaryReplacement, summon.inventory.GetItemCount(RoR2Content.Items.LunarSecondaryReplacement));
+                else
+                    self.inventory.RemoveItem(RoR2Content.Items.LunarSecondaryReplacement, summon.inventory.GetItemCount(RoR2Content.Items.LunarSecondaryReplacement));
                 if (summon.inventory.GetItemCount(RoR2Content.Items.LunarUtilityReplacement) == 0)
                 {
                     chatter.AddLine("DC_HERETIC_SEPERATES_NOUTILITY");
                     utility = false;
                 }
-                self.inventory.RemoveItem(RoR2Content.Items.LunarUtilityReplacement, summon.inventory.GetItemCount(RoR2Content.Items.LunarUtilityReplacement));
+                else
+                    self.inventory.RemoveItem(RoR2Content.Items.LunarUtilityReplacement, summon.inventory.GetItemCount(RoR2Content.Items.LunarUtilityReplacement));
                 if (summon.inventory.GetItemCount(RoR2Content.Items.LunarSpecialReplacement) == 0)
                 {
                     chatter.AddLine("DC_HERETIC_SEPERATES_NOSPECIAL");
                     special = false;
                 }
-                self.inventory.RemoveItem(RoR2Content.Items.LunarSpecialReplacement, summon.inventory.GetItemCount(RoR2Content.Items.LunarSpecialReplacement));
+                else
+                    self.inventory.RemoveItem(RoR2Content.Items.LunarSpecialReplacement, summon.inventory.GetItemCount(RoR2Content.Items.LunarSpecialReplacement));
                 if (!primary && !secondary && !utility && !special)
                 {
                     chatter.AddLine("DC_HERETIC_SEPERATES_AMPUTEE");
                 }
-                #endregion
+
+                #endregion heretic chatting
+
                 self.TransformBody(BodyCatalog.GetBodyName(preferredBody));
             }
         }
@@ -122,7 +162,7 @@ namespace HereticSplitsVsMithrix
             public float ChatDelay = 4f;
             private float age;
             public List<string> ChatMessages = new List<string>();
-            string thing;
+            private string thing;
 
             public void Start()
             {
@@ -133,6 +173,7 @@ namespace HereticSplitsVsMithrix
             {
                 ChatMessages.Add(message);
             }
+
             public void FixedUpdate()
             {
                 age += Time.fixedDeltaTime;
@@ -150,13 +191,13 @@ namespace HereticSplitsVsMithrix
                             }
                         });
                         ChatMessages.RemoveAt(0);
-                    } else
+                    }
+                    else
                     {
                         enabled = false;
                     }
                 }
             }
-
         }
 
         [Server]
