@@ -19,6 +19,7 @@ namespace ROR1AltSkills.Loader
         public static GameObject myCharacter = Resources.Load<GameObject>("prefabs/characterbodies/LoaderBody");
         public static BodyIndex bodyIndex = myCharacter.GetComponent<CharacterBody>().bodyIndex;
 
+        public static SteppedSkillDef KnuckleBoomSkillDef;
         public static SkillDef UtilitySkillDef;
 
         public static GameObject StraightHookProjectile;
@@ -51,28 +52,28 @@ namespace ROR1AltSkills.Loader
             LanguageAPI.Add("DC_LOADER_PRIMARY_KNUCKLEBOOM_DESCRIPTION", "Batter nearby enemies for <style=cIsDamage>120%</style>. Every third hit deals <style=cIsDamage>240% and knocks up enemies</style>.");
 
             var oldDef = Resources.Load<SteppedSkillDef>("skilldefs/loaderbody/SwingFist");
-            var mySkillDef = ScriptableObject.CreateInstance<SteppedSkillDef>();
-            mySkillDef.activationState = new SerializableEntityStateType(typeof(SwingComboFistAlt));
-            mySkillDef.activationStateMachineName = oldDef.activationStateMachineName;
-            mySkillDef.baseMaxStock = oldDef.baseMaxStock;
-            mySkillDef.baseRechargeInterval = oldDef.baseRechargeInterval;
-            mySkillDef.beginSkillCooldownOnSkillEnd = oldDef.beginSkillCooldownOnSkillEnd;
-            mySkillDef.canceledFromSprinting = oldDef.canceledFromSprinting;
-            mySkillDef.fullRestockOnAssign = oldDef.fullRestockOnAssign;
-            mySkillDef.interruptPriority = oldDef.interruptPriority;
-            mySkillDef.isCombatSkill = oldDef.isCombatSkill;
-            mySkillDef.mustKeyPress = oldDef.mustKeyPress;
-            mySkillDef.rechargeStock = oldDef.rechargeStock;
-            mySkillDef.requiredStock = oldDef.requiredStock;
-            mySkillDef.stockToConsume = oldDef.stockToConsume;
-            mySkillDef.icon = oldDef.icon;
-            mySkillDef.skillDescriptionToken = "DC_LOADER_PRIMARY_KNUCKLEBOOM_DESCRIPTION";
-            mySkillDef.skillName = "DC_LOADER_PRIMARY_KNUCKLEBOOM_NAME";
-            mySkillDef.skillNameToken = mySkillDef.skillName;
-            mySkillDef.stepCount = 3;
-            mySkillDef.resetStepsOnIdle = true;
+            KnuckleBoomSkillDef = ScriptableObject.CreateInstance<SteppedSkillDef>();
+            KnuckleBoomSkillDef.activationState = new SerializableEntityStateType(typeof(SwingComboFistAlt));
+            KnuckleBoomSkillDef.activationStateMachineName = oldDef.activationStateMachineName;
+            KnuckleBoomSkillDef.baseMaxStock = oldDef.baseMaxStock;
+            KnuckleBoomSkillDef.baseRechargeInterval = oldDef.baseRechargeInterval;
+            KnuckleBoomSkillDef.beginSkillCooldownOnSkillEnd = oldDef.beginSkillCooldownOnSkillEnd;
+            KnuckleBoomSkillDef.canceledFromSprinting = oldDef.canceledFromSprinting;
+            KnuckleBoomSkillDef.fullRestockOnAssign = oldDef.fullRestockOnAssign;
+            KnuckleBoomSkillDef.interruptPriority = oldDef.interruptPriority;
+            KnuckleBoomSkillDef.isCombatSkill = oldDef.isCombatSkill;
+            KnuckleBoomSkillDef.mustKeyPress = oldDef.mustKeyPress;
+            KnuckleBoomSkillDef.rechargeStock = oldDef.rechargeStock;
+            KnuckleBoomSkillDef.requiredStock = oldDef.requiredStock;
+            KnuckleBoomSkillDef.stockToConsume = oldDef.stockToConsume;
+            KnuckleBoomSkillDef.icon = oldDef.icon;
+            KnuckleBoomSkillDef.skillDescriptionToken = "DC_LOADER_PRIMARY_KNUCKLEBOOM_DESCRIPTION";
+            KnuckleBoomSkillDef.skillName = "DC_LOADER_PRIMARY_KNUCKLEBOOM_NAME";
+            KnuckleBoomSkillDef.skillNameToken = KnuckleBoomSkillDef.skillName;
+            KnuckleBoomSkillDef.stepCount = 3;
+            KnuckleBoomSkillDef.resetStepsOnIdle = oldDef.resetStepsOnIdle;
 
-            LoadoutAPI.AddSkillDef(mySkillDef);
+            LoadoutAPI.AddSkillDef(KnuckleBoomSkillDef);
 
             var skillLocator = myCharacter.GetComponent<SkillLocator>();
 
@@ -81,9 +82,9 @@ namespace ROR1AltSkills.Loader
             Array.Resize(ref skillFamily.variants, skillFamily.variants.Length + 1);
             skillFamily.variants[skillFamily.variants.Length - 1] = new SkillFamily.Variant
             {
-                skillDef = mySkillDef,
+                skillDef = KnuckleBoomSkillDef,
                 unlockableDef = null,
-                viewableNode = new ViewablesCatalog.Node(mySkillDef.skillNameToken, false, null)
+                viewableNode = new ViewablesCatalog.Node(KnuckleBoomSkillDef.skillNameToken, false, null)
             };
 
 
@@ -165,6 +166,57 @@ namespace ROR1AltSkills.Loader
         {
             On.RoR2.Projectile.ProjectileGrappleController.FlyState.FixedUpdateBehavior += FlyState_FixedUpdateBehavior;
             //On.EntityStates.Loader.SwingComboFist.PlayAnimation += SwingComboFist_PlayAnimation;
+
+            //On.EntityStates.BasicMeleeAttack.OnEnter += BasicMeleeAttack_OnEnter;
+            //On.EntityStates.BasicMeleeAttack.PlayAnimation += BasicMeleeAttack_PlayAnimation;
+        }
+
+        private static bool IsSkillDef(EntityState entityState, SkillDef skillDef)
+        {
+            return (entityState.outer.commonComponents.characterBody?.skillLocator?.utility?.skillDef && entityState.outer.commonComponents.characterBody.skillLocator.utility.skillDef == skillDef);
+        }
+
+        private static void BasicMeleeAttack_PlayAnimation(On.EntityStates.BasicMeleeAttack.orig_PlayAnimation orig, BasicMeleeAttack self)
+        {
+            var isSkillDef = IsSkillDef(self, KnuckleBoomSkillDef);
+            if (!isSkillDef)
+            {
+                orig(self);
+                return;
+            }
+            var cock = self as EntityStates.Loader.SwingComboFist;
+            string animationStateName = "";
+            float duration = Mathf.Max(self.duration, 0.2f);
+            switch (cock.gauntlet)
+            {
+                case 0:
+                    animationStateName = "SwingFistRight";
+                    break;
+
+                case 1:
+                    animationStateName = "SwingFistLeft";
+                    break;
+
+                case 2:
+                    animationStateName = "BigPunch";
+                    //base.PlayAnimation("FullBody, Override", "BigPunch", "BigPunch.playbackRate", duration); //BigPunch
+                    break;
+            }
+
+            self.PlayCrossfade("Gesture, Additive", animationStateName, "SwingFist.playbackRate", duration, 0.1f);
+            self.PlayCrossfade("Gesture, Override", animationStateName, "SwingFist.playbackRate", duration, 0.1f);
+        }
+
+        private static void BasicMeleeAttack_OnEnter(On.EntityStates.BasicMeleeAttack.orig_OnEnter orig, BasicMeleeAttack self)
+        {
+            var cock = self as EntityStates.Loader.SwingComboFist;
+            if (cock.gauntlet == 2)
+            {
+                cock.damageCoefficient *= 2f;
+                cock.overlapAttack.pushAwayForce = 35f;
+                cock.overlapAttack.forceVector = Vector3.up;
+            }
+            orig(cock);
         }
 
         private static void SwingComboFist_PlayAnimation(On.EntityStates.Loader.SwingComboFist.orig_PlayAnimation orig, EntityStates.Loader.SwingComboFist self)

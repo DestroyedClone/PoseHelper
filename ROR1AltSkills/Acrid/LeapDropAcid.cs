@@ -70,12 +70,14 @@ namespace ROR1AltSkills.Acrid
 						damage = characterBody.damage * 0.25f,
 						owner = gameObject,
 						rotation = Quaternion.identity,
-						position = footPosition
+						position = characterBody.corePosition
 					};
 					if (hasLanded)
                     {
 						fireProjectileInfo.projectilePrefab = groundedAcid;
-                    }
+						fireProjectileInfo.position = footPosition;
+
+					}
 
 					ProjectileManager.instance.FireProjectile(fireProjectileInfo);
 					lastPosition = characterBody.corePosition;

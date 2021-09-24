@@ -35,12 +35,12 @@ namespace ROR1AltSkills
             Acrid.AcridMain.Init();
             Commando.CommandoMain.Init();
             Huntress.HuntressMain.Init();
-            //Loader.LoaderMain.Init();
+            Loader.LoaderMain.Init();
         }
 
         public void SetupLanguage()
         {
-            LanguageAPI.Add(modkeyword, $"Original Skills Mod");
+            LanguageAPI.Add(modkeyword, $"[ Original Skills Mod ]");
         }
     }
 }

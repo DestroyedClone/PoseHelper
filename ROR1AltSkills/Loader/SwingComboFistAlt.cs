@@ -90,13 +90,13 @@ namespace ROR1AltSkills.Loader
             forwardVelocityCurve = animationCurve;
             scaleHitPauseDurationAndVelocityWithAttackSpeed = true;
             ignoreAttackSpeed = false;
+            base.OnEnter();
             if (IsComboFinisher)
             {
                 damageCoefficient = comboFinisherDamageCoefficient;
                 overlapAttack.pushAwayForce = 15f;
                 overlapAttack.forceVector = Vector3.up;
             }
-            base.OnEnter();
         }
         protected override void PlayAnimation()
         {

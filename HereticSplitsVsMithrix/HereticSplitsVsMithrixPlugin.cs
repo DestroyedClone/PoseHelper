@@ -87,26 +87,26 @@ namespace HereticSplitsVsMithrix
                 {
                     chatter.AddLine("DC_HERETIC_SEPERATES_NOPRIMARY");
                     primary = false;
-                    self.inventory.RemoveItem(RoR2Content.Items.LunarPrimaryReplacement, summon.inventory.GetItemCount(RoR2Content.Items.LunarPrimaryReplacement));
                 }
+                self.inventory.RemoveItem(RoR2Content.Items.LunarPrimaryReplacement, summon.inventory.GetItemCount(RoR2Content.Items.LunarPrimaryReplacement));
                 if (summon.inventory.GetItemCount(RoR2Content.Items.LunarSecondaryReplacement) == 0)
                 {
                     chatter.AddLine("DC_HERETIC_SEPERATES_NOSECONDARY");
                     secondary = false;
-                    self.inventory.RemoveItem(RoR2Content.Items.LunarSecondaryReplacement, summon.inventory.GetItemCount(RoR2Content.Items.LunarSecondaryReplacement));
                 }
+                self.inventory.RemoveItem(RoR2Content.Items.LunarSecondaryReplacement, summon.inventory.GetItemCount(RoR2Content.Items.LunarSecondaryReplacement));
                 if (summon.inventory.GetItemCount(RoR2Content.Items.LunarUtilityReplacement) == 0)
                 {
                     chatter.AddLine("DC_HERETIC_SEPERATES_NOUTILITY");
                     utility = false;
-                    self.inventory.RemoveItem(RoR2Content.Items.LunarUtilityReplacement, summon.inventory.GetItemCount(RoR2Content.Items.LunarUtilityReplacement));
                 }
+                self.inventory.RemoveItem(RoR2Content.Items.LunarUtilityReplacement, summon.inventory.GetItemCount(RoR2Content.Items.LunarUtilityReplacement));
                 if (summon.inventory.GetItemCount(RoR2Content.Items.LunarSpecialReplacement) == 0)
                 {
                     chatter.AddLine("DC_HERETIC_SEPERATES_NOSPECIAL");
                     special = false;
-                    self.inventory.RemoveItem(RoR2Content.Items.LunarSpecialReplacement, summon.inventory.GetItemCount(RoR2Content.Items.LunarSpecialReplacement));
                 }
+                self.inventory.RemoveItem(RoR2Content.Items.LunarSpecialReplacement, summon.inventory.GetItemCount(RoR2Content.Items.LunarSpecialReplacement));
                 if (!primary && !secondary && !utility && !special)
                 {
                     chatter.AddLine("DC_HERETIC_SEPERATES_AMPUTEE");
