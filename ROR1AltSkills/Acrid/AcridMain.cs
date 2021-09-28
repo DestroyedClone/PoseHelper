@@ -225,6 +225,7 @@ namespace ROR1AltSkills.Acrid
                 buffWard.floorWard = true;
                 buffWard.radius = CausticSludgeActualScale;
                 buffWard.requireGrounded = true;
+                buffWard.interval *= 0.5f;
 
                 var enemyBuffWard = acidPool.AddComponent<BuffWard>();
                 enemyBuffWard.buffDef = RoR2Content.Buffs.Slow60;
@@ -239,6 +240,11 @@ namespace ROR1AltSkills.Acrid
                 projectileDotZone.damageCoefficient = CausticSludgeDamageCoefficient;
                 projectileDotZone.lifetime = CausticSludgeLifetime;
                 projectileDotZone.overlapProcCoefficient = 0f;
+
+                PoisonSplatController poisonSplatController = acidPool.AddComponent<PoisonSplatController>();
+                poisonSplatController.destroyOnTimer = acidPool.GetComponent<DestroyOnTimer>();
+                poisonSplatController.projectileDotZone = projectileDotZone;
+                poisonSplatController.projectileController = acidPool.GetComponent<ProjectileController>();
 
                 ProjectileAPI.Add(acidPool);
 
@@ -261,6 +267,8 @@ namespace ROR1AltSkills.Acrid
                 projectileImpactExplosion.childrenProjectilePrefab = acidPool;
                 projectileImpactExplosion.impactEffect = null;
                 projectileImpactExplosion.destroyOnEnemy = false;
+
+                acidPoolDrop.AddComponent<PoisonFallController>();
 
                 ProjectileAPI.Add(acidPoolDrop);
             }
