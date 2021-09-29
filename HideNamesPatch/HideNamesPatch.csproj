@@ -26,6 +26,9 @@
 		<Reference Include="BetterUI">
 			<HintPath>..\PoseHelper\lib\BetterUI.dll</HintPath>
 		</Reference>
+		<Reference Include="Facepunch.Steamworks">
+		  <HintPath>..\PoseHelper\lib\Facepunch.Steamworks.dll</HintPath>
+		</Reference>
 		<Reference Include="HGCSharpUtils">
 			<HintPath>..\PoseHelper\lib\HGCSharpUtils.dll</HintPath>
 		</Reference>

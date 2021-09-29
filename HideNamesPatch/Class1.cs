@@ -3,24 +3,136 @@ using BepInEx.Configuration;
 using RoR2;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Security;
+using System.Security.Permissions;
+
+using System;
+using Facepunch.Steamworks;
+using TMPro;
+using System.Globalization;
+using RoR2.Networking;
+
+[module: UnverifiableCode]
+#pragma warning disable CS0618 // Type or member is obsolete
+[assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
+#pragma warning restore CS0618 // Type or member is obsolete
+
+
 
 namespace HideNamesPatch
 {
-    [BepInPlugin("com.DestroyedClone.HideNamesPatch", "HideNamesPatch", "1.0.0")]
+    [BepInPlugin("com.DestroyedClone.HideNamesPatch", "HideNamesPatch", "1.1.0")]
     public class HideNames : BaseUnityPlugin
     {
         public ConfigEntry<string> NameOverride;
-        public ConfigEntry<string> FallbackName;
+        public ConfigEntry<string> BodyFallbackName;
+
+        public ConfigEntry<string> SkinFallbackName;
+        public ConfigEntry<string> SkinNameFormatting;
+        public ConfigEntry<string> DefaultSkinNameOverride;
+        public static string StringForCharacterName = "";
+        public static string StringForSkinName = "Skin";
+
+
+        public static bool GetBodyName = false;
+        public static bool GetSkinName = false;
+        public static bool ReplaceDefaultName = false;
+
+
+        internal static BepInEx.Logging.ManualLogSource _logger;
+
 
         public static Dictionary<CSteamID, string> SteamID_to_DisplayName = new Dictionary<CSteamID, string>();
 
         public void Awake()
         {
+            _logger = Logger;
             SetupConfig();
+            ReadConfig();
 
             On.RoR2.NetworkUser.GetNetworkPlayerName += NetworkUser_GetNetworkPlayerName;
             On.RoR2.NetworkUser.Start += NetworkUser_Start;
             On.RoR2.NetworkUser.OnDestroy += NetworkUser_OnDestroy;
+            On.RoR2.UI.SocialUsernameLabel.RefreshForSteam += SocialUsernameLabel_RefreshForSteam;
+            //On.RoR2.SocialUserIcon.RefreshForSteam += SocialUserIcon_RefreshForSteam;
+            On.RoR2.UI.HostGamePanelController.SetDefaultHostNameIfEmpty += HostGamePanelController_SetDefaultHostNameIfEmpty;
+        }
+
+        private void HostGamePanelController_SetDefaultHostNameIfEmpty(On.RoR2.UI.HostGamePanelController.orig_SetDefaultHostNameIfEmpty orig, RoR2.UI.HostGamePanelController self)
+        {
+            GameNetworkManager.SvHostNameConVar instance = GameNetworkManager.SvHostNameConVar.instance;
+            if (string.IsNullOrEmpty(instance.GetString()))
+            {
+                instance.SetString(Language.GetStringFormatted("HOSTGAMEPANEL_DEFAULT_SERVER_NAME_FORMAT", new object[]
+                {
+                    GetDefaultNameOutsideLobby()
+                }));
+            }
+            orig(self);
+        }
+
+        public string GetDefaultNameOutsideLobby()
+        {
+            return GetBodyName ? BodyFallbackName.Value : NameOverride.Value;
+        }
+
+        private void SocialUsernameLabel_RefreshForSteam(On.RoR2.UI.SocialUsernameLabel.orig_RefreshForSteam orig, RoR2.UI.SocialUsernameLabel self)
+        {
+            orig(self);
+            Client instance = Client.Instance;
+            if (instance != null && self.textMeshComponent != null)
+            {
+                var replace = GetDefaultNameOutsideLobby();
+
+                self.textMeshComponent.text = replace;
+                if (self.subPlayerIndex != 0)
+                {
+                    TextMeshProUGUI textMeshProUGUI = self.textMeshComponent;
+                    textMeshProUGUI.text = string.Concat(new object[]
+                    {
+                        textMeshProUGUI.text,
+                        "(",
+                        self.subPlayerIndex + 1,
+                        ")"
+                    });
+                }
+            }
+        }
+
+        public void ReadConfig()
+        {
+            if (NameOverride.Value == StringForCharacterName)
+            {
+                GetBodyName = true;
+            }
+            if (NameOverride.Value == StringForSkinName)
+            {
+                if (SkinNameFormatting.Value.Contains("{0}"))
+                {
+                    GetBodyName = true;
+                }
+                if (SkinNameFormatting.Value.Contains("{1}"))
+                {
+                    GetSkinName = true;
+                }
+            }
+            if (DefaultSkinNameOverride.Value != "Keep")
+            {
+                ReplaceDefaultName = true;
+            }
+        }
+
+        public void SetupConfig()
+        {
+            NameOverride = Config.Bind("General Settings", "Default Name", "", $"The name all players will use. Leave empty to default to the survivor name, or to \"Skin\" to show their skin name.");
+            BodyFallbackName = Config.Bind("General Settings", "Fallback Body Name", "Player", $"If it fails to default to the survivor name, then it will fallback to this name.");
+            
+            SkinFallbackName = Config.Bind("Skin Settings", "Fallback Skin Name", "Default", $"If it fails to get the current skin name, then it will fallback to this name.");
+            SkinNameFormatting = Config.Bind("Skin Settings", "Skin Name Formatting", "{1} {0}", $"If \"Default Name\" is set to \"Skin\", then it will format their name as such:" +
+                $"\n\"{{0}} = Survivor Name; {{1}} = SkinName\"" +
+                $"\n\"{{1}} {{0}}\" = \"Admiral Captain\", \"Arctic Huntress\", \"Default Commando\", etc");
+            DefaultSkinNameOverride = Config.Bind("Skin Settings", "Default Skin Name Override", "Keep", $"If the skin is the default skin, then it will be replaced with this name." +
+                $"\nSet to \"Keep\" to not replace it.");
         }
 
         private void NetworkUser_OnDestroy(On.RoR2.NetworkUser.orig_OnDestroy orig, NetworkUser self)
@@ -51,24 +163,82 @@ namespace HideNamesPatch
         private RoR2.NetworkPlayerName NetworkUser_GetNetworkPlayerName(On.RoR2.NetworkUser.orig_GetNetworkPlayerName orig, RoR2.NetworkUser self)
         {
             var nameOverride = NameOverride.Value;
-            if (nameOverride == "")
+            var bodyName = BodyFallbackName.Value;
+            if (GetBodyName)
             {
                 if (self.GetCurrentBody())
                 {
-                    nameOverride = self.GetCurrentBody().GetDisplayName();
+                    bodyName = self.GetCurrentBody().GetDisplayName();
                 }
                 else
                 {
                     if (BodyCatalog.GetBodyPrefab(self.bodyIndexPreference))
                     {
-                        nameOverride = BodyCatalog.GetBodyPrefabBodyComponent(self.bodyIndexPreference).GetDisplayName();
-                    }
-                    else
-                    {
-                        nameOverride = FallbackName.Value;
+                        bodyName = BodyCatalog.GetBodyPrefabBodyComponent(self.bodyIndexPreference).GetDisplayName();
                     }
                 }
             }
+            if (!SteamworksLobbyManager.isInLobby)
+            {
+                if (GetBodyName || (!GetBodyName && GetSkinName))
+                {
+                    nameOverride = bodyName;
+                }
+                return new RoR2.NetworkPlayerName
+                {
+                    nameOverride = nameOverride,
+                    steamId = self.id.steamId
+                };
+            }
+            var skinName = SkinFallbackName.Value;
+            SkinDef skinDef;
+            bool isDefaultSkin = false;
+            if (GetSkinName)
+            {
+                var body = self.GetCurrentBody();
+                if (body)
+                {
+                    skinDef = SkinCatalog.FindCurrentSkinDefForBodyInstance(body.gameObject);
+                    if (skinDef)
+                    {
+                        var skinDefs = SkinCatalog.FindSkinsForBody(body.bodyIndex);
+                        skinName = Language.GetString(skinDef.nameToken);
+                        isDefaultSkin = skinDefs[0] == skinDef;
+                    }
+                } else
+                {
+                    if (self.bodyIndexPreference >= 0)
+                    {
+                        var skinDefs = SkinCatalog.FindSkinsForBody(self.bodyIndexPreference);
+                        if (skinDefs != null)
+                        {
+                            int skinIndex = (int)self.localUser.userProfile.loadout.bodyLoadoutManager.GetSkinIndex(self.bodyIndexPreference);
+
+                            var userSkinDef = SkinCatalog.FindSkinsForBody(self.bodyIndexPreference)[skinIndex];
+                            //var sksadinIndex = SkinCatalog.FindLocalSkinIndexForBody(self.bodyIndexPreference, userSkinDef);
+                            skinName = Language.GetString(userSkinDef.nameToken);
+                            isDefaultSkin = skinDefs[0] == userSkinDef;
+                        }
+                    }
+                }
+                if (isDefaultSkin && ReplaceDefaultName)
+                {
+                    skinName = DefaultSkinNameOverride.Value;
+                }
+            }
+            if (GetSkinName || GetBodyName)
+            {
+                nameOverride = "";
+                if (GetSkinName)
+                {
+                    nameOverride = string.Format(SkinNameFormatting.Value, bodyName, skinName);
+                } else if (GetBodyName)
+                {
+                    nameOverride = bodyName;
+                }
+            }
+
+
             if (self && self.id.steamId != null)
             {
                 SteamID_to_DisplayName[self.id.steamId] = nameOverride;
@@ -81,15 +251,12 @@ namespace HideNamesPatch
             };
         }
 
-        public void SetupConfig()
-        {
-            NameOverride = Config.Bind("General Settings", "Default Name", "", $"The name all players will use. Leave empty to default to the survivor name.");
-            FallbackName = Config.Bind("General Settings", "Fallback Name", "Player", $"If it fails to default to the survivor name, then it will fallback to this name.");
-        }
 
         public class UserRenamer : MonoBehaviour
         {
             public NetworkUser networkUser;
+            private float age;
+            private float duration = 3f;
 
             public CSteamID steamID;
 
@@ -97,18 +264,29 @@ namespace HideNamesPatch
             {
                 if (networkUser)
                     steamID = networkUser.id.steamId;
+                age = duration;
             }
 
             public void FixedUpdate()
             {
-                if (networkUser)
+                age += Time.fixedDeltaTime;
+                if (age >= duration)
                 {
-                    if (SteamID_to_DisplayName.ContainsKey(steamID))
+                    if (networkUser)
                     {
-                        networkUser.UpdateUserName();
-                        return;
+                        if (SteamID_to_DisplayName.ContainsKey(steamID))
+                        {
+                            networkUser.UpdateUserName();
+                            return;
+                        }
                     }
+                    age = 0;
                 }
+            }
+
+            public void ManualUpdate()
+            {
+
             }
         }
     }
