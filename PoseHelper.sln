@@ -81,7 +81,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DynamicOverheadText", "Dyna
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VanillaDamageTyped", "VanillaDamageTyped\VanillaDamageTyped.csproj", "{DFA51B4D-D390-4547-B6F7-C902E9421794}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MithrixEquipmentDrones", "MithrixEquipmentDrones\MithrixEquipmentDrones.csproj", "{19AB27F2-1F00-4040-82BA-C56061A8EE64}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MithrixEquipmentDrones", "MithrixEquipmentDrones\MithrixEquipmentDrones.csproj", "{19AB27F2-1F00-4040-82BA-C56061A8EE64}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MultiplayerStatusIndicators", "ShowTyping\MultiplayerStatusIndicators.csproj", "{9059C693-499C-4B64-AB13-CF54E249A0C5}"
 EndProject
@@ -105,9 +105,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HideNamesPatch", "HideNames
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ROR1AltSkills", "ROR1AltSkills\ROR1AltSkills.csproj", "{755A1E85-6ECF-49A2-99F2-F9AE4BDFAC82}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HereticSplitsVsMithrix", "HereticSplitsVsMithrix\HereticSplitsVsMithrix.csproj", "{815D1931-0136-4057-889E-E06CEBAB0A01}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HereticSplitsVsMithrix", "HereticSplitsVsMithrix\HereticSplitsVsMithrix.csproj", "{815D1931-0136-4057-889E-E06CEBAB0A01}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthbarImmune", "HealthbarImmune\HealthbarImmune.csproj", "{D1520B1D-6D89-4E6E-9ABD-0F121B853294}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SteamIconAsPlayerIcon", "SteamIconAsPlayerIcon\SteamIconAsPlayerIcon.csproj", "{CD769ADB-D9EC-464C-B538-C6B128FD7B97}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RichTextChat", "UnEscapeRichTextForChat\RichTextChat.csproj", "{AB28C8F4-C352-4E62-A980-FC3715156F98}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -327,6 +331,14 @@ Global
 		{D1520B1D-6D89-4E6E-9ABD-0F121B853294}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D1520B1D-6D89-4E6E-9ABD-0F121B853294}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D1520B1D-6D89-4E6E-9ABD-0F121B853294}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CD769ADB-D9EC-464C-B538-C6B128FD7B97}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CD769ADB-D9EC-464C-B538-C6B128FD7B97}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CD769ADB-D9EC-464C-B538-C6B128FD7B97}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CD769ADB-D9EC-464C-B538-C6B128FD7B97}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AB28C8F4-C352-4E62-A980-FC3715156F98}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AB28C8F4-C352-4E62-A980-FC3715156F98}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AB28C8F4-C352-4E62-A980-FC3715156F98}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AB28C8F4-C352-4E62-A980-FC3715156F98}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
