@@ -328,7 +328,20 @@ namespace ROR1AltSkills.Acrid
                 interval = 0.333f
             };
 
-            OriginalPoisonDot = DotAPI.RegisterDotDef(dotDef);
+            DotController.DotStack dotStack = new DotController.DotStack()
+            {
+                
+            };
+
+            DotAPI.CustomDotBehaviour customDotBehaviour = new DotAPI.CustomDotBehaviour(ApplyCustomPoison);
+
+            OriginalPoisonDot = DotAPI.RegisterDotDef(dotDef, customDotBehaviour);
         }
+
+        private static void ApplyCustomPoison(DotController self, DotController.DotStack dotStack)
+        {
+
+        }
+
     }
 }

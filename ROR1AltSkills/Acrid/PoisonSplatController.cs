@@ -13,7 +13,7 @@ namespace ROR1AltSkills.Acrid
         public ProjectileController projectileController;
         public ProjectileDotZone projectileDotZone;
         public int currentStacks = 1;
-        public static int maxStacks = 10;
+        public static int maxStacks = 15;
 
         public void Start()
         {
