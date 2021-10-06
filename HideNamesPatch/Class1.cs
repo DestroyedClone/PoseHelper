@@ -38,6 +38,7 @@ namespace HideNamesPatch
         public static bool GetBodyName = false;
         public static bool GetSkinName = false;
         public static bool ReplaceDefaultName = false;
+        public static CSteamID HostSteamID;
 
 
         internal static BepInEx.Logging.ManualLogSource _logger;
@@ -180,7 +181,7 @@ namespace HideNamesPatch
                     }
                 }
             }
-            if (!SteamworksLobbyManager.isInLobby)
+            if (false == true && !SteamworksLobbyManager.isInLobby)
             {
                 if (GetBodyName || (!GetBodyName && GetSkinName))
                 {
