@@ -30,6 +30,7 @@ namespace HideNamesPatch
         public ConfigEntry<string> SkinFallbackName;
         public ConfigEntry<string> SkinNameFormatting;
         public ConfigEntry<string> DefaultSkinNameOverride;
+        public static ConfigEntry<float> NameUpdateFrequency;
         public static string StringForCharacterName = "";
         public static string StringForSkinName = "Skin";
 
@@ -133,6 +134,7 @@ namespace HideNamesPatch
                 $"\n\"{{1}} {{0}}\" = \"Admiral Captain\", \"Arctic Huntress\", \"Default Commando\", etc");
             DefaultSkinNameOverride = Config.Bind("Skin Settings", "Default Skin Name Override", "Keep", $"If the skin is the default skin, then it will be replaced with this name." +
                 $"\nSet to \"Keep\" to not replace it.");
+            NameUpdateFrequency = Config.Bind("Performance", "Name Update Frequency", 3f, "In seconds, of how often to update the name.");
         }
 
         private void NetworkUser_OnDestroy(On.RoR2.NetworkUser.orig_OnDestroy orig, NetworkUser self)
@@ -256,21 +258,23 @@ namespace HideNamesPatch
         {
             public NetworkUser networkUser;
             private float age;
-            private float duration = 3f;
 
             public CSteamID steamID;
 
             public void Start()
             {
                 if (networkUser)
+                {
                     steamID = networkUser.id.steamId;
-                age = duration;
+                    networkUser.UpdateUserName();
+                }
+                age = NameUpdateFrequency.Value;
             }
 
             public void FixedUpdate()
             {
                 age += Time.fixedDeltaTime;
-                if (age >= duration)
+                if (age >= NameUpdateFrequency.Value)
                 {
                     if (networkUser)
                     {
