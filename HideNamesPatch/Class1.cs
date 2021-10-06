@@ -181,7 +181,7 @@ namespace HideNamesPatch
                     }
                 }
             }
-            if (false == true && !SteamworksLobbyManager.isInLobby)
+            /*if (false == true && !SteamworksLobbyManager.isInLobby)
             {
                 if (GetBodyName || (!GetBodyName && GetSkinName))
                 {
@@ -192,7 +192,7 @@ namespace HideNamesPatch
                     nameOverride = nameOverride,
                     steamId = self.id.steamId
                 };
-            }
+            }*/
             var skinName = SkinFallbackName.Value;
             SkinDef skinDef;
             bool isDefaultSkin = false;
