@@ -185,8 +185,8 @@ namespace DeathMessageAboveCorpse
         {
             orig(self);
             //self.master.IsDeadAndOutOfLivesServer()
-            bool lastLifeCheck = cfgOnlyLastLife.Value == false || cfgOnlyLastLife.Value && self.master.IsDeadAndOutOfLivesServer();
-            if (self.isPlayerControlled && self.master && lastLifeCheck)
+            bool lastLifeCheck = cfgOnlyLastLife.Value == false || (cfgOnlyLastLife.Value && self.master && IsDeadAndOutOfLives(self.master));
+            if (self.isPlayerControlled && lastLifeCheck)
             {
                 if (LocalUserManager.readOnlyLocalUsersList[0].cachedBody.GetComponent<NetworkIdentity>() == self.GetComponent<NetworkIdentity>())
                 {
@@ -196,6 +196,12 @@ namespace DeathMessageAboveCorpse
                     trackerObject.GetComponent<TrackCorpseClient>().lastPosition = self.transform.position;
                 }
             }
+        }
+
+        private bool IsDeadAndOutOfLives(CharacterMaster characterMaster)
+        {
+            CharacterBody body = characterMaster.GetBody();
+            return (!body || !body.healthComponent.alive) && characterMaster.inventory.GetItemCount(RoR2Content.Items.ExtraLife) <= 0 && !characterMaster.IsInvoking("RespawnExtraLife");
         }
 
         private void ModelLocator_OnDestroy(On.RoR2.ModelLocator.orig_OnDestroy orig, ModelLocator self)
