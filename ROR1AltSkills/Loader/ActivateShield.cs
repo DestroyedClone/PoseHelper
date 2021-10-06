@@ -21,6 +21,30 @@ namespace ROR1AltSkills.Loader
             base.OnEnter();
             outer.commonComponents.characterBody.AddTimedBuff(armorBuff, armorBuffDuration);
             outer.commonComponents.characterBody.AddTimedBuff(speedBuff, speedBuffDuration);
+            ApplyBuff(outer.commonComponents.characterBody);
+            if (characterBody.master && LoaderMain.DebrisShieldAffectsDrones.Value)
+            {
+                foreach (var deployable in characterBody.master.deployablesList)
+                {
+                    if (deployable.deployable && deployable.deployable.GetComponent<CharacterBody>())
+                    {
+                        var characterBody = deployable.deployable.GetComponent<CharacterBody>();
+                        if ((characterBody.bodyFlags &= CharacterBody.BodyFlags.Mechanical) == CharacterBody.BodyFlags.Mechanical)
+                        {
+                            ApplyBuff(characterBody);
+                        }
+                    }
+                }
+            }
+        }
+
+        public void ApplyBuff(CharacterBody characterBody)
+        {
+            if (characterBody)
+            {
+                characterBody.AddTimedBuff(armorBuff, armorBuffDuration);
+                characterBody.AddTimedBuff(speedBuff, speedBuffDuration);
+            }
         }
 
         public override void FixedUpdate()

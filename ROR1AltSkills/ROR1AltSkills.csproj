@@ -5,7 +5,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Compile Remove="Loader\FireStraightHook.cs" />
+	  <Compile Remove="Loader\StraightPullState.cs" />
 	  <Compile Remove="Loader\SwingComboFistAlt - Copy.cs" />
+	  <Compile Remove="Loader\SwingComboFistAlt.cs" />
 	</ItemGroup>
 	<ItemGroup>
 		<Reference Include="0Harmony">

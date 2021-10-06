@@ -24,8 +24,12 @@ namespace ROR1AltSkills.Loader
 
         public static GameObject StraightHookProjectile;
 
-        public static void Init()
+        public static ConfigEntry<bool> DebrisShieldAffectsDrones;
+
+        public static void Init(ConfigFile config)
         {
+            SetupConfig(config);
+
             SetupSkills();
 
             SetupBuffs();
@@ -33,6 +37,11 @@ namespace ROR1AltSkills.Loader
             SetupProjectiles();
 
             Hooks();
+        }
+
+        public static void SetupConfig(ConfigFile config)
+        {
+            DebrisShieldAffectsDrones = config.Bind("SURVIVOR: LOADER", "Debris Shield Affects Your Drones", true, "If true, drones owned by the player will be give the buff too.");
         }
 
         public static void SetupProjectiles()
@@ -48,6 +57,10 @@ namespace ROR1AltSkills.Loader
 
         private static void SetupSkills()
         {
+            var skillLocator = myCharacter.GetComponent<SkillLocator>();
+
+            #region primary
+            /*
             LanguageAPI.Add("DC_LOADER_PRIMARY_KNUCKLEBOOM_NAME", "Knuckleboom");
             LanguageAPI.Add("DC_LOADER_PRIMARY_KNUCKLEBOOM_DESCRIPTION", "Batter nearby enemies for <style=cIsDamage>120%</style>. Every third hit deals <style=cIsDamage>240% and knocks up enemies</style>.");
 
@@ -75,7 +88,6 @@ namespace ROR1AltSkills.Loader
 
             LoadoutAPI.AddSkillDef(KnuckleBoomSkillDef);
 
-            var skillLocator = myCharacter.GetComponent<SkillLocator>();
 
             var skillFamily = skillLocator.primary.skillFamily;
 
@@ -86,7 +98,8 @@ namespace ROR1AltSkills.Loader
                 unlockableDef = null,
                 viewableNode = new ViewablesCatalog.Node(KnuckleBoomSkillDef.skillNameToken, false, null)
             };
-
+            */
+            #endregion
 
             LanguageAPI.Add("DC_LOADER_SECONDARY_SHIELD_NAME", "Debris Shield");
             LanguageAPI.Add("DC_LOADER_SECONDARY_SHIELD_DESCRIPTION", "Shield yourself for <style=cIsHealing>100% of your health for 3 seconds</style> while also <style=cIsUtility>increasing your move speed.</style>");
@@ -96,6 +109,7 @@ namespace ROR1AltSkills.Loader
             mySkillDefSecondary.activationStateMachineName = "Pylon";
             mySkillDefSecondary.baseMaxStock = 1;
             mySkillDefSecondary.baseRechargeInterval = 5f;
+            mySkillDefSecondary.cancelSprintingOnActivation = false;
             mySkillDefSecondary.beginSkillCooldownOnSkillEnd = true;
             mySkillDefSecondary.canceledFromSprinting = false;
             mySkillDefSecondary.fullRestockOnAssign = true;
@@ -112,7 +126,7 @@ namespace ROR1AltSkills.Loader
 
             LoadoutAPI.AddSkillDef(mySkillDefSecondary);
 
-            skillFamily = skillLocator.secondary.skillFamily;
+            var skillFamily = skillLocator.secondary.skillFamily;
 
             Array.Resize(ref skillFamily.variants, skillFamily.variants.Length + 1);
             skillFamily.variants[skillFamily.variants.Length - 1] = new SkillFamily.Variant
@@ -121,6 +135,22 @@ namespace ROR1AltSkills.Loader
                 unlockableDef = null,
                 viewableNode = new ViewablesCatalog.Node(mySkillDefSecondary.skillNameToken, false, null)
             };
+
+
+            skillFamily = skillLocator.utility.skillFamily;
+
+            Array.Resize(ref skillFamily.variants, skillFamily.variants.Length + 1);
+            skillFamily.variants[skillFamily.variants.Length - 1] = new SkillFamily.Variant
+            {
+                skillDef = mySkillDefSecondary,
+                unlockableDef = null,
+                viewableNode = new ViewablesCatalog.Node(mySkillDefSecondary.skillNameToken, false, null)
+            };
+
+
+
+            #region utility
+            /* this is the most demonic skillstate ive seen
 
             LanguageAPI.Add("DC_LOADER_UTILITY_HOOK_NAME", "Hydraulic Gauntlet");
             LanguageAPI.Add("DC_LOADER_UTILITY_HOOK_DESCRIPTION", "Fire your gauntlet forward. If it hits an <style=cIsDamage>enemy or wall you pull yourself</style> towards them, <style=cIsDamage>stunning and hurting enemies for 210%.</style>");
@@ -154,7 +184,8 @@ namespace ROR1AltSkills.Loader
                 skillDef = UtilitySkillDef,
                 unlockableDef = null,
                 viewableNode = new ViewablesCatalog.Node(UtilitySkillDef.skillNameToken, false, null)
-            };
+            };*/
+            #endregion
         }
 
         private static void SetupBuffs()
@@ -164,7 +195,7 @@ namespace ROR1AltSkills.Loader
 
         private static void Hooks()
         {
-            On.RoR2.Projectile.ProjectileGrappleController.FlyState.FixedUpdateBehavior += FlyState_FixedUpdateBehavior;
+            //On.RoR2.Projectile.ProjectileGrappleController.FlyState.FixedUpdateBehavior += FlyState_FixedUpdateBehavior;
             //On.EntityStates.Loader.SwingComboFist.PlayAnimation += SwingComboFist_PlayAnimation;
 
             //On.EntityStates.BasicMeleeAttack.OnEnter += BasicMeleeAttack_OnEnter;
@@ -219,6 +250,8 @@ namespace ROR1AltSkills.Loader
             orig(cock);
         }
 
+        #region i dont want to look at this so ill collapse it
+        /*
         private static void SwingComboFist_PlayAnimation(On.EntityStates.Loader.SwingComboFist.orig_PlayAnimation orig, EntityStates.Loader.SwingComboFist self)
         {
             string[] a = new string[]
@@ -310,5 +343,7 @@ namespace ROR1AltSkills.Loader
                 orig(self);
             }
         }
+        */
+        #endregion
     }
 }

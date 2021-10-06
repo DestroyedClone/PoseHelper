@@ -76,7 +76,6 @@ namespace ROR1AltSkills.Acrid
                     {
 						fireProjectileInfo.projectilePrefab = groundedAcid;
 						fireProjectileInfo.position = footPosition;
-
 					}
 
 					ProjectileManager.instance.FireProjectile(fireProjectileInfo);
