@@ -215,12 +215,15 @@ namespace HideNamesPatch
                         var skinDefs = SkinCatalog.FindSkinsForBody(self.bodyIndexPreference);
                         if (skinDefs != null)
                         {
-                            int skinIndex = (int)self.localUser.userProfile.loadout.bodyLoadoutManager.GetSkinIndex(self.bodyIndexPreference);
+                            if (self.localUser?.userProfile?.loadout?.bodyLoadoutManager != null)
+                            {
+                                int skinIndex = (int)self.localUser.userProfile.loadout.bodyLoadoutManager.GetSkinIndex(self.bodyIndexPreference);
 
-                            var userSkinDef = SkinCatalog.FindSkinsForBody(self.bodyIndexPreference)[skinIndex];
-                            //var sksadinIndex = SkinCatalog.FindLocalSkinIndexForBody(self.bodyIndexPreference, userSkinDef);
-                            skinName = Language.GetString(userSkinDef.nameToken);
-                            isDefaultSkin = skinDefs[0] == userSkinDef;
+                                var userSkinDef = skinDefs[skinIndex];
+                                //var sksadinIndex = SkinCatalog.FindLocalSkinIndexForBody(self.bodyIndexPreference, userSkinDef);
+                                skinName = Language.GetString(userSkinDef.nameToken);
+                                isDefaultSkin = skinDefs[0] == userSkinDef;
+                            }
                         }
                     }
                 }
