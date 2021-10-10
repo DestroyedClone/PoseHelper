@@ -1,25 +1,18 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
+using Facepunch.Steamworks;
 using RoR2;
+using RoR2.Networking;
 using System.Collections.Generic;
-using UnityEngine;
 using System.Security;
 using System.Security.Permissions;
-
-using System;
-using Facepunch.Steamworks;
 using TMPro;
-using System.Globalization;
-using RoR2.Networking;
-
-using UnityEngine.Events;
+using UnityEngine;
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
 #pragma warning restore CS0618 // Type or member is obsolete
-
-
 
 namespace HideNamesPatch
 {
@@ -37,7 +30,6 @@ namespace HideNamesPatch
         public static string StringForCharacterName = "";
         public static string StringForSkinName = "Skin";
 
-
         public static bool GetBodyName = false;
         public static bool GetSkinName = false;
         public static bool ReplaceDefaultName = false;
@@ -46,9 +38,7 @@ namespace HideNamesPatch
         private static string hostFormattingString = "{0} ";
         public static CSteamID HostSteamID;
 
-
         internal static BepInEx.Logging.ManualLogSource _logger;
-
 
         public static Dictionary<CSteamID, string> SteamID_to_DisplayName = new Dictionary<CSteamID, string>();
 
@@ -130,12 +120,16 @@ namespace HideNamesPatch
             }
             if (!ShowHost.Value.IsNullOrWhiteSpace())
             {
+                _logger.LogMessage("ShowHost Works");
                 GetHostID = true;
                 if (!ShowHost.Value.Contains("{0}"))
                 {
+                    _logger.LogMessage("ShowHost Defaulted");
                     hostFormattingString = $"{{0}} {ShowHost.Value}";
-                } else
+                }
+                else
                 {
+                    _logger.LogMessage("ShowHost Using value");
                     hostFormattingString = ShowHost.Value;
                 }
             }
@@ -145,7 +139,7 @@ namespace HideNamesPatch
         {
             NameOverride = Config.Bind("General Settings", "Default Name", "", $"The name all players will use. Leave empty to default to the survivor name, or to \"Skin\" to show their skin name.");
             BodyFallbackName = Config.Bind("General Settings", "Fallback Body Name", "Player", $"If it fails to default to the survivor name, then it will fallback to this name.");
-            
+
             SkinFallbackName = Config.Bind("Skin Settings", "Fallback Skin Name", "Default", $"If it fails to get the current skin name, then it will fallback to this name.");
             SkinNameFormatting = Config.Bind("Skin Settings", "Skin Name Formatting", "{1} {0}", $"If \"Default Name\" is set to \"Skin\", then it will format their name as such:" +
                 $"\n\"{{0}} = Survivor Name; {{1}} = SkinName\"" +
@@ -229,7 +223,8 @@ namespace HideNamesPatch
                         skinName = Language.GetString(skinDef.nameToken);
                         isDefaultSkin = skinDefs[0] == skinDef;
                     }
-                } else
+                }
+                else
                 {
                     if (self.bodyIndexPreference >= 0)
                     {
@@ -259,7 +254,8 @@ namespace HideNamesPatch
                 if (GetSkinName)
                 {
                     nameOverride = string.Format(SkinNameFormatting.Value, bodyName, skinName);
-                } else if (GetBodyName)
+                }
+                else if (GetBodyName)
                 {
                     nameOverride = bodyName;
                 }
@@ -267,12 +263,11 @@ namespace HideNamesPatch
 
             if (self && self.id.steamId != null)
             {
-                if (GetHostID)
+                GetHost();
+                if (GetHostID && self.id.steamId == HostSteamID)
                 {
                     nameOverride = string.Format(hostFormattingString, nameOverride);
-
                 }
-
 
                 SteamID_to_DisplayName[self.id.steamId] = nameOverride;
             }
@@ -289,6 +284,7 @@ namespace HideNamesPatch
             if (Client.Instance != null && Client.Instance.Lobby != null && Client.Instance.Lobby.Owner != 0UL)
             {
                 HostSteamID = new CSteamID(Client.Instance.Lobby.Owner);
+                //_logger.LogMessage($"Host's Steam ID: {HostSteamID}");
                 return;
             }
             HostSteamID = new CSteamID(0UL);
@@ -330,7 +326,6 @@ namespace HideNamesPatch
 
             public void ManualUpdate()
             {
-
             }
         }
     }
