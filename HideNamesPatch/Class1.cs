@@ -120,16 +120,13 @@ namespace HideNamesPatch
             }
             if (!ShowHost.Value.IsNullOrWhiteSpace())
             {
-                _logger.LogMessage("ShowHost Works");
                 GetHostID = true;
                 if (!ShowHost.Value.Contains("{0}"))
                 {
-                    _logger.LogMessage("ShowHost Defaulted");
                     hostFormattingString = $"{{0}} {ShowHost.Value}";
                 }
                 else
                 {
-                    _logger.LogMessage("ShowHost Using value");
                     hostFormattingString = ShowHost.Value;
                 }
             }
