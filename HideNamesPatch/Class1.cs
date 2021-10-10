@@ -12,6 +12,8 @@ using TMPro;
 using System.Globalization;
 using RoR2.Networking;
 
+using UnityEngine.Events;
+
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
@@ -31,6 +33,7 @@ namespace HideNamesPatch
         public ConfigEntry<string> SkinNameFormatting;
         public ConfigEntry<string> DefaultSkinNameOverride;
         public static ConfigEntry<float> NameUpdateFrequency;
+        public ConfigEntry<string> ShowHost;
         public static string StringForCharacterName = "";
         public static string StringForSkinName = "Skin";
 
@@ -38,6 +41,9 @@ namespace HideNamesPatch
         public static bool GetBodyName = false;
         public static bool GetSkinName = false;
         public static bool ReplaceDefaultName = false;
+        public static bool GetHostID = false;
+        public static bool UseDefaultHostFormatting = false;
+        private static string hostFormattingString = "{0} ";
         public static CSteamID HostSteamID;
 
 
@@ -122,6 +128,17 @@ namespace HideNamesPatch
             {
                 ReplaceDefaultName = true;
             }
+            if (!ShowHost.Value.IsNullOrWhiteSpace())
+            {
+                GetHostID = true;
+                if (!ShowHost.Value.Contains("{0}"))
+                {
+                    hostFormattingString = $"{{0}} {ShowHost.Value}";
+                } else
+                {
+                    hostFormattingString = ShowHost.Value;
+                }
+            }
         }
 
         public void SetupConfig()
@@ -136,6 +153,10 @@ namespace HideNamesPatch
             DefaultSkinNameOverride = Config.Bind("Skin Settings", "Default Skin Name Override", "Keep", $"If the skin is the default skin, then it will be replaced with this name." +
                 $"\nSet to \"Keep\" to not replace it.");
             NameUpdateFrequency = Config.Bind("Performance", "Name Update Frequency", 3f, "In seconds, of how often to update the name.");
+            ShowHost = Config.Bind("General Settings", "Show Host", "{0} (Host)", "Appends the name after the name of the host, defaults to after the name if the {0} is missing. Leave empty to disable." +
+                "\n {0} = Original Name Override" +
+                "\nExample: \"{0} (Hoster)\" = \"Player (Hoster)\" | \"(Hoster)\" = \"Player (Hoster)\"" +
+                "\n\"(Host) {0}\" = \"(Host) Player\"");
         }
 
         private void NetworkUser_OnDestroy(On.RoR2.NetworkUser.orig_OnDestroy orig, NetworkUser self)
@@ -244,9 +265,15 @@ namespace HideNamesPatch
                 }
             }
 
-
             if (self && self.id.steamId != null)
             {
+                if (GetHostID)
+                {
+                    nameOverride = string.Format(hostFormattingString, nameOverride);
+
+                }
+
+
                 SteamID_to_DisplayName[self.id.steamId] = nameOverride;
             }
 
@@ -257,6 +284,15 @@ namespace HideNamesPatch
             };
         }
 
+        private void GetHost()
+        {
+            if (Client.Instance != null && Client.Instance.Lobby != null && Client.Instance.Lobby.Owner != 0UL)
+            {
+                HostSteamID = new CSteamID(Client.Instance.Lobby.Owner);
+                return;
+            }
+            HostSteamID = new CSteamID(0UL);
+        }
 
         public class UserRenamer : MonoBehaviour
         {
