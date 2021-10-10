@@ -16,7 +16,7 @@ using UnityEngine;
 
 namespace HideNamesPatch
 {
-    [BepInPlugin("com.DestroyedClone.HideNamesPatch", "HideNamesPatch", "1.1.0")]
+    [BepInPlugin("com.DestroyedClone.HideNamesPatch", "HideNamesPatch", "1.1.1")]
     public class HideNames : BaseUnityPlugin
     {
         public ConfigEntry<string> NameOverride;
