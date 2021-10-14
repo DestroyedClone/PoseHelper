@@ -3,7 +3,7 @@ using BepInEx.Configuration;
 using UnityEngine;
 using RoR2;
 using R2API.Utils;
-using static RoR2.EquipmentIndex;
+using static RoR2.RoR2Content.Equipment;
 using System.Collections.ObjectModel;
 using UnityEngine.Networking;
 using RoR2.CharacterAI;

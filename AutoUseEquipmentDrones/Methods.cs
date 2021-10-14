@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 using BetterEquipmentDroneUse;
+using RoR2;
+using UnityEngine;
+using static AutoUseEquipmentDrones.AUEDPlugin;
 
 namespace BetterEquipmentDroneUse
 {

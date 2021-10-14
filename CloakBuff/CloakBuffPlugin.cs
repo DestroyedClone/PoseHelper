@@ -73,6 +73,7 @@ namespace CloakBuff
         public static ConfigEntry<bool> EngiChargeMine { get; set; }
         public static ConfigEntry<bool> EngiSpiderMine { get; set; }
         public static ConfigEntry<bool> EngiSpiderMineCanExplodeOnImpaled { get; set; }
+        public static ConfigEntry<bool> EnemyAIChange { get; set; }
 
         public GameObject DoppelgangerEffect = Resources.Load<GameObject>("prefabs/temporaryvisualeffects/DoppelgangerEffect");
         public static float evisMaxRange = EntityStates.Merc.Evis.maxRadius;
@@ -192,6 +193,8 @@ namespace CloakBuff
             IdiotsAllowedNearOutlets = Config.Bind("Extra", "Enable Shocking and Stunning for Survivors Or Umbras", OutletForkEnum.None, "0 = Disabled" +
                 "\nUmbraOnly = Umbras can get shocked and stunned." +
                 "\nSurvivorsAndUmbras = Both Survivors and Umbras can get shocked and stunned.");
+
+            EnemyAIChange = Config.Bind("AI", "")
 
             MissileIncludesFilterType = Config.Bind("zFiltering", "MissileController", 2, "Its safe to ignore the options in this category." +
                 "\n 0 = Disabled," +

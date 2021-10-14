@@ -21,10 +21,46 @@ namespace MithrixEquipmentDrones
     [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.DifferentModVersionsAreOk)]
     public class MithrixSpawnsDronesPlugin : BaseUnityPlugin
     {
-
+        public static ConfigEntry<string> bannedItems;
+        public static ConfigEntry<string> defaultItem;
+        public static EquipmentDef[] bannedItemDefs = new EquipmentDef[0];
+        public static EquipmentDef defaultItemDef = null;
         public void Awake()
         {
+            bannedItems = Config.Bind("", "Banned Items", "", "Add any items you want to ban, separate with commas. Leave empty to disable." +
+                "\nEx: \"Meteor,Lightning,DeathProjectile\"");
+            defaultItem = Config.Bind("", "Default Item", "Fruit", "If the requested equipment from the player is missing or is banned, then it will default to this. Leave empty to disable.");
+
             On.RoR2.ReturnStolenItemsOnGettingHit.Awake += ReturnStolenItemsOnGettingHit_Awake;
+        }
+
+        public static void GetEquipmentDefs()
+        {
+            if (!bannedItems.Value.IsNullOrWhiteSpace())
+            {
+                string[] subs = bannedItems.Value.Split(',');
+                List<EquipmentDef> equipmentDefs = new List<EquipmentDef>();
+                foreach (var sub in subs)
+                {
+
+
+
+                    var itemIndex = ItemCatalog.FindItemIndex(sub);
+                    if (itemIndex != ItemIndex.None)
+                    {
+                        itemDefs.Add(ItemCatalog.GetItemDef(itemIndex));
+                    }
+                }
+                bannedItemDefs = itemDefs.ToArray();
+            }
+            if (!defaultItem.Value.IsNullOrWhiteSpace())
+            {
+                var itemIndexDefault = ItemCatalog.FindItemIndex(defaultItem.Value);
+                if (itemIndexDefault != ItemIndex.None)
+                {
+                    defaultItemDef = ItemCatalog.GetItemDef(itemIndexDefault);
+                }
+            }
         }
 
         private void ReturnStolenItemsOnGettingHit_Awake(On.RoR2.ReturnStolenItemsOnGettingHit.orig_Awake orig, ReturnStolenItemsOnGettingHit self)
@@ -72,7 +108,7 @@ namespace MithrixEquipmentDrones
                     {
                         foreach (var equipmentState in pcmc.master.inventory.equipmentStateSlots)
                         {
-                            if (equipmentState.equipmentDef != null)
+                            if (equipmentState.equipmentDef != null && )
                             {
                                 equipmentIndexes.Add(equipmentState.equipmentIndex);
                             }

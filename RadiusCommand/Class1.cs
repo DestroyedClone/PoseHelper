@@ -12,8 +12,10 @@ using UnityEngine.Events;
 using UnityEngine.Networking;
 using System.Security;
 using System.Security.Permissions;
-
+using R2API;
+using R2API.Networking;
 using EntityStates.AI;
+using R2API.Networking.Interfaces;
 
 
 [module: UnverifiableCode]
@@ -23,23 +25,40 @@ using EntityStates.AI;
 
 namespace RadiusCommand
 {
-    [BepInPlugin("com.DestroyedClone.RadiusCommand", "Radar Command", "1.0.0")]
+    [BepInPlugin("com.DestroyedClone.RadiusCommand", "Radius Command", "1.0.0")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.DifferentModVersionsAreOk)]
+    [R2APISubmoduleDependency(nameof(NetworkingAPI))]
     public class Plugin : BaseUnityPlugin
     {
         public static ConfigEntry<KeyCode> ModifierKey { get; set; }
         public static ConfigEntry<float> Radius { get; set; }
+        public static ConfigEntry<bool> AllowScroll { get; set; }
+
+        public static float finalRadius = 0;
+        public static GameObject Indicator;
 
         public void Awake()
         {
+            NetworkingAPI.RegisterMessageType<Networking.RadiusCommandToServer>();
+
+
             ModifierKey = Config.Bind("", "Modifier Key", KeyCode.LeftShift, "Hold this button to affect all command essence in your desired radius.");
-            Radius = Config.Bind("", "Radius", 5f, "Desired radius.");
+            Radius = Config.Bind("", "Radius", 5f, "Desired starting radius.");
+            AllowScroll = Config.Bind("", "Allow Scrollwheel", true, "If true, then you can modify the radius of the region with the scrollwheel.");
 
             //On.RoR2.PickupPickerController.SubmitChoice += PickupPickerController_SubmitChoice;
+            CharacterBody.onBodyStartGlobal += CharacterBody_onBodyStartGlobal;
             On.RoR2.PickupPickerController.SubmitChoice += PickupPickerController_SubmitChoice1;
+        }
 
-            On.RoR2.Networking.GameNetworkManager.OnClientConnect += (self, user, t) => { };
+        private void CharacterBody_onBodyStartGlobal(CharacterBody obj)
+        {
+            if (obj.isPlayerControlled)
+            {
+                var comp = obj.gameObject.AddComponent<RadiusCommandComponent>();
+                comp.characterBody = obj;
+            }
         }
 
         private void PickupPickerController_SubmitChoice1(On.RoR2.PickupPickerController.orig_SubmitChoice orig, PickupPickerController self, int choiceIndex)
@@ -49,24 +68,34 @@ namespace RadiusCommand
             var displayToken = self.GetComponent<GenericDisplayNameProvider>().displayToken;
             var isModifying = Input.GetKey(ModifierKey.Value);
 
-            
+
             if (isModifying && self.networkUIPromptController.currentParticipantMaster) //2nd check to prevent recursion from the forloop
             {
-                foreach (var cube in CommandCubes.ToList())
+                string choices = "";
+
+                // Collect Cubes
+                for (int i = 0; i < CommandCubes.Count; i++)
                 {
-                    if (Vector3.Distance(self.gameObject.transform.position, cube.gameObject.transform.position) <= Radius.Value)
+                    var cube = CommandCubes[i];
+                    if (Vector3.Distance(self.gameObject.transform.position, cube.gameObject.transform.position) <= finalRadius)
                     {
                         if (cube.GetComponent<GenericDisplayNameProvider>()?.displayToken == displayToken)
                         {
                             var network = cube.networkUIPromptController;
                             if (!network.currentParticipantMaster) //prevents recursion and theft
                             {
-                                network.currentParticipantMaster = self.networkUIPromptController.currentParticipantMaster;
-                                cube.SubmitChoice(choiceIndex);
+                                choices += $"{i},";
                             }
                         }
                     }
                 }
+
+                //Send Request
+                if (!choices.IsNullOrWhiteSpace())
+                {
+                    new Networking.RadiusCommandToServer(choices, choiceIndex).Send(NetworkDestination.Server);
+                }
+
             }
             orig(self, choiceIndex);
         }
@@ -117,6 +146,63 @@ namespace RadiusCommand
             }
             Debug.Log("We've exited.");
             orig(self, choiceIndex);
+        }
+
+        public class RadiusCommandComponent : MonoBehaviour
+        {
+            public GameObject areaIndicatorInstance;
+            public CharacterBody characterBody;
+
+            public void Start()
+            {
+                finalRadius = Radius.Value;
+            }
+
+            public void OnDestroy()
+            {
+                DestroyIndicator();
+            }
+
+            public void Update()
+            {
+                if (Input.GetKeyDown(ModifierKey.Value))
+                {
+                    if (!areaIndicatorInstance)
+                    {
+                        areaIndicatorInstance = UnityEngine.Object.Instantiate<GameObject>(EntityStates.Huntress.ArrowRain.areaIndicatorPrefab);
+                        areaIndicatorInstance.transform.position = characterBody.corePosition;
+                    }
+                }
+                if (Input.GetKeyUp(ModifierKey.Value))
+                {
+                    DestroyIndicator();
+                }
+                if (Input.mouseScrollDelta.y != 0)
+                {
+                    if (Input.mouseScrollDelta.y > 0)
+                    {
+                        finalRadius += 1f;
+                    } else
+                    {
+                        finalRadius = Mathf.Max(0, finalRadius - 1f);
+                    }
+                }
+            }
+
+            public void DestroyIndicator()
+            {
+                if (areaIndicatorInstance)
+                    Destroy(areaIndicatorInstance);
+            }
+
+            public void FixedUpdate()
+            {
+                if (areaIndicatorInstance && Input.GetKey(ModifierKey.Value))
+                {
+                    areaIndicatorInstance.transform.position = characterBody.corePosition;
+                    areaIndicatorInstance.transform.localScale = Vector3.one * finalRadius;
+                }
+            }
         }
     }
 }
