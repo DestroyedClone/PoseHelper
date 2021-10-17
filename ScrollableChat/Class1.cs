@@ -1,10 +1,9 @@
 ﻿using BepInEx;
+using BepInEx.Configuration;
+using R2API.Utils;
 using System.Security;
 using System.Security.Permissions;
 using UnityEngine;
-using R2API;
-using R2API.Utils;
-using BepInEx.Configuration;
 using UnityEngine.UI;
 
 [module: UnverifiableCode]
@@ -38,7 +37,7 @@ namespace ChatboxEdit
 
         public void Start()
         {
-            ScrollableChat = Config.Bind("Scrollable Chat","Enable",true,"If true, allows you to scroll the chat by scrolling or clicking and dragging." +
+            ScrollableChat = Config.Bind("Scrollable Chat", "Enable", true, "If true, allows you to scroll the chat by scrolling or clicking and dragging." +
                 "\nThe very top of the chat (about 5 messages) will scroll in the opposite direction regardless of choice, weird vanilla thing.");
             ScrollableChatSensitivity = Config.Bind("Scrollable Chat", "Scroll Sensitivity", 5f, "If Scrollable Chat is active, then adjusts the sensitivity of scrolling.");
             FadeDelay = Config.Bind("", "Chat Fade Delay", 5f, "");
@@ -63,6 +62,7 @@ namespace ChatboxEdit
                 case ChatExpandMode.Expanded:
                     chatbox.allowExpandedChatbox = true;
                     break;
+
                 case ChatExpandMode.Unlimited:
                     Prefab.transform.Find("StandardRect/Scroll View/Viewport/MessageArea/Text Area").GetComponent<RectMask2D>().enabled = false;
                     Prefab.transform.Find("StandardRect/Scroll View/Viewport").GetComponent<Mask>().enabled = false;
@@ -73,16 +73,16 @@ namespace ChatboxEdit
             if (ScrollableChat.Value)
             {
                 var scrollRect = chatbox.scrollRect;
-                var scrollRectLobby = chatboxLobby.scrollRect;
                 scrollRect.enabled = true;
                 scrollRect.scrollSensitivity = ScrollableChatSensitivity.Value;
                 scrollRect.vertical = true;
 
+                var scrollRectLobby = chatboxLobby.scrollRect;
                 scrollRectLobby.enabled = true;
                 scrollRectLobby.scrollSensitivity = ScrollableChatSensitivity.Value;
                 scrollRectLobby.vertical = true;
             }
-            
+
             /*scrollRect.transform.Find("Viewport/MessageArea/Text Area/MessageArea Input Carat").GetComponent<TMPro.TMP_SelectionCaret>().color = new Color32()
             {
                 a = 125

@@ -59,7 +59,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Spectator", "Spectator\Spec
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CursorFreedEarlier", "CursorFreedEarlier\CursorFreedEarlier.csproj", "{3DCF8FEF-F46D-45B6-AE63-365FF6E601A9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatEdit", "ChatEdit\ChatEdit.csproj", "{3FB360B8-313B-4CF6-9280-4D8542119A3D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChatEdit", "ChatEdit\ChatEdit.csproj", "{3FB360B8-313B-4CF6-9280-4D8542119A3D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmallErrorFix", "SmallErrorFix\SmallErrorFix.csproj", "{61E6AF8A-FAAB-4494-8C77-9BBBF153A6D1}"
 EndProject
@@ -111,7 +111,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HealthbarImmune", "Healthba
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SteamIconAsPlayerIcon", "SteamIconAsPlayerIcon\SteamIconAsPlayerIcon.csproj", "{CD769ADB-D9EC-464C-B538-C6B128FD7B97}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RichTextChat", "UnEscapeRichTextForChat\RichTextChat.csproj", "{AB28C8F4-C352-4E62-A980-FC3715156F98}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RichTextChat", "UnEscapeRichTextForChat\RichTextChat.csproj", "{AB28C8F4-C352-4E62-A980-FC3715156F98}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChatboxEdit", "ScrollableChat\ChatboxEdit.csproj", "{4D3D7047-77D6-4B6B-9EBF-E8521DFB3282}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TreesIgnoreLOD", "TreesIgnoreLOD\TreesIgnoreLOD.csproj", "{0AF8828B-8AF3-400C-841E-267F5A68FF60}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -339,6 +343,14 @@ Global
 		{AB28C8F4-C352-4E62-A980-FC3715156F98}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AB28C8F4-C352-4E62-A980-FC3715156F98}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AB28C8F4-C352-4E62-A980-FC3715156F98}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4D3D7047-77D6-4B6B-9EBF-E8521DFB3282}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4D3D7047-77D6-4B6B-9EBF-E8521DFB3282}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4D3D7047-77D6-4B6B-9EBF-E8521DFB3282}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4D3D7047-77D6-4B6B-9EBF-E8521DFB3282}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0AF8828B-8AF3-400C-841E-267F5A68FF60}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0AF8828B-8AF3-400C-841E-267F5A68FF60}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0AF8828B-8AF3-400C-841E-267F5A68FF60}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0AF8828B-8AF3-400C-841E-267F5A68FF60}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
