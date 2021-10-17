@@ -173,29 +173,6 @@ namespace AutoUseEquipmentDrones
 
 
 
-
-        public static bool CheckForAliveOnTeam(TeamIndex teamIndex)
-        {
-            ReadOnlyCollection<TeamComponent> teamComponents = TeamComponent.GetTeamMembers(teamIndex);
-            return teamComponents.Count > 0;
-        }
-
-        public static GameObject GetMostHurtTeam(TeamIndex teamIndex)
-        {
-            ReadOnlyCollection<TeamComponent> teamComponents = TeamComponent.GetTeamMembers(teamIndex);
-            Dictionary<TeamComponent, float> keyValuePairs = new Dictionary<TeamComponent, float>();
-            foreach (var ally in teamComponents)
-            {
-                if (ally.body?.healthComponent)
-                {
-                    keyValuePairs.Add(ally, ally.body.healthComponent.health / ally.body.healthComponent.fullHealth);
-                }
-            }
-            // https://stackoverflow.com/questions/23734686/c-sharp-dictionary-get-the-key-of-the-min-value
-            var min = keyValuePairs.Aggregate((l, r) => l.Value < r.Value ? l : r).Key;
-            return null;
-        }
-
         enum DroneMode
         {
             None,
@@ -304,7 +281,7 @@ namespace AutoUseEquipmentDrones
                 {
                     // If there are enemies on the map, but not necessarily any priority targets. //
                     case DroneMode.EnemyOnMap:
-                        if (CheckForAlive(enemyTeamIndex))
+                        if (CheckForAliveOnTeam(enemyTeamIndex))
                         {
                             DroneSay("There's enemies alive!");
                             forceActive = true;
@@ -328,7 +305,7 @@ namespace AutoUseEquipmentDrones
                      * Unless about to die (<10% health), then heal until 50%
                     */
                     case DroneMode.PassiveHealing:
-                        var ally = GetMostHurtAlly(baseAI.body.teamComponent.teamIndex);
+                        var ally = GetMostHurtTeam(baseAI.body.teamComponent.teamIndex);
                         TargetAlly(ally);
 
                         forceActive = true;
@@ -370,7 +347,7 @@ namespace AutoUseEquipmentDrones
                         freeUse = true;
                         break;
                     case DroneMode.Scan:
-                        if (CheckForInteractables() || CheckInteractables())
+                        if (CheckForValidInteractables())
                         {
                             forceActive = true;
                             DroneSay("There's still stuff to buy!");

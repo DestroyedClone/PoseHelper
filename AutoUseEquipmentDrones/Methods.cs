@@ -1,9 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using BetterEquipmentDroneUse;
-using RoR2;
+﻿using BepInEx;
+using BepInEx.Configuration;
 using UnityEngine;
+using RoR2;
+using R2API.Utils;
+using static RoR2.RoR2Content.Equipment;
+using System.Collections.ObjectModel;
+using UnityEngine.Networking;
+using RoR2.CharacterAI;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using EntityStates;
+using JetBrains.Annotations;
+using RoR2.Navigation;
+using UnityEngine.AI;
+using EntityStates.GoldGat;
+using System.Security;
+using System.Security.Permissions;
+using static BetterEquipmentDroneUse.Methods;
+using EntityStates.AI;
 using static AutoUseEquipmentDrones.AUEDPlugin;
 
 namespace BetterEquipmentDroneUse
@@ -61,6 +78,59 @@ namespace BetterEquipmentDroneUse
             }
             Debug.Log("no debuffs?!");
             return false;
+        }
+
+        //Util.GetItemCountForTea,
+        public static bool CheckForAliveOnTeam(TeamIndex teamIndex, bool requiresAlive = true, bool requiresConnected = false)
+        {
+            ReadOnlyCollection<CharacterMaster> readOnlyInstancesList = CharacterMaster.readOnlyInstancesList;
+            int i = 0;
+            int count = readOnlyInstancesList.Count;
+            while (i < count)
+            {
+                CharacterMaster characterMaster = readOnlyInstancesList[i];
+                if (characterMaster.teamIndex == teamIndex && (!requiresAlive || characterMaster.hasBody) && (!requiresConnected || !characterMaster.playerCharacterMasterController || characterMaster.playerCharacterMasterController.isConnected))
+                {
+                    return true;
+                }
+                i++;
+            }
+            return false;
+        }
+
+        public static GameObject GetMostHurtTeam(TeamIndex teamIndex)
+        {
+            ReadOnlyCollection<TeamComponent> teamComponents = TeamComponent.GetTeamMembers(teamIndex);
+            //Dictionary<TeamComponent, float> keyValuePairs = new Dictionary<TeamComponent, float>();
+
+            var lowestHealthFraction = 1f;
+            GameObject lowestHealthObject = null;
+            foreach (var ally in teamComponents)
+            {
+                if (ally.body?.healthComponent)
+                {
+                    //keyValuePairs.Add(ally, ally.body.healthComponent.health / ally.body.healthComponent.fullHealth);
+                    var calculatedHealthFraction = ally.body.healthComponent.health / ally.body.healthComponent.fullHealth;
+                    if (calculatedHealthFraction < lowestHealthFraction)
+                    {
+                        lowestHealthFraction = calculatedHealthFraction;
+                        lowestHealthObject = ally.body.gameObject;
+                    }
+                }
+            }
+            return lowestHealthObject;
+
+            // https://stackoverflow.com/questions/23734686/c-sharp-dictionary-get-the-key-of-the-min-value
+            /*if (keyValuePairs.Count > 0)
+            {
+                var min = keyValuePairs.Aggregate((l, r) => l.Value < r.Value ? l : r).Key;
+                return min.body.gameObject;
+            }*/
+
+
+
+
+            return null;
         }
     }
 }
