@@ -115,7 +115,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RichTextChat", "UnEscapeRic
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChatboxEdit", "ScrollableChat\ChatboxEdit.csproj", "{4D3D7047-77D6-4B6B-9EBF-E8521DFB3282}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TreesIgnoreLOD", "TreesIgnoreLOD\TreesIgnoreLOD.csproj", "{0AF8828B-8AF3-400C-841E-267F5A68FF60}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TreesIgnoreLOD", "TreesIgnoreLOD\TreesIgnoreLOD.csproj", "{0AF8828B-8AF3-400C-841E-267F5A68FF60}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShowEquipment", "ShowEquipment\ShowEquipment.csproj", "{C1D5DB68-D699-4135-8735-DE61ADBD69BC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -351,6 +353,10 @@ Global
 		{0AF8828B-8AF3-400C-841E-267F5A68FF60}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0AF8828B-8AF3-400C-841E-267F5A68FF60}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0AF8828B-8AF3-400C-841E-267F5A68FF60}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C1D5DB68-D699-4135-8735-DE61ADBD69BC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C1D5DB68-D699-4135-8735-DE61ADBD69BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C1D5DB68-D699-4135-8735-DE61ADBD69BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C1D5DB68-D699-4135-8735-DE61ADBD69BC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -38,6 +38,7 @@ namespace ChatEdit
 
         public static CharacterBody MostRecentGrabber = null;
         public static Dictionary<string, uint> Tokens_to_Count = new Dictionary<string, uint>();
+        public static Dictionary<string, uint> Tokens_to_NewCount = new Dictionary<string, uint>();
         public static int IndexOfLastPickupMessage = 0;
 
         public void Awake()
@@ -98,19 +99,26 @@ namespace ChatEdit
                     //if (Chat.log.Count - 1 > 0)
                         //Chat.log.RemoveAt(Chat.log.Count - 1);
                 Tokens_to_Count[pickupToken] = pickupQuantity;
-            }
 
+                if (!Tokens_to_NewCount.ContainsKey(pickupToken))
+                {
+                    Tokens_to_NewCount.Add(pickupToken, 0);
+                }
+                Tokens_to_NewCount[pickupToken]++;
+            }
+            // ({Util.GenerateColoredString($"+{Tokens_to_NewCount[pickupToken]}", Color.yellow)})
             string message = "";
 
             foreach (KeyValuePair<string, uint> kvp in Tokens_to_Count)
             {
                 if (kvp.Key == pickupToken)
                 {
-                    message += $"{Util.GenerateColoredString(Language.GetString(kvp.Key), pickupColor)} ({kvp.Value}) ";
+                    message += $"{Util.GenerateColoredString(Language.GetString(kvp.Key), pickupColor)} ({kvp.Value}) ({Util.GenerateColoredString($"+{Tokens_to_NewCount[pickupToken]}", Color.yellow)})";
                 } else
                 {
-                    message += $"{Util.GenerateColoredString(Language.GetString(kvp.Key), Color.grey)} ({kvp.Value}) ";
+                    message += $"{Util.GenerateColoredString(Language.GetString(kvp.Key), Color.grey)} ({kvp.Value})";
                 }
+                message += " ";
             }
 
             var subjectFormatChatMessage = new Chat.SubjectFormatChatMessage
@@ -180,6 +188,7 @@ namespace ChatEdit
         {
             MostRecentGrabber = null;
             Tokens_to_Count.Clear();
+            Tokens_to_NewCount.Clear();
         }
     }
 }
