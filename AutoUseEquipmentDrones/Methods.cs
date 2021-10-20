@@ -98,6 +98,53 @@ namespace BetterEquipmentDroneUse
             return false;
         }
 
+        public static GameObject GetPriorityTarget(TeamIndex viewerTeamIndex)
+        {
+            ReadOnlyCollection<CharacterMaster> readOnlyInstancesList = CharacterMaster.readOnlyInstancesList;
+            int i = 0;
+            int count = readOnlyInstancesList.Count;
+            GameObject target = null;
+            int highestPriority = 0;
+            while (i < count)
+            {
+                CharacterMaster characterMaster = readOnlyInstancesList[i];
+                if (characterMaster.teamIndex != viewerTeamIndex && characterMaster.hasBody && characterMaster.GetBody().healthComponent && characterMaster.GetBody().healthComponent.alive)
+                {
+                    int priority = 0;
+                    var body = characterMaster.GetBody();
+                    if (body.healthComponent.godMode)
+                    {
+                        continue;
+                    }
+
+                    if (body.isBoss)
+                    {
+                        priority += 3;
+                    }
+                    if (body.isChampion)
+                    {
+                        priority += 1;
+                    }
+                    if (body.isElite)
+                    {
+                        priority += 1;
+                    }
+                    if (body.isGlass)
+                    {
+                        priority += 2;
+                    }
+                    if (priority > highestPriority)
+                    {
+                        highestPriority = priority;
+                        target = body.gameObject;
+                    }
+                }
+                i++;
+            }
+
+            return target;
+        }
+
         public static GameObject GetMostHurtTeam(TeamIndex teamIndex)
         {
             ReadOnlyCollection<TeamComponent> teamComponents = TeamComponent.GetTeamMembers(teamIndex);

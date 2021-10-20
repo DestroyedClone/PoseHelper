@@ -45,8 +45,14 @@ namespace AutoUseEquipmentDrones
         public static List<EquipmentIndex> allowedEquipmentIndices = new List<EquipmentIndex>();
         public static List<PickupIndex> allowedPickupIndices = new List<PickupIndex>();
 
+        internal static BepInEx.Logging.ManualLogSource _logger;
+
+        public static Dictionary<EquipmentIndex, DroneMode> DroneModeDictionary = new Dictionary<EquipmentIndex, DroneMode>();
+
         public void Awake()
         {
+            _logger = Logger;
+
             Recycler_Items = Config.Bind("Recycler", "Item IDS", "Tooth,Seed,Icicle,GhostOnKill,BounceNearby,MonstersOnShrineUse", "Enter the IDs of the item you want equipment drones to recycle." +
     "\nSeparated by commas (ex: AffixRed,Meteor,Fruit)");
             Recycler_Equipment = Config.Bind("Recycler", "Equipment IDS", "Meteor,CritOnUse,GoldGat,Scanner,Gateway", "Enter the IDs of the equipment you want equipment drones to recycle." +
@@ -60,6 +66,51 @@ namespace AutoUseEquipmentDrones
             //On.RoR2.CharacterAI.BaseAI.UpdateBodyAim += BaseAI_UpdateBodyAim;
             On.RoR2.CharacterAI.BaseAI.UpdateBodyInputs += Conditional_ForceEquipmentUse;
             On.RoR2.EquipmentSlot.OnStartServer += GiveComponent;
+            R2API.Utils.CommandHelper.AddToConsoleWhenReady();
+            On.RoR2.EquipmentCatalog.Init += EquipmentCatalog_Init;
+        }
+
+        private void EquipmentCatalog_Init(On.RoR2.EquipmentCatalog.orig_Init orig)
+        {
+            orig();
+            SetupDictionary();
+        }
+
+        public static void SetupDictionary()
+        {
+            DroneModeDictionary = new Dictionary<EquipmentIndex, DroneMode>()
+            {
+                [RoR2Content.Equipment.CommandMissile.equipmentIndex] = DroneMode.EnemyOnMap,
+                [RoR2Content.Equipment.Meteor.equipmentIndex] = DroneMode.EnemyOnMap,
+
+                [RoR2Content.Equipment.Blackhole.equipmentIndex] = DroneMode.PriorityTarget,
+                [RoR2Content.Equipment.BFG.equipmentIndex] = DroneMode.PriorityTarget,
+                [RoR2Content.Equipment.Lightning.equipmentIndex] = DroneMode.PriorityTarget,
+                [RoR2Content.Equipment.CrippleWard.equipmentIndex] = DroneMode.PriorityTarget,
+
+                [RoR2Content.Equipment.Jetpack.equipmentIndex] = DroneMode.Evade,
+                [RoR2Content.Equipment.GainArmor.equipmentIndex] = DroneMode.Evade,
+                [RoR2Content.Equipment.Tonic.equipmentIndex] = DroneMode.Evade,
+
+                [RoR2Content.Equipment.GoldGat.equipmentIndex] = DroneMode.GoldGat,
+
+                [RoR2Content.Equipment.PassiveHealing.equipmentIndex] = DroneMode.PassiveHealing,
+
+                [RoR2Content.Equipment.Gateway.equipmentIndex] = DroneMode.Gateway,
+
+                [RoR2Content.Equipment.Cleanse.equipmentIndex] = DroneMode.Cleanse,
+
+                [RoR2Content.Equipment.Saw.equipmentIndex] = DroneMode.Saw,
+
+                [RoR2Content.Equipment.Recycle.equipmentIndex] = DroneMode.Recycle,
+
+                [RoR2Content.Equipment.Fruit.equipmentIndex] = DroneMode.Fruit,
+
+                [RoR2Content.Equipment.BurnNearby.equipmentIndex] = DroneMode.Snuggle,
+                [RoR2Content.Equipment.QuestVolatileBattery.equipmentIndex] = DroneMode.Snuggle,
+
+                [RoR2Content.Equipment.Scanner.equipmentIndex] = DroneMode.Scan,
+            };
         }
 
         #region Cache
@@ -161,7 +212,7 @@ namespace AutoUseEquipmentDrones
                     self.bodyInputBank.skill3.PushState(self.bodyInputs.pressSkill3);
                     self.bodyInputBank.skill4.PushState(self.bodyInputs.pressSkill4);
                     self.bodyInputBank.jump.PushState(self.bodyInputs.pressJump);
-                    self.bodyInputBank.sprint.PushState(self.bodyInputs.pressSprint);
+                    self.bodyInputBank.sprint.PushState(true); //self.bodyInputs.pressSprint
                     self.bodyInputBank.activateEquipment.PushState(useEquipment);
                     self.bodyInputBank.moveVector = self.bodyInputs.moveVector;
                 }
@@ -170,10 +221,7 @@ namespace AutoUseEquipmentDrones
                 orig(self);
             }
         }
-
-
-
-        enum DroneMode
+        public enum DroneMode
         {
             None,
             EnemyOnMap,
@@ -199,9 +247,9 @@ namespace AutoUseEquipmentDrones
             [Tooltip("A reference to the body's equipmentSlot.")]
             public EquipmentSlot equipmentSlot;
             [Tooltip("The current EquipmentIndex.")]
-            EquipmentIndex equipmentIndex;
+            public EquipmentIndex equipmentIndex;
             [Tooltip("The current mode of the drone.")]
-            DroneMode droneMode = DroneMode.None;
+            public DroneMode droneMode = DroneMode.None;
             [Tooltip("Whether or not to fire the equipment.")]
             bool equipmentReady = false;
 
@@ -216,9 +264,17 @@ namespace AutoUseEquipmentDrones
             void Start()
             {
                 enemyTeamIndex = baseAI.body.teamComponent.teamIndex == TeamIndex.Player ? TeamIndex.Monster : TeamIndex.Player;
-                equipmentIndex = equipmentSlot.equipmentIndex;
+
+                if (!equipmentSlot)
+                {
+                    if (baseAI.body && baseAI.body.inventory)
+                        equipmentSlot = baseAI.body.equipmentSlot;
+                }
+                equipmentIndex = baseAI.master.inventory.currentEquipmentIndex;
+
 
                 EvaluateDroneMode();
+                _logger.LogMessage($"Chosen Drone Mode: {droneMode}");
             }
             void DroneSay(string msg)
             {
@@ -230,39 +286,19 @@ namespace AutoUseEquipmentDrones
             }
             void EvaluateDroneMode()
             {
-                bool match(EquipmentDef equipmentDef)
+                _logger.LogMessage($"Trying out EquipmentIndex {equipmentIndex}");
+                if (DroneModeDictionary.TryGetValue(equipmentIndex, out DroneMode newDroneMode))
                 {
-                    return equipmentIndex == equipmentDef.equipmentIndex;
+                    droneMode = newDroneMode;
+                } else
+                {
+                    droneMode = DroneMode.None;
                 }
-
-                if (match(RoR2Content.Equipment.CommandMissile) || match(RoR2Content.Equipment.Meteor))
-                    droneMode = DroneMode.EnemyOnMap;
-                else if (match(RoR2Content.Equipment.Blackhole) || match(RoR2Content.Equipment.BFG) || match(RoR2Content.Equipment.Lightning) || match(RoR2Content.Equipment.CrippleWard))
-                    droneMode = DroneMode.PriorityTarget;
-                else if (match(RoR2Content.Equipment.Jetpack) || match(RoR2Content.Equipment.GainArmor) || match(RoR2Content.Equipment.Tonic)) //Spam Jump
-                    droneMode = DroneMode.Evade;
-                else if (match(RoR2Content.Equipment.GoldGat))
-                    droneMode = DroneMode.GoldGat;
-                else if (match(RoR2Content.Equipment.PassiveHealing))
-                    droneMode = DroneMode.PassiveHealing;
-                else if (match(RoR2Content.Equipment.Gateway))
-                    droneMode = DroneMode.Gateway;
-                else if (match(RoR2Content.Equipment.Cleanse))
-                    droneMode = DroneMode.Cleanse;
-                else if (match(RoR2Content.Equipment.Saw))
-                    droneMode = DroneMode.Saw;
-                else if (match(RoR2Content.Equipment.Recycle))
-                    droneMode = DroneMode.Recycle;
-                else if (match(RoR2Content.Equipment.Fruit))
-                    droneMode = DroneMode.Fruit;
-                else if (match(RoR2Content.Equipment.BurnNearby) || match(RoR2Content.Equipment.QuestVolatileBattery))
-                    droneMode = DroneMode.Snuggle;
-                else if (match(RoR2Content.Equipment.Scanner))
-                    droneMode = DroneMode.Scan;
             }
-            void TargetAlly(GameObject ally)
+            void ForceTarget(GameObject target)
             {
-                baseAI.currentEnemy.gameObject = ally;
+                baseAI.currentEnemy.gameObject = target;
+                _logger.LogMessage($"{baseAI.body.GetDisplayName()} has switched targets to {baseAI.currentEnemy.gameObject.name}");
             }
 
             void FixedUpdate()
@@ -270,7 +306,7 @@ namespace AutoUseEquipmentDrones
                 bool forceActive = false;
                 freeUse = false;
                 useEquipment = false;
-                equipmentReady = equipmentSlot.stock > 0;
+                equipmentReady = equipmentSlot && equipmentSlot.stock > 0;
                 if (!equipmentReady)
                 {
                     hasSpoken = false;
@@ -281,16 +317,25 @@ namespace AutoUseEquipmentDrones
                 {
                     // If there are enemies on the map, but not necessarily any priority targets. //
                     case DroneMode.EnemyOnMap:
+                        _logger.LogMessage("Checking for enemies on the stage.");
                         if (CheckForAliveOnTeam(enemyTeamIndex))
                         {
-                            DroneSay("There's enemies alive!");
+                            //DroneSay("There's enemies alive!");
+                            _logger.LogMessage("Enemies on the stage found!");
                             forceActive = true;
                         }
                         break;
                     // If there is a high-value target, then it will prioritize that target before firing. //
-                    // internal cooldown of 30 seconds, before allowing freeuse to prevent wasted fires before a priority enemy appears //
+                    // Priority: isBoss, isElite
+                    // TODO: internal cooldown of 30 seconds, before allowing freeuse to prevent wasted fires before a priority enemy appears //
                     case DroneMode.PriorityTarget:
-                        freeUse = true;
+                        var priorityTarget = GetPriorityTarget(baseAI.master.teamIndex);
+                        if (priorityTarget)
+                        {
+                            _logger.LogMessage($"Priority Target Found: {priorityTarget.name}");
+                            ForceTarget(priorityTarget);
+                            freeUse = true;
+                        }
                         break;
                     // Attempts to evade, using its skills //
                     case DroneMode.Evade:
@@ -302,11 +347,11 @@ namespace AutoUseEquipmentDrones
                         break;
                     /* Priority Listing:
                      * Heal allied players in order of most hurt.
-                     * Unless about to die (<10% health), then heal until 50%
+                     * TODO: Unless about to die (<10% health), then heal until 50%
                     */
                     case DroneMode.PassiveHealing:
                         var ally = GetMostHurtTeam(baseAI.body.teamComponent.teamIndex);
-                        TargetAlly(ally);
+                        ForceTarget(ally);
 
                         forceActive = true;
                         break;
@@ -326,10 +371,11 @@ namespace AutoUseEquipmentDrones
                         GenericPickupController pickupController = equipmentSlot.currentTarget.pickupController;
                         if (pickupController && !pickupController.Recycled)
                         {
+                            _logger.LogMessage($"Equipment Drone is currently looking at {PickupCatalog.GetPickupDef(pickupController.pickupIndex).internalName}");
                             PickupIndex initialPickupIndex = pickupController.pickupIndex;
                             if (allowedPickupIndices.Contains(initialPickupIndex))
                             {
-                                DroneSay("Bad Item/Equipment!!");
+                                //DroneSay("Bad Item/Equipment!!");
                                 forceActive = true;
                             }
                         }
@@ -337,7 +383,8 @@ namespace AutoUseEquipmentDrones
                     case DroneMode.Fruit:
                         if (baseAI.body.healthComponent.health <= baseAI.body.healthComponent.fullHealth * 0.5f)
                         {
-                            DroneSay("I'm low health! Gonna heal!");
+                            //DroneSay("I'm low health! Gonna heal!");
+                            _logger.LogMessage($"Drone attempting to heal at {baseAI.body.healthComponent.combinedHealthFraction} health");
                             forceActive = true;
                         }
                         //forceActive = self.healthComponent?.health <= self.healthComponent?.fullHealth * 0.5f;
