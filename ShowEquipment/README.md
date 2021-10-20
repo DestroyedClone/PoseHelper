@@ -6,6 +6,8 @@
 
 This mod shows your allies' equipment.
 
+[![](https://media.discordapp.net/attachments/900239634032906271/900243008342081596/discordinvite.webp)](https://discord.gg/DpHu3qXMHK "Discord Link")
+
 ## To-Do
 
 * Mousing over the icon shows the tooltip
