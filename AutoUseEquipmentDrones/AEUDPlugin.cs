@@ -21,6 +21,16 @@ using System.Security;
 using System.Security.Permissions;
 using static BetterEquipmentDroneUse.Methods;
 using EntityStates.AI;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using JetBrains.Annotations;
+using RoR2.DirectionalSearch;
+using RoR2.Orbs;
+using RoR2.Projectile;
+using UnityEngine;
+using UnityEngine.Networking;
 
 
 [module: UnverifiableCode]
@@ -47,6 +57,8 @@ namespace AutoUseEquipmentDrones
 
         internal static BepInEx.Logging.ManualLogSource _logger;
 
+        public static BodyIndex EquipmentDroneBodyIndex;
+
         public static Dictionary<EquipmentIndex, DroneMode> DroneModeDictionary = new Dictionary<EquipmentIndex, DroneMode>();
 
         public void Awake()
@@ -68,6 +80,45 @@ namespace AutoUseEquipmentDrones
             On.RoR2.EquipmentSlot.OnStartServer += GiveComponent;
             R2API.Utils.CommandHelper.AddToConsoleWhenReady();
             On.RoR2.EquipmentCatalog.Init += EquipmentCatalog_Init;
+            On.RoR2.EquipmentSlot.FindPickupController += EquipmentSlot_FindPickupController;
+        }
+
+        private GenericPickupController EquipmentSlot_FindPickupController(On.RoR2.EquipmentSlot.orig_FindPickupController orig, EquipmentSlot self, Ray aimRay, float maxAngle, float maxDistance, bool requireLoS, bool requireTransmutable)
+        {
+            if (self.characterBody && self.characterBody.bodyIndex == EquipmentDroneBodyIndex)
+            {
+                if (self.pickupSearch == null)
+                {
+                    self.pickupSearch = new PickupSearch();
+                }
+                aimRay = CameraRigController.ModifyAimRayIfApplicable(aimRay, base.gameObject, out float num);
+                self.pickupSearch.searchOrigin = aimRay.origin;
+                self.pickupSearch.searchDirection = aimRay.direction;
+                self.pickupSearch.minAngleFilter = 0f;
+                self.pickupSearch.maxAngleFilter = 360;
+                self.pickupSearch.minDistanceFilter = 0f;
+                self.pickupSearch.maxDistanceFilter = maxDistance + num;
+                self.pickupSearch.filterByDistinctEntity = false;
+                self.pickupSearch.filterByLoS = requireLoS;
+                self.pickupSearch.sortMode = SortMode.DistanceAndAngle;
+                self.pickupSearch.requireTransmutable = requireTransmutable;
+
+
+                foreach (var pickup in self.pickupSearch.candidateInfoList)
+                {
+                    if (pickup.source && !pickup.source.Recycled)
+                    {
+                        if (allowedPickupIndices.Contains(pickup.source.pickupIndex))
+                        {
+                            return pickup.source;
+                        }
+                    }
+                }
+                return self.pickupSearch.SearchCandidatesForSingleTarget(InstanceTracker.GetInstancesList<GenericPickupController>());
+            }
+            var original = orig(self, aimRay, maxAngle, maxDistance, requireLoS, requireTransmutable);
+
+            return original;
         }
 
         private void EquipmentCatalog_Init(On.RoR2.EquipmentCatalog.orig_Init orig)
@@ -80,6 +131,7 @@ namespace AutoUseEquipmentDrones
         {
             DroneModeDictionary = new Dictionary<EquipmentIndex, DroneMode>()
             {
+                // If there are enemies on the map, but not necessarily any priority targets. //
                 [RoR2Content.Equipment.CommandMissile.equipmentIndex] = DroneMode.EnemyOnMap,
                 [RoR2Content.Equipment.Meteor.equipmentIndex] = DroneMode.EnemyOnMap,
 
@@ -114,7 +166,41 @@ namespace AutoUseEquipmentDrones
         }
 
         #region Cache
-        [RoR2.SystemInitializer(dependencies: typeof(RoR2.PickupCatalog))]
+
+        [RoR2.SystemInitializer(dependencies: typeof(RoR2.ItemCatalog))]
+        private static void CacheWhitelistedItems()
+        {
+            //_logger.LogMessage("Caching whitelisted items for Recycler.");
+            var testStringArray = Recycler_Items.Value.Split(',');
+            if (testStringArray.Length > 0)
+            {
+                foreach (string stringToTest in testStringArray)
+                {
+                    if (ItemCatalog.FindItemIndex(stringToTest) == ItemIndex.None) { continue; }
+                    allowedItemIndices.Add(ItemCatalog.FindItemIndex(stringToTest));
+                    //_logger.LogMessage("Adding whitelisted item: " + stringToTest);
+                }
+            }
+            _logger.LogMessage(allowedItemIndices);
+        }
+
+        [RoR2.SystemInitializer(dependencies: typeof(RoR2.EquipmentCatalog))]
+        private static void CacheWhitelistedEquipment()
+        {
+            //_logger.LogMessage("Caching whitelisted EQUIPMENT for Recycler.");
+            var testStringArray = Recycler_Equipment.Value.Split(',');
+            if (testStringArray.Length > 0)
+            {
+                foreach (string stringToTest in testStringArray)
+                {
+                    if (EquipmentCatalog.FindEquipmentIndex(stringToTest) == EquipmentIndex.None) { continue; }
+                    allowedEquipmentIndices.Add(EquipmentCatalog.FindEquipmentIndex(stringToTest));
+                    //_logger.LogMessage("Adding whitelisted equipment: " + stringToTest);
+                }
+            }
+        }
+
+        [RoR2.SystemInitializer(dependencies: new Type[] { typeof(RoR2.PickupCatalog), typeof(RoR2.ItemCatalog), typeof(RoR2.EquipmentCatalog) })]
         private static void CachePickupIndices()
         {
             foreach (var itemIndex in allowedItemIndices)
@@ -127,39 +213,13 @@ namespace AutoUseEquipmentDrones
                 if (PickupCatalog.FindPickupIndex(equipmentIndex) != PickupIndex.none)
                     allowedPickupIndices.Add(PickupCatalog.FindPickupIndex(equipmentIndex));
             }
-        }
-
-        [RoR2.SystemInitializer(dependencies: typeof(RoR2.ItemCatalog))]
-        private void CacheWhitelistedItems()
-        {
-            Debug.Log("Caching whitelisted items for Recycler.");
-            var testStringArray = Recycler_Items.Value.Split(',');
-            if (testStringArray.Length > 0)
+            _logger.LogMessage("Listing allowed pickups:");
+            foreach (var pickupIndex in allowedPickupIndices)
             {
-                foreach (string stringToTest in testStringArray)
-                {
-                    if (ItemCatalog.FindItemIndex(stringToTest) == ItemIndex.None) { continue; }
-                    allowedItemIndices.Add(ItemCatalog.FindItemIndex(stringToTest));
-                    Debug.Log("Adding whitelisted item: " + stringToTest);
-                }
+                var def = PickupCatalog.GetPickupDef(pickupIndex).internalName;
+                _logger.LogMessage(def);
             }
-            Debug.Log(allowedItemIndices);
-        }
-
-        [RoR2.SystemInitializer(dependencies: typeof(RoR2.EquipmentCatalog))]
-        private void CacheWhitelistedEquipment()
-        {
-            Debug.Log("Caching whitelisted EQUIPMENT for Recycler.");
-            var testStringArray = Recycler_Equipment.Value.Split(',');
-            if (testStringArray.Length > 0)
-            {
-                foreach (string stringToTest in testStringArray)
-                {
-                    if (EquipmentCatalog.FindEquipmentIndex(stringToTest) == EquipmentIndex.None) { continue; }
-                    allowedEquipmentIndices.Add(EquipmentCatalog.FindEquipmentIndex(stringToTest));
-                    Debug.Log("Adding whitelisted equipment: " + stringToTest);
-                }
-            }
+            _logger.LogMessage("Done.");
         }
 
         [RoR2.SystemInitializer(dependencies: typeof(RoR2.ChestRevealer))]
@@ -167,29 +227,33 @@ namespace AutoUseEquipmentDrones
         {
             allowedTypesToScan = ChestRevealer.typesToCheck;
         }
+
+        [RoR2.SystemInitializer(dependencies: typeof(BodyCatalog))]
+        private static void CachedBodyIndex()
+        {
+            EquipmentDroneBodyIndex = BodyCatalog.FindBodyIndex("EquipmentDroneBody");
+        }
         #endregion
 
         private void GiveComponent(On.RoR2.EquipmentSlot.orig_OnStartServer orig, EquipmentSlot self)
         {
             orig(self);
             if (!self || !self.characterBody || !self.characterBody.master) return;
-            switch (self.characterBody.baseNameToken)
+            if (self.characterBody.bodyIndex == EquipmentDroneBodyIndex)
             {
-                case "EQUIPMENTDRONE_BODY_NAME":
-                    var baseAI = self.characterBody.master.gameObject.GetComponent<BaseAI>();
-                    if (!baseAI)
-                    {
-                        return;
-                    }
+                var baseAI = self.characterBody.master.gameObject.GetComponent<BaseAI>();
+                if (!baseAI)
+                {
+                    return;
+                }
 
-                    var component = baseAI.gameObject.GetComponent<BEDUComponent>();
-                    if (!component)
-                    {
-                        component = baseAI.gameObject.AddComponent<BEDUComponent>();
-                        component.baseAI = baseAI;
-                        component.equipmentSlot = self;
-                    }
-                    break;
+                var component = baseAI.gameObject.GetComponent<BEDUComponent>();
+                if (!component)
+                {
+                    component = baseAI.gameObject.AddComponent<BEDUComponent>();
+                    component.baseAI = baseAI;
+                    component.equipmentSlot = self;
+                }
             }
         }
 
@@ -205,16 +269,23 @@ namespace AutoUseEquipmentDrones
                 }
                 if (self.bodyInputBank)
                 {
-                    bool useEquipment = component.useEquipment || component.freeUse;
+                    bool freeUseEquipment = component.freeUse && self.bodyInputs.pressActivateEquipment;
+                    bool useEquipment = component.useEquipment || freeUseEquipment;
+                    bool shouldJump = self.bodyInputs.pressJump || component.droneMode == DroneMode.Evade;
 
                     self.bodyInputBank.skill1.PushState(self.bodyInputs.pressSkill1);
                     self.bodyInputBank.skill2.PushState(self.bodyInputs.pressSkill2);
                     self.bodyInputBank.skill3.PushState(self.bodyInputs.pressSkill3);
                     self.bodyInputBank.skill4.PushState(self.bodyInputs.pressSkill4);
-                    self.bodyInputBank.jump.PushState(self.bodyInputs.pressJump);
+                    self.bodyInputBank.jump.PushState(shouldJump);
                     self.bodyInputBank.sprint.PushState(true); //self.bodyInputs.pressSprint
                     self.bodyInputBank.activateEquipment.PushState(useEquipment);
                     self.bodyInputBank.moveVector = self.bodyInputs.moveVector;
+
+                    if (component.droneMode == DroneMode.Recycle)
+                    {
+
+                    }
                 }
             } else
             {
@@ -261,17 +332,19 @@ namespace AutoUseEquipmentDrones
             [Tooltip("Speaking for debugging.")]
             bool hasSpoken = false;
 
+            [Tooltip("Position used to force the drone to look in a particular direction.")]
+            public Vector3 newPositionToLook = Vector3.zero;
+
             void Start()
             {
-                enemyTeamIndex = baseAI.body.teamComponent.teamIndex == TeamIndex.Player ? TeamIndex.Monster : TeamIndex.Player;
-
+                enemyTeamIndex = baseAI.master.teamIndex == TeamIndex.Player ? TeamIndex.Monster : TeamIndex.Player;
+                
                 if (!equipmentSlot)
                 {
                     if (baseAI.body && baseAI.body.inventory)
                         equipmentSlot = baseAI.body.equipmentSlot;
                 }
                 equipmentIndex = baseAI.master.inventory.currentEquipmentIndex;
-
 
                 EvaluateDroneMode();
                 _logger.LogMessage($"Chosen Drone Mode: {droneMode}");
@@ -286,7 +359,7 @@ namespace AutoUseEquipmentDrones
             }
             void EvaluateDroneMode()
             {
-                _logger.LogMessage($"Trying out EquipmentIndex {equipmentIndex}");
+                //_logger.LogMessage($"Trying out EquipmentIndex {equipmentIndex}");
                 if (DroneModeDictionary.TryGetValue(equipmentIndex, out DroneMode newDroneMode))
                 {
                     droneMode = newDroneMode;
@@ -298,11 +371,19 @@ namespace AutoUseEquipmentDrones
             void ForceTarget(GameObject target)
             {
                 baseAI.currentEnemy.gameObject = target;
-                _logger.LogMessage($"{baseAI.body.GetDisplayName()} has switched targets to {baseAI.currentEnemy.gameObject.name}");
+                //_logger.LogMessage($"{baseAI.body.GetDisplayName()} has switched targets to {baseAI.currentEnemy.gameObject.name}");
+            }
+
+            void LookAtPosition(Vector3 position)
+            {
+                baseAI.bodyInputBank.aimDirection = baseAI.bodyInputBank.transform.position - position;
             }
 
             void FixedUpdate()
             {
+                if (!baseAI)
+                    return;
+
                 bool forceActive = false;
                 freeUse = false;
                 useEquipment = false;
@@ -315,13 +396,12 @@ namespace AutoUseEquipmentDrones
 
                 switch (droneMode)
                 {
-                    // If there are enemies on the map, but not necessarily any priority targets. //
                     case DroneMode.EnemyOnMap:
-                        _logger.LogMessage("Checking for enemies on the stage.");
+                        //_logger.LogMessage("Checking for enemies on the stage.");
                         if (CheckForAliveOnTeam(enemyTeamIndex))
                         {
                             //DroneSay("There's enemies alive!");
-                            _logger.LogMessage("Enemies on the stage found!");
+                            //_logger.LogMessage("Enemies on the stage found!");
                             forceActive = true;
                         }
                         break;
@@ -332,7 +412,7 @@ namespace AutoUseEquipmentDrones
                         var priorityTarget = GetPriorityTarget(baseAI.master.teamIndex);
                         if (priorityTarget)
                         {
-                            _logger.LogMessage($"Priority Target Found: {priorityTarget.name}");
+                            //_logger.LogMessage($"Priority Target Found: {priorityTarget.name}");
                             ForceTarget(priorityTarget);
                             freeUse = true;
                         }
@@ -357,11 +437,17 @@ namespace AutoUseEquipmentDrones
                         break;
                     // If there are any debuffs, then use. //
                     case DroneMode.Cleanse:
+                        freeUse = true;
+                        /*
+                         * Why is this disabled?
+                         * The cooldown of the blast shower (10s) gets reduced down to 20.589% of its value
+                         * 2.0589.
+                         * If the cooldown were longer then it could be justified to check for debuffs.
+                         * But this way is cheaper.
                         if (CheckForDebuffs(baseAI.body))
                         {
-                            DroneSay("I'm filthy! Cleaning!!");
                             forceActive = true;
-                        }
+                        }*/
                         break;
                     // Ideally we'd want to get in close, but I'd have to work on it //
                     case DroneMode.Saw:
@@ -376,17 +462,15 @@ namespace AutoUseEquipmentDrones
                             if (allowedPickupIndices.Contains(initialPickupIndex))
                             {
                                 //DroneSay("Bad Item/Equipment!!");
+                                LookAtPosition(pickupController.transform.position);
                                 forceActive = true;
                             }
                         }
                         break;
                     case DroneMode.Fruit:
-                        if (baseAI.body.healthComponent.health <= baseAI.body.healthComponent.fullHealth * 0.5f)
-                        {
-                            //DroneSay("I'm low health! Gonna heal!");
-                            _logger.LogMessage($"Drone attempting to heal at {baseAI.body.healthComponent.combinedHealthFraction} health");
-                            forceActive = true;
-                        }
+                        // CD: 45 -> ~10s
+                        // It's fine to spam it.
+                        freeUse = true;
                         //forceActive = self.healthComponent?.health <= self.healthComponent?.fullHealth * 0.5f;
                         break;
                     // Tries to get as close as possible to the enemy //
