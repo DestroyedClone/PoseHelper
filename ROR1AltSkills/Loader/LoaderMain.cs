@@ -26,6 +26,8 @@ namespace ROR1AltSkills.Loader
 
         public static ConfigEntry<bool> DebrisShieldAffectsDrones;
 
+        public static GameObject ConduitPrefab;
+
         public static void Init(ConfigFile config)
         {
             SetupConfig(config);
@@ -34,7 +36,7 @@ namespace ROR1AltSkills.Loader
 
             SetupBuffs();
 
-            SetupProjectiles();
+            SetupPrefabs();
 
             Hooks();
         }
@@ -42,6 +44,11 @@ namespace ROR1AltSkills.Loader
         public static void SetupConfig(ConfigFile config)
         {
             DebrisShieldAffectsDrones = config.Bind("SURVIVOR: LOADER", "Debris Shield Affects Your Drones", true, "If true, drones owned by the player will be give the buff too.");
+        }
+
+        public static void SetupPrefabs()
+        {
+            ConduitPrefab = new GameObject();
         }
 
         public static void SetupProjectiles()
@@ -119,7 +126,7 @@ namespace ROR1AltSkills.Loader
             mySkillDefSecondary.rechargeStock = 1;
             mySkillDefSecondary.requiredStock = 1;
             mySkillDefSecondary.stockToConsume = 1;
-            mySkillDefSecondary.icon = Resources.Load<Sprite>("textures/bufficons/texBuffLunarShellIcon");
+            mySkillDefSecondary.icon = RoR2Content.Items.PersonalShield.pickupIconSprite;
             mySkillDefSecondary.skillDescriptionToken = "DC_LOADER_SECONDARY_SHIELD_DESCRIPTION";
             mySkillDefSecondary.skillName = "DC_LOADER_SECONDARY_SHIELD_NAME";
             mySkillDefSecondary.skillNameToken = mySkillDefSecondary.skillName;
@@ -136,7 +143,7 @@ namespace ROR1AltSkills.Loader
                 viewableNode = new ViewablesCatalog.Node(mySkillDefSecondary.skillNameToken, false, null)
             };
 
-
+            //not a typo
             skillFamily = skillLocator.utility.skillFamily;
 
             Array.Resize(ref skillFamily.variants, skillFamily.variants.Length + 1);
@@ -146,9 +153,6 @@ namespace ROR1AltSkills.Loader
                 unlockableDef = null,
                 viewableNode = new ViewablesCatalog.Node(mySkillDefSecondary.skillNameToken, false, null)
             };
-
-
-
             #region utility
             /* this is the most demonic skillstate ive seen
 
@@ -185,6 +189,45 @@ namespace ROR1AltSkills.Loader
                 unlockableDef = null,
                 viewableNode = new ViewablesCatalog.Node(UtilitySkillDef.skillNameToken, false, null)
             };*/
+            #endregion
+
+            #region special
+
+            LanguageAPI.Add("DC_LOADER_SPECIAL_CONDUIT_NAME", "Place Conduit");
+            LanguageAPI.Add("DC_LOADER_SPECIAL_CONDUIT_DESCRIPTION", "Place two conduits to fuck off.");
+
+            var mySkillDefSpecial = ScriptableObject.CreateInstance<SkillDef>();
+            mySkillDefSpecial.activationState = new SerializableEntityStateType(typeof(PlaceConduit1));
+            mySkillDefSpecial.activationStateMachineName = "Pylon";
+            mySkillDefSpecial.baseMaxStock = 1;
+            mySkillDefSpecial.baseRechargeInterval = 5f;
+            mySkillDefSpecial.cancelSprintingOnActivation = false;
+            mySkillDefSpecial.beginSkillCooldownOnSkillEnd = true;
+            mySkillDefSpecial.canceledFromSprinting = false;
+            mySkillDefSpecial.fullRestockOnAssign = true;
+            mySkillDefSpecial.interruptPriority = InterruptPriority.Any;
+            mySkillDefSpecial.isCombatSkill = false;
+            mySkillDefSpecial.mustKeyPress = false;
+            mySkillDefSpecial.rechargeStock = 1;
+            mySkillDefSpecial.requiredStock = 1;
+            mySkillDefSpecial.stockToConsume = 1;
+            mySkillDefSpecial.icon = RoR2Content.Items.ShockNearby.pickupIconSprite;
+            mySkillDefSpecial.skillDescriptionToken = "DC_LOADER_SPECIAL_CONDUIT_DESCRIPTION";
+            mySkillDefSpecial.skillName = "DC_LOADER_SPECIAL_CONDUIT_NAME";
+            mySkillDefSpecial.skillNameToken = mySkillDefSpecial.skillName;
+
+
+
+            skillFamily = skillLocator.special.skillFamily;
+
+            Array.Resize(ref skillFamily.variants, skillFamily.variants.Length + 1);
+            skillFamily.variants[skillFamily.variants.Length - 1] = new SkillFamily.Variant
+            {
+                skillDef = mySkillDefSpecial,
+                unlockableDef = null,
+                viewableNode = new ViewablesCatalog.Node(mySkillDefSpecial.skillNameToken, false, null)
+            };
+
             #endregion
         }
 
