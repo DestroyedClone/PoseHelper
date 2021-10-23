@@ -1,6 +1,7 @@
 ﻿using RoR2;
 using System;
 using static BetterEquipmentDroneUse.Main;
+using System.Collections.Generic;
 
 namespace BetterEquipmentDroneUse
 {
@@ -37,6 +38,45 @@ namespace BetterEquipmentDroneUse
                     //_logger.LogMessage("Adding whitelisted equipment: " + stringToTest);
                 }
             }
+        }
+
+        [RoR2.SystemInitializer(dependencies: typeof(RoR2.EquipmentCatalog))]
+        public static void SetupDictionary()
+        {
+            DroneModeDictionary = new Dictionary<EquipmentIndex, DroneMode>()
+            {
+                // If there are enemies on the map, but not necessarily any priority targets. //
+                [RoR2Content.Equipment.CommandMissile.equipmentIndex] = DroneMode.EnemyOnMap,
+                [RoR2Content.Equipment.Meteor.equipmentIndex] = DroneMode.EnemyOnMap,
+
+                [RoR2Content.Equipment.Blackhole.equipmentIndex] = DroneMode.PriorityTarget,
+                [RoR2Content.Equipment.BFG.equipmentIndex] = DroneMode.PriorityTarget,
+                [RoR2Content.Equipment.Lightning.equipmentIndex] = DroneMode.PriorityTarget,
+                [RoR2Content.Equipment.CrippleWard.equipmentIndex] = DroneMode.PriorityTarget,
+
+                [RoR2Content.Equipment.Jetpack.equipmentIndex] = DroneMode.Evade,
+                [RoR2Content.Equipment.GainArmor.equipmentIndex] = DroneMode.Evade,
+                [RoR2Content.Equipment.Tonic.equipmentIndex] = DroneMode.Evade,
+
+                [RoR2Content.Equipment.GoldGat.equipmentIndex] = DroneMode.GoldGat,
+
+                [RoR2Content.Equipment.PassiveHealing.equipmentIndex] = DroneMode.PassiveHealing,
+
+                [RoR2Content.Equipment.Gateway.equipmentIndex] = DroneMode.Gateway,
+
+                [RoR2Content.Equipment.Cleanse.equipmentIndex] = DroneMode.Cleanse,
+
+                [RoR2Content.Equipment.Saw.equipmentIndex] = DroneMode.Saw,
+
+                [RoR2Content.Equipment.Recycle.equipmentIndex] = DroneMode.Recycle,
+
+                [RoR2Content.Equipment.Fruit.equipmentIndex] = DroneMode.Fruit,
+
+                [RoR2Content.Equipment.BurnNearby.equipmentIndex] = DroneMode.Snuggle,
+                [RoR2Content.Equipment.QuestVolatileBattery.equipmentIndex] = DroneMode.Snuggle,
+
+                [RoR2Content.Equipment.Scanner.equipmentIndex] = DroneMode.Scan,
+            };
         }
 
         [RoR2.SystemInitializer(dependencies: new Type[] { typeof(RoR2.PickupCatalog), typeof(RoR2.ItemCatalog), typeof(RoR2.EquipmentCatalog) })]
