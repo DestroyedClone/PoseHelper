@@ -21,7 +21,33 @@ namespace Spectator
     {
         public void Awake()
         {
-            
+            R2API.Utils.CommandHelper.AddToConsoleWhenReady();
+        }
+
+        [ConCommand(commandName = "spectate", flags = ConVarFlags.ExecuteOnServer, helpText = "spectate ENEMY")]
+        private static void DeathStateClear(ConCommandArgs args)
+        {
+            var playerNetworkUser = NetworkUser.readOnlyLocalPlayersList[0];
+            var playerMasterObject = playerNetworkUser.masterObject;
+            var playerCameraRigController = playerNetworkUser.cameraRigController;
+
+            CharacterMaster enemyToSpectate = null ;
+            if (args.Count == 1)
+            {
+                var masters = CharacterMaster.instancesList;
+                foreach (var master in masters)
+                {
+                    if (master.name.StartsWith(args.GetArgString(0)))
+                    {
+                        enemyToSpectate = master;
+                    }
+                }
+            }
+            if (enemyToSpectate != null)
+            {
+                playerNetworkUser.masterObject = enemyToSpectate.gameObject;
+                playerNetworkUser.masterObject = enemyToSpectate.GetBodyObject();
+            }
         }
 
         /*
