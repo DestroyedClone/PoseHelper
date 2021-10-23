@@ -160,7 +160,16 @@ namespace BetterEquipmentDroneUse
 
                     if (component.droneMode == DroneMode.Recycle)
                     {
-
+                        GenericPickupController pickupController = self.body.equipmentSlot.currentTarget.pickupController;
+                        if (pickupController && !pickupController.Recycled)
+                        {
+                            //_logger.LogMessage($"Equipment Drone is currently looking at {PickupCatalog.GetPickupDef(pickupController.pickupIndex).internalName}");
+                            PickupIndex initialPickupIndex = pickupController.pickupIndex;
+                            if (allowedPickupIndices.Contains(initialPickupIndex))
+                            {
+                                useEquipment = true;
+                            }
+                        }
                     }
                     self.bodyInputBank.activateEquipment.PushState(useEquipment);
                     self.bodyInputBank.moveVector = self.bodyInputs.moveVector;
