@@ -1,32 +1,13 @@
-﻿using BepInEx;
-using BepInEx.Configuration;
-using UnityEngine;
-using RoR2;
-using R2API.Utils;
-using static RoR2.RoR2Content.Equipment;
-using System.Collections.ObjectModel;
-using UnityEngine.Networking;
-using RoR2.CharacterAI;
+﻿using RoR2;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using EntityStates;
-using JetBrains.Annotations;
-using RoR2.Navigation;
-using UnityEngine.AI;
-using EntityStates.GoldGat;
-using System.Security;
-using System.Security.Permissions;
-using static BetterEquipmentDroneUse.Methods;
-using EntityStates.AI;
-using static AutoUseEquipmentDrones.AUEDPlugin;
+using System.Collections.ObjectModel;
+using UnityEngine;
+using static BetterEquipmentDroneUse.Main;
 
 namespace BetterEquipmentDroneUse
 {
     public class Methods
-    { 
+    {
         public static bool CheckForValidInteractables()
         {
             Type[] array = ChestRevealer.typesToCheck;
@@ -173,9 +154,6 @@ namespace BetterEquipmentDroneUse
                 var min = keyValuePairs.Aggregate((l, r) => l.Value < r.Value ? l : r).Key;
                 return min.body.gameObject;
             }*/
-
-
-
 
             return null;
         }
