@@ -28,6 +28,7 @@ namespace NoUnlocksDrizzle
 
         public void Awake()
         {
+            /*
             On.RoR2.Achievements.BaseAchievement.Grant += BaseAchievement_Grant;
             On.RoR2.Stats.StatManager.OnDamageDealt += StatManager_OnDamageDealt;
             On.RoR2.Stats.StatManager.OnCharacterDeath += StatManager_OnCharacterDeath;
@@ -40,6 +41,16 @@ namespace NoUnlocksDrizzle
             On.RoR2.Stats.StatManager.OnServerItemGiven += StatManager_OnServerItemGiven;
             On.RoR2.Stats.StatManager.ProcessEvents += StatManager_ProcessEvents;
             On.RoR2.Stats.StatManager.OnEquipmentActivated += StatManager_OnEquipmentActivated;
+            */
+            On.RoR2.Stats.PlayerStatsComponent.Awake += PlayerStatsComponent_Awake;
+        }
+
+        private void PlayerStatsComponent_Awake(On.RoR2.Stats.PlayerStatsComponent.orig_Awake orig, RoR2.Stats.PlayerStatsComponent self)
+        {
+            if (!Drizzle())
+            {
+                orig(self);
+            }
         }
 
         private void StatManager_OnEquipmentActivated(On.RoR2.Stats.StatManager.orig_OnEquipmentActivated orig, EquipmentSlot activator, EquipmentIndex equipmentIndex) { if (!Drizzle()) orig(activator, equipmentIndex); }
