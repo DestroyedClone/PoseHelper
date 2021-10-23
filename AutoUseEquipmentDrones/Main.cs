@@ -21,16 +21,9 @@ using System.Security;
 using System.Security.Permissions;
 using static BetterEquipmentDroneUse.Methods;
 using EntityStates.AI;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using JetBrains.Annotations;
 using RoR2.DirectionalSearch;
 using RoR2.Orbs;
 using RoR2.Projectile;
-using UnityEngine;
-using UnityEngine.Networking;
 
 
 [module: UnverifiableCode]
@@ -39,12 +32,12 @@ using UnityEngine.Networking;
 #pragma warning restore CS0618 // Type or member is obsolete
 [assembly: HG.Reflection.SearchableAttribute.OptIn]
 
-namespace AutoUseEquipmentDrones
+namespace BetterEquipmentDroneUse
 {
     [BepInPlugin("com.DestroyedClone.BetterEquipmentDroneUse", "Better Equipment Drone Use", "1.0.0")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.EveryoneNeedSameModVersion)]
-    public class AUEDPlugin : BaseUnityPlugin
+    public class Main : BaseUnityPlugin
     {
         public static ConfigEntry<string> TargetPriority { get; set; }
         public static Type[] allowedTypesToScan = new Type[] { };
@@ -454,6 +447,11 @@ namespace AutoUseEquipmentDrones
                         freeUse = true;
                         break;
                     case DroneMode.Recycle:
+                        freeUse = false;
+                        break;
+                        /*
+                         * 
+                         * Moving it to the main events due to the delay in use causing the wrong pickup to be affected.
                         GenericPickupController pickupController = equipmentSlot.currentTarget.pickupController;
                         if (pickupController && !pickupController.Recycled)
                         {
@@ -465,7 +463,7 @@ namespace AutoUseEquipmentDrones
                                 LookAtPosition(pickupController.transform.position);
                                 forceActive = true;
                             }
-                        }
+                        }*/
                         break;
                     case DroneMode.Fruit:
                         // CD: 45 -> ~10s
