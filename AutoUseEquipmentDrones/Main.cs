@@ -73,6 +73,16 @@ namespace BetterEquipmentDroneUse
             On.RoR2.EquipmentSlot.OnStartServer += GiveComponent;
             R2API.Utils.CommandHelper.AddToConsoleWhenReady();
             On.RoR2.EquipmentSlot.FindPickupController += EquipmentSlot_FindPickupController;
+            On.EntityStates.GoldGat.BaseGoldGatState.FixedUpdate += BaseGoldGatState_FixedUpdate;
+        }
+
+        private void BaseGoldGatState_FixedUpdate(On.EntityStates.GoldGat.BaseGoldGatState.orig_FixedUpdate orig, BaseGoldGatState self)
+        {
+            orig(self);
+            if (self.outer && self.body?.bodyIndex == EquipmentDroneBodyIndex && !self.bodyMaster?.playerCharacterMasterController)
+            {
+                self.shouldFire = true;
+            }
         }
 
         private GenericPickupController EquipmentSlot_FindPickupController(On.RoR2.EquipmentSlot.orig_FindPickupController orig, EquipmentSlot self, Ray aimRay, float maxAngle, float maxDistance, bool requireLoS, bool requireTransmutable)
@@ -149,7 +159,7 @@ namespace BetterEquipmentDroneUse
                 {
                     bool freeUseEquipment = component.freeUse && self.bodyInputs.pressActivateEquipment;
                     bool useEquipment = component.useEquipment || freeUseEquipment;
-                    bool shouldJump = self.bodyInputs.pressJump || component.droneMode == DroneMode.Evade;
+                    bool shouldJump = component.droneMode == DroneMode.Evade ? component.shouldJump : self.bodyInputs.pressJump;
 
                     self.bodyInputBank.skill1.PushState(self.bodyInputs.pressSkill1);
                     self.bodyInputBank.skill2.PushState(self.bodyInputs.pressSkill2);
@@ -157,6 +167,8 @@ namespace BetterEquipmentDroneUse
                     self.bodyInputBank.skill4.PushState(self.bodyInputs.pressSkill4);
                     self.bodyInputBank.jump.PushState(shouldJump);
                     self.bodyInputBank.sprint.PushState(true); //self.bodyInputs.pressSprint
+
+                    component.shouldJump = false;
 
                     if (component.droneMode == DroneMode.Recycle)
                     {
@@ -223,6 +235,10 @@ namespace BetterEquipmentDroneUse
             [Tooltip("Position used to force the drone to look in a particular direction.")]
             public Vector3 newPositionToLook = Vector3.zero;
 
+            public static float jetpackCooldownTimer = 2f; //JetpackController.boostCooldown;
+            public float jetpackCooldownAge = 0;
+            public bool shouldJump = true;
+
             void Start()
             {
                 enemyTeamIndex = baseAI.master.teamIndex == TeamIndex.Player ? TeamIndex.Monster : TeamIndex.Player;
@@ -234,7 +250,7 @@ namespace BetterEquipmentDroneUse
                 }
                 equipmentIndex = baseAI.master.inventory.currentEquipmentIndex;
 
-                EvaluateDroneMode(equipmentIndex);
+                droneMode = EvaluateDroneMode(equipmentIndex);
                 _logger.LogMessage($"Chosen Drone Mode: {droneMode}");
             }
             void DroneSay(string msg)
@@ -297,6 +313,13 @@ namespace BetterEquipmentDroneUse
                     // Attempts to evade, using its skills //
                     case DroneMode.Evade:
                         freeUse = true;
+
+                        jetpackCooldownAge += Time.fixedDeltaTime;
+                        if (jetpackCooldownAge >= jetpackCooldownTimer)
+                        {
+                            jetpackCooldownAge = 0;
+                            shouldJump = true;
+                        }
                         break;
                     // 
                     case DroneMode.GoldGat:
@@ -362,7 +385,7 @@ namespace BetterEquipmentDroneUse
                         if (CheckForValidInteractables())
                         {
                             forceActive = true;
-                            DroneSay("There's still stuff to buy!");
+                            //DroneSay("There's still stuff to buy!");
                         }
                         break;
                     default:
