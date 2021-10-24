@@ -156,7 +156,11 @@ namespace ShowEquipment
 
             if (characterBody && characterBody.inventory && characterBody.inventory.currentEquipmentIndex != EquipmentIndex.None)
             {
-                if (characterBody.teamComponent.teamIndex == LocalUserManager.GetFirstLocalUser().cachedMaster.teamIndex)
+                var firstLocalUser = LocalUserManager.GetFirstLocalUser();
+                if (characterBody.teamComponent 
+                    && firstLocalUser != null 
+                    && firstLocalUser.cachedMaster
+                    && characterBody.teamComponent.teamIndex == LocalUserManager.GetFirstLocalUser().cachedMaster.teamIndex)
                 {
                     if ( (characterBody.master && characterBody.master.masterIndex == EquipmentDroneMasterIndex && cfgNameEquipmentMode.Value == NameEquipmentMode.EquipmentDrones)
                         || cfgNameEquipmentMode.Value == NameEquipmentMode.Any)
