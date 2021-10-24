@@ -17,7 +17,7 @@ namespace BetterEquipmentDroneUse
                 {
                     if (((IInteractable)monoBehaviour).ShouldShowOnScanner())
                     {
-                        Debug.Log("interactable check 1");
+                        //Debug.Log("interactable check 1");
                         return true;
                     }
                 }
@@ -51,7 +51,7 @@ namespace BetterEquipmentDroneUse
                 {
                     if (characterBody.HasBuff(buffIndex))
                     {
-                        Debug.Log("debuffs!");
+                        //Debug.Log("debuffs!");
                         return true;
                     }
                 }
@@ -156,6 +156,22 @@ namespace BetterEquipmentDroneUse
             }*/
 
             return null;
+        }
+
+
+        public static DroneMode EvaluateDroneMode(EquipmentIndex equipmentIndex)
+        {
+            //_logger.LogMessage($"Trying out EquipmentIndex {equipmentIndex}");
+            DroneMode droneMode;
+            if (DroneModeDictionary.TryGetValue(equipmentIndex, out DroneMode newDroneMode))
+            {
+                droneMode = newDroneMode;
+            }
+            else
+            {
+                droneMode = DroneMode.None;
+            }
+            return droneMode;
         }
     }
 }

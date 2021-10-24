@@ -193,7 +193,8 @@ namespace BetterEquipmentDroneUse
             Recycle,
             Fruit,
             Snuggle,
-            Scan
+            Scan,
+            FuelArray
         }
 
         public class BEDUComponent : MonoBehaviour
@@ -233,7 +234,7 @@ namespace BetterEquipmentDroneUse
                 }
                 equipmentIndex = baseAI.master.inventory.currentEquipmentIndex;
 
-                EvaluateDroneMode();
+                EvaluateDroneMode(equipmentIndex);
                 _logger.LogMessage($"Chosen Drone Mode: {droneMode}");
             }
             void DroneSay(string msg)
@@ -242,17 +243,6 @@ namespace BetterEquipmentDroneUse
                 {
                     Chat.AddMessage(Run.instance.NetworkfixedTime + " <style=cIsUtility> Drone: " + msg + "</style>");
                     hasSpoken = true;
-                }
-            }
-            void EvaluateDroneMode()
-            {
-                //_logger.LogMessage($"Trying out EquipmentIndex {equipmentIndex}");
-                if (DroneModeDictionary.TryGetValue(equipmentIndex, out DroneMode newDroneMode))
-                {
-                    droneMode = newDroneMode;
-                } else
-                {
-                    droneMode = DroneMode.None;
                 }
             }
             void ForceTarget(GameObject target)
@@ -379,7 +369,7 @@ namespace BetterEquipmentDroneUse
                         freeUse = true;
                         break;
                 }
-                if (forceActive) Debug.Log("attempting to use equipment");
+                //if (forceActive) Debug.Log("attempting to use equipment");
                     useEquipment = forceActive && equipmentReady;
             }
         }

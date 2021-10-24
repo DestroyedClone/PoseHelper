@@ -73,9 +73,10 @@ namespace BetterEquipmentDroneUse
                 [RoR2Content.Equipment.Fruit.equipmentIndex] = DroneMode.Fruit,
 
                 [RoR2Content.Equipment.BurnNearby.equipmentIndex] = DroneMode.Snuggle,
-                [RoR2Content.Equipment.QuestVolatileBattery.equipmentIndex] = DroneMode.Snuggle,
 
                 [RoR2Content.Equipment.Scanner.equipmentIndex] = DroneMode.Scan,
+
+                [RoR2Content.Equipment.QuestVolatileBattery.equipmentIndex] = DroneMode.FuelArray,
             };
         }
 
