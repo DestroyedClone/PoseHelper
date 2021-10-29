@@ -160,6 +160,8 @@ namespace DeathMessageAboveCorpse
         public static ConfigEntry<float> cfgDuration;
         public static ConfigEntry<bool> cfgUseSSMessages;
         public static ConfigEntry<bool> cfgOnlyLastLife;
+        public static ConfigEntry<float> cfgDelayMultiplayer;
+        public static ConfigEntry<float> cfgDelaySingleplayer;
         public static float fontSize = 10f;
 
         public static GameObject defaultTextObject;
@@ -222,6 +224,8 @@ namespace DeathMessageAboveCorpse
                 "\nEnsure this setting matches with the host of the server.");
             cfgOnlyLastLife = Config.Bind("Match with Host", "Only Show On True Death", true, "If enabled, then the message will only show up on the player's last life, to mirror Risk of Rain 1." +
                 "\nEnsure this setting matches with the host of the server.");
+            cfgDelayMultiplayer = Config.Bind("Delay", "Duration", 3f, "Length of time in seconds before the message displays after the player has stopped moving.");
+            cfgDelaySingleplayer = Config.Bind("Delay", "Duration", 1f, cfgDelayMultiplayer.Description + " (Singleplayer)");
             //cfgFinalSurvivorCorpseKept = Config.Bind("", "Keep Final Corpse Alive", true, "If true, keeps the player's final/last-life corpse from getting deleted until the message is finished.");
         }
 
@@ -289,7 +293,7 @@ namespace DeathMessageAboveCorpse
         public class TrackCorpseClient : MonoBehaviour
         {
             private float age;
-            public float timeBeforeDisplay = 3f;
+            public float timeBeforeDisplay = cfgDelayMultiplayer.Value;
             public bool stoppedMoving;
 
             public Vector3 lastPosition = Vector3.zero;
@@ -303,6 +307,11 @@ namespace DeathMessageAboveCorpse
 
             private void Start()
             {
+                if (NetworkUser.readOnlyInstancesList.Count <= NetworkUser.readOnlyLocalPlayersList.Count)
+                {
+                    timeBeforeDisplay = cfgDelaySingleplayer.Value;
+                }
+
                 cameraRig = CameraRigController.readOnlyInstancesList[0];
                 if (cameraRig) target = cameraRig.target;
             }
@@ -359,6 +368,15 @@ namespace DeathMessageAboveCorpse
             public void ShowMessageOnHud()
             {
                 var hudSimple = GameObject.Find("HUDSimple(Clone)");
+                var trans = hudSimple.transform.Find("MainContainer/SteamBuildLabel");
+                Object.Destroy(trans.GetComponent<SteamBuildIdLabel>());
+                var comp = trans.GetComponent<HGTextMeshProUGUI>();
+                comp.text = $"{languageTextMeshController.token}";
+                comp.color = new Color32(255, 255, 255, 255);
+                comp.fontSize = 60f;
+                comp.alignment = TextAlignmentOptions.Center;
+                trans.localPosition = new Vector3();
+                //hasShownHUDMessage = true;
             }
         }
 

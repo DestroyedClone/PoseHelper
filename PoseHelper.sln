@@ -121,6 +121,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShowEquipment", "ShowEquipm
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AccuracyTest", "AccuracyTest\AccuracyTest.csproj", "{F9F69C56-81A7-4D4B-9802-C19B9E329958}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ELITE_MODIFIER_GOLD_TOKEN", "ELITE_MODIFIER_GOLD_TOKEN\ELITE_MODIFIER_GOLD_TOKEN.csproj", "{F06BC02C-D8E1-494C-9DA3-E3D78FF36C2D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -363,6 +365,10 @@ Global
 		{F9F69C56-81A7-4D4B-9802-C19B9E329958}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F9F69C56-81A7-4D4B-9802-C19B9E329958}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F9F69C56-81A7-4D4B-9802-C19B9E329958}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F06BC02C-D8E1-494C-9DA3-E3D78FF36C2D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F06BC02C-D8E1-494C-9DA3-E3D78FF36C2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F06BC02C-D8E1-494C-9DA3-E3D78FF36C2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F06BC02C-D8E1-494C-9DA3-E3D78FF36C2D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
