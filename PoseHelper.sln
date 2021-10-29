@@ -117,11 +117,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChatboxEdit", "ScrollableCh
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TreesIgnoreLOD", "TreesIgnoreLOD\TreesIgnoreLOD.csproj", "{0AF8828B-8AF3-400C-841E-267F5A68FF60}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShowEquipment", "ShowEquipment\ShowEquipment.csproj", "{C1D5DB68-D699-4135-8735-DE61ADBD69BC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShowEquipment", "ShowEquipment\ShowEquipment.csproj", "{C1D5DB68-D699-4135-8735-DE61ADBD69BC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AccuracyTest", "AccuracyTest\AccuracyTest.csproj", "{F9F69C56-81A7-4D4B-9802-C19B9E329958}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AccuracyTest", "AccuracyTest\AccuracyTest.csproj", "{F9F69C56-81A7-4D4B-9802-C19B9E329958}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ELITE_MODIFIER_GOLD_TOKEN", "ELITE_MODIFIER_GOLD_TOKEN\ELITE_MODIFIER_GOLD_TOKEN.csproj", "{F06BC02C-D8E1-494C-9DA3-E3D78FF36C2D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ELITE_MODIFIER_GOLD_TOKEN", "ELITE_MODIFIER_GOLD_TOKEN\ELITE_MODIFIER_GOLD_TOKEN.csproj", "{F06BC02C-D8E1-494C-9DA3-E3D78FF36C2D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PickupOverPlayer", "PickupOverPlayer\PickupOverPlayer.csproj", "{8DB1D3AB-107D-459B-BD4D-021FDB404D5F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -369,6 +371,10 @@ Global
 		{F06BC02C-D8E1-494C-9DA3-E3D78FF36C2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F06BC02C-D8E1-494C-9DA3-E3D78FF36C2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F06BC02C-D8E1-494C-9DA3-E3D78FF36C2D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8DB1D3AB-107D-459B-BD4D-021FDB404D5F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8DB1D3AB-107D-459B-BD4D-021FDB404D5F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8DB1D3AB-107D-459B-BD4D-021FDB404D5F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8DB1D3AB-107D-459B-BD4D-021FDB404D5F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
