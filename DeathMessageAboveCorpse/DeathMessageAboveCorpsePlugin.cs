@@ -11,6 +11,7 @@ using System.Security.Permissions;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
+using static DeathMessageAboveCorpse.Quotes;
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -25,143 +26,13 @@ namespace DeathMessageAboveCorpse
     [R2APISubmoduleDependency(nameof(EffectAPI), nameof(PrefabAPI), nameof(NetworkingAPI))]
     public class DeathMessageAboveCorpsePlugin : BaseUnityPlugin
     {
-        public static string[] deathMessages = new string[]
-        {
-            "shak pls.",
-            "You are dead.",
-            "You embrace the void.",
-            "You had a lot more to live for.",
-            "Your internal organs have failed.",
-            "Your body was gone an hour later.",
-            "Your family will never know how you died.",
-            "You died painlessly.",
-            "Your death was extremely painful.",
-            "You have broken every bone in your body.",
-            "You die a slightly embarrassing death.",
-            "You die in a hilarious pose.",
-            "You really messed up.",
-            "You have died. Maybe next time..",
-            "You have passed away. Try again?",
-            "Choose a new character?",
-            "Remember to activate use items.",
-            "Remember that as time increases, so does difficulty.",
-            "This planet has killed you.",
-            "It wasn't your time to die...",
-            "That was definitely not your fault.",
-            "That was absolutely your fault.",
-            "They will surely feast on your flesh.",
-            "..the harder they fall.",
-            "Beep.. beep.. beeeeeeeeeeeeeeeee",
-            "Close!",
-            "Come back soon!",
-            "Crushed.",
-            "Smashed.",
-            "DEAD",
-            "Get styled upon.",
-            "Dead from blunt trauma to the face.",
-            "ded",
-            "rekt",
-            "ur dead LOL get rekt",
-            "Sucks to suck.",
-            "You walk towards the light.",
-
-            // TODO: Seperate based on difficulty (Run.instance.selectedDifficulty)
-            "Try playing on \"Drizzle\" mode for an easier time.",
-            "Consider lowering the difficulty.",
-        };
-
-        public static string[] deathMessagesStarstorm = new string[]
-        {"Oh no...",
-        "Oopsie.",
-        "Should have seen that coming.",
-        "Destiny sealed.",
-        "That was depressing.",
-        "Anticlimatic.",
-        "Yeet.",
-        "That wasn't cool.",
-        "Dying, again.",
-        "Could have been worse.",
-        "At least you tried.",
-        "Heartbroken.",
-        "Not OP.",
-        "Should have gotten Dio's Friend.",
-        "What?",
-        "Yeah... nice.",
-        "Are you okay?",
-        "Let's try again sometime soon.",
-        "Rude, didn't even say goodbye.",
-        "Another one bites the dust.",
-        "Stinky.",
-        "Get some rest.",
-        "I don't get it.",
-        ":(",
-        "To be honest, I expected that.",
-        "You are no more.",
-        "You died painfully.",
-        "Let's pretend that didn't happen.",
-        "Bye bye.",
-        "You cried before losing consciousness.",
-        "You will be remembered.",
-        "You didn't stand a chance.",
-        "Very, very dead.",
-        "Sorry mom.",
-        "Mom says it's my turn now.",
-        "What's the point?",
-        "Relatable.",
-        "Try harder.",
-        "Boom.",
-        "ouchies owo",
-        "F.",
-        "This is the part where you quit.",
-        "You weren't strong enough.",
-        "Continue?",
-        "You have perished.",
-        "The planet has claimed your life",
-        "You fought valiantly... But to no avail.",
-        "You didn't know how to live.",
-        "The end.",
-        "FIN.",
-        "Was that it?",
-        "Give up?",
-        "The end?",
-        "Nooooooooooo!",
-        "Good enough.",
-        "Fair game.",
-        "Need a tutorial?",
-        "Help is not coming.",
-        "Medic!",
-        "C-c-c-combo breaker!",
-        "It was fun while it lasted.",
-        "An attempt was made.",
-        "You had one job.",
-        "Good job!",
-        "Need a hug?",
-        "Hnng.",
-        "Life comes and goes.",
-        "It's just a game.",
-        "You'll win! ...Someday.",
-        "You could do it.",
-        "dead.exe",
-        "Imagine living",
-        "What?!",
-        "What was that?",
-        "Don't skip leg day.",
-        "Wow! Okay...",
-        "Whew.",
-        "Yes, you just died.",
-        "Free ticket to hell.",
-        "Free ticket to heaven.",
-        "The void welcomes you.",
-        "Weee wooo weee wooo."
-        };
-
         public static string[] deathMessagesResolved = new string[] { };
 
         public static ConfigEntry<float> cfgDuration;
         public static ConfigEntry<bool> cfgUseSSMessages;
         public static ConfigEntry<bool> cfgOnlyLastLife;
         public static ConfigEntry<float> cfgDelayMultiplayer;
-        public static ConfigEntry<float> cfgDelaySingleplayer;
+        public static ConfigEntry<bool> cfgShowQuoteOnScreenSingleplayer;
         public static float fontSize = 10f;
 
         public static GameObject defaultTextObject;
@@ -190,7 +61,7 @@ namespace DeathMessageAboveCorpse
             bool lastLifeCheck = cfgOnlyLastLife.Value == false || (cfgOnlyLastLife.Value && self.master && IsDeadAndOutOfLives(self.master));
             if (self.isPlayerControlled && lastLifeCheck)
             {
-                if (LocalUserManager.readOnlyLocalUsersList[0].cachedBody.GetComponent<NetworkIdentity>() == self.GetComponent<NetworkIdentity>())
+                if (LocalUserManager.readOnlyLocalUsersList[0].cachedBody?.GetComponent<NetworkIdentity>() == self.GetComponent<NetworkIdentity>())
                 {
                     var trackerObject = Instantiate<GameObject>(defaultTrackerObject);
                     trackerObject.name = $"Tracking Corpse: {self.GetDisplayName()}";
@@ -203,7 +74,7 @@ namespace DeathMessageAboveCorpse
         private bool IsDeadAndOutOfLives(CharacterMaster characterMaster)
         {
             CharacterBody body = characterMaster.GetBody();
-            return (!body || !body.healthComponent.alive) && characterMaster.inventory.GetItemCount(RoR2Content.Items.ExtraLife) <= 0 && !characterMaster.IsInvoking("RespawnExtraLife");
+            return (!body || !body.healthComponent.alive) && characterMaster.inventory.GetItemCount(RoR2Content.Items.ExtraLife) <= 0;
         }
 
         private void ModelLocator_OnDestroy(On.RoR2.ModelLocator.orig_OnDestroy orig, ModelLocator self)
@@ -225,7 +96,8 @@ namespace DeathMessageAboveCorpse
             cfgOnlyLastLife = Config.Bind("Match with Host", "Only Show On True Death", true, "If enabled, then the message will only show up on the player's last life, to mirror Risk of Rain 1." +
                 "\nEnsure this setting matches with the host of the server.");
             cfgDelayMultiplayer = Config.Bind("Delay", "Duration", 3f, "Length of time in seconds before the message displays after the player has stopped moving.");
-            cfgDelaySingleplayer = Config.Bind("Delay", "Duration", 1f, cfgDelayMultiplayer.Description + " (Singleplayer)");
+            cfgShowQuoteOnScreenSingleplayer = Config.Bind("Client", "Show Quote On Screen In Singleplayer", true, "If true, then the death quote will show on the game's end report panel in singleplayer." +
+                "\nAlso sets the delay to 0 seconds in singleplayer.");
             //cfgFinalSurvivorCorpseKept = Config.Bind("", "Keep Final Corpse Alive", true, "If true, keeps the player's final/last-life corpse from getting deleted until the message is finished.");
         }
 
@@ -252,6 +124,13 @@ namespace DeathMessageAboveCorpse
             // new string[length].
             // foreach string[] in string[][]
             // Copy to based off last or something
+
+            // WHAT THE FUCK DOES THIS MEAN I CANT REMEMBER
+        }
+
+        public static bool IsSingleplayer()
+        {
+            return NetworkUser.readOnlyInstancesList.Count <= NetworkUser.readOnlyLocalPlayersList.Count;
         }
 
         public static GameObject CreateTrackerObject()
@@ -307,9 +186,9 @@ namespace DeathMessageAboveCorpse
 
             private void Start()
             {
-                if (NetworkUser.readOnlyInstancesList.Count <= NetworkUser.readOnlyLocalPlayersList.Count)
+                if (IsSingleplayer() && cfgShowQuoteOnScreenSingleplayer.Value)
                 {
-                    timeBeforeDisplay = cfgDelaySingleplayer.Value;
+                    timeBeforeDisplay = 0f;
                 }
 
                 cameraRig = CameraRigController.readOnlyInstancesList[0];
@@ -354,6 +233,8 @@ namespace DeathMessageAboveCorpse
             public DestroyOnTimer destroyOnTimer;
             public int quoteIndex = 0;
 
+            public GameObject HUDDisplayInstance;
+
             public void Start()
             {
                 //Chat.AddMessage(""+quoteIndex);
@@ -363,20 +244,42 @@ namespace DeathMessageAboveCorpse
                 }
                 var deathQuote = deathMessagesResolved[quoteIndex];
                 languageTextMeshController.token = deathQuote;
+
+                if (IsSingleplayer() && cfgShowQuoteOnScreenSingleplayer.Value)
+                    ShowMessageOnHud();
             }
 
             public void ShowMessageOnHud()
             {
                 var hudSimple = GameObject.Find("HUDSimple(Clone)");
-                var trans = hudSimple.transform.Find("MainContainer/SteamBuildLabel");
+                var SteamBuildLabel = hudSimple.transform.Find("MainContainer/SteamBuildLabel");
+                RectTransform trans = (RectTransform)Instantiate(SteamBuildLabel);
+                trans.SetParent(SteamBuildLabel);
                 Object.Destroy(trans.GetComponent<SteamBuildIdLabel>());
                 var comp = trans.GetComponent<HGTextMeshProUGUI>();
                 comp.text = $"{languageTextMeshController.token}";
                 comp.color = new Color32(255, 255, 255, 255);
-                comp.fontSize = 60f;
+                comp.fontSize = 1f;
                 comp.alignment = TextAlignmentOptions.Center;
-                trans.localPosition = new Vector3();
+                trans.localPosition = new Vector3(0f, 450f, 0f);
+                trans.gameObject.AddComponent<MigrateToGameEndScreen>();
+                HUDDisplayInstance = trans.gameObject;
                 //hasShownHUDMessage = true;
+            }
+        }
+
+        public class MigrateToGameEndScreen : MonoBehaviour
+        {
+            public void FixedUpdate()
+            {
+                var endReport = UnityEngine.Object.FindObjectOfType<GameEndReportPanelController>();
+                if (endReport)
+                {
+                    var trans = (RectTransform)transform;
+                    trans.SetParent(endReport.transform);
+                    trans.localPosition = new Vector3(0f, 450f, 0f);
+                    enabled = false;
+                }
             }
         }
 
