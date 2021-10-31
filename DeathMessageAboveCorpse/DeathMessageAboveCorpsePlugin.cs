@@ -11,6 +11,7 @@ using System.Security.Permissions;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
+using System.Collections.Generic;
 using static DeathMessageAboveCorpse.Quotes;
 
 [module: UnverifiableCode]
@@ -103,16 +104,10 @@ namespace DeathMessageAboveCorpse
 
         public void ReadConfig()
         {
-            if (cfgUseSSMessages.Value)
-            {
-                deathMessagesResolved = new string[deathMessages.Length + deathMessagesStarstorm.Length];
-                deathMessages.CopyTo(deathMessagesResolved, 0);
-                deathMessagesStarstorm.CopyTo(deathMessagesResolved, deathMessages.Length);
-            }
-            else
-            {
-                deathMessagesResolved = (string[])deathMessages.Clone();
-            }
+            List<string> list = new List<string>(deathMessagesResolved);
+            list.AddRange(deathMessages);
+            if (cfgUseSSMessages.Value) list.AddRange(deathMessagesStarstorm);
+            deathMessagesResolved = list.ToArray();
         }
 
         public void ICantRead()
@@ -184,9 +179,13 @@ namespace DeathMessageAboveCorpse
 
             private readonly float lenience = 0.15f;
 
+            bool isSinglePlayer = false;
+
             private void Start()
             {
-                if (IsSingleplayer() && cfgShowQuoteOnScreenSingleplayer.Value)
+                isSinglePlayer = IsSingleplayer();
+
+                if (isSinglePlayer && cfgShowQuoteOnScreenSingleplayer.Value)
                 {
                     timeBeforeDisplay = 0f;
                 }
@@ -218,11 +217,26 @@ namespace DeathMessageAboveCorpse
                     }
                     var positionToSend = lastPosition + Vector3.up * 3f;
 
-                    new Networking.DeathQuoteMessageToServer(positionToSend).Send(NetworkDestination.Server);
+                    if (!isSinglePlayer)
+                    {
+                        new Networking.DeathQuoteMessageToServer(positionToSend).Send(NetworkDestination.Server);
+                    } else
+                    {
+                        PerformSingleplayerAction(positionToSend);
+                    }
                     //Chat.AddMessage("Sent message to server!");
                     //if (modelTransform && !modelTransform.gameObject.GetComponent<Corpse>()) modelTransform.gameObject.AddComponent<Corpse>();
                     Destroy(gameObject);
                 }
+            }
+
+            private void PerformSingleplayerAction(Vector3 position)
+            {
+                var quoteIndex = UnityEngine.Random.Range(0, deathMessagesResolved.Length);
+                var typingText = UnityEngine.Object.Instantiate(defaultTextObject);
+                typingText.transform.position = position;
+                DeathMessageLocator deathMessageLocator = typingText.GetComponent<DeathMessageLocator>();
+                deathMessageLocator.quoteIndex = quoteIndex;
             }
         }
 
@@ -233,7 +247,7 @@ namespace DeathMessageAboveCorpse
             public DestroyOnTimer destroyOnTimer;
             public int quoteIndex = 0;
 
-            public GameObject HUDDisplayInstance;
+            public GameObject HUDDisplayInstance = null;
 
             public void Start()
             {
@@ -247,6 +261,25 @@ namespace DeathMessageAboveCorpse
 
                 if (IsSingleplayer() && cfgShowQuoteOnScreenSingleplayer.Value)
                     ShowMessageOnHud();
+                On.RoR2.UI.GameEndReportPanelController.Awake += GameEndReportPanelController_Awake;
+            }
+
+            private void GameEndReportPanelController_Awake(On.RoR2.UI.GameEndReportPanelController.orig_Awake orig, GameEndReportPanelController self)
+            {
+                orig(self);
+
+                if (HUDDisplayInstance)
+                {
+                    RectTransform trans = (RectTransform)HUDDisplayInstance.transform;
+                    trans.SetParent(self.transform);
+                    trans.localPosition = new Vector3(0f, 450f, 0f);
+                }
+                On.RoR2.UI.GameEndReportPanelController.Awake -= GameEndReportPanelController_Awake;
+            }
+
+            private void OnDestroy()
+            {
+                On.RoR2.UI.GameEndReportPanelController.Awake -= GameEndReportPanelController_Awake;
             }
 
             public void ShowMessageOnHud()
@@ -262,24 +295,8 @@ namespace DeathMessageAboveCorpse
                 comp.fontSize = 1f;
                 comp.alignment = TextAlignmentOptions.Center;
                 trans.localPosition = new Vector3(0f, 450f, 0f);
-                trans.gameObject.AddComponent<MigrateToGameEndScreen>();
                 HUDDisplayInstance = trans.gameObject;
                 //hasShownHUDMessage = true;
-            }
-        }
-
-        public class MigrateToGameEndScreen : MonoBehaviour
-        {
-            public void FixedUpdate()
-            {
-                var endReport = UnityEngine.Object.FindObjectOfType<GameEndReportPanelController>();
-                if (endReport)
-                {
-                    var trans = (RectTransform)transform;
-                    trans.SetParent(endReport.transform);
-                    trans.localPosition = new Vector3(0f, 450f, 0f);
-                    enabled = false;
-                }
             }
         }
 
