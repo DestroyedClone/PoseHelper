@@ -123,9 +123,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AccuracyTest", "AccuracyTes
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ELITE_MODIFIER_GOLD_TOKEN", "ELITE_MODIFIER_GOLD_TOKEN\ELITE_MODIFIER_GOLD_TOKEN.csproj", "{F06BC02C-D8E1-494C-9DA3-E3D78FF36C2D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PickupOverPlayer", "PickupOverPlayer\PickupOverPlayer.csproj", "{8DB1D3AB-107D-459B-BD4D-021FDB404D5F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PickupOverPlayer", "PickupOverPlayer\PickupOverPlayer.csproj", "{8DB1D3AB-107D-459B-BD4D-021FDB404D5F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConfigurablePlayerDeathEffect", "ConfigurablePlayerDeathEffect\ConfigurablePlayerDeathEffect.csproj", "{74BFBBFA-9928-4C11-8076-084685969C57}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConfigurablePlayerDeathEffect", "ConfigurablePlayerDeathEffect\ConfigurablePlayerDeathEffect.csproj", "{74BFBBFA-9928-4C11-8076-084685969C57}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KKA_AddOn", "KKA_AddOn\KKA_AddOn.csproj", "{AAD61B3E-F471-4A24-9FD1-D747976A4C42}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Greentext", "ChatExtras\Greentext.csproj", "{9465326F-C333-4787-9C2F-54E653028CF9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -381,6 +385,14 @@ Global
 		{74BFBBFA-9928-4C11-8076-084685969C57}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{74BFBBFA-9928-4C11-8076-084685969C57}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{74BFBBFA-9928-4C11-8076-084685969C57}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AAD61B3E-F471-4A24-9FD1-D747976A4C42}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AAD61B3E-F471-4A24-9FD1-D747976A4C42}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AAD61B3E-F471-4A24-9FD1-D747976A4C42}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AAD61B3E-F471-4A24-9FD1-D747976A4C42}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9465326F-C333-4787-9C2F-54E653028CF9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9465326F-C333-4787-9C2F-54E653028CF9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9465326F-C333-4787-9C2F-54E653028CF9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9465326F-C333-4787-9C2F-54E653028CF9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
