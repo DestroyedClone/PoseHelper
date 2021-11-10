@@ -1,5 +1,4 @@
 ﻿using BepInEx;
-using R2API.Utils;
 using RoR2;
 using System.Globalization;
 using System.Security;
@@ -13,13 +12,10 @@ using System.Security.Permissions;
 namespace ChatExtras
 {
     [BepInPlugin("com.DestroyedClone.Greentext", "Greentext", "1.0.0")]
-    [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
-    [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
     public class GreentextMain : BaseUnityPlugin
     {
         public void Awake()
         {
-            R2API.Utils.CommandHelper.AddToConsoleWhenReady();
             On.RoR2.Chat.UserChatMessage.ConstructChatString += UserChatMessage_ConstructChatString;
         }
 
