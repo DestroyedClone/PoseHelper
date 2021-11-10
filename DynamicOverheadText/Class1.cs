@@ -3,6 +3,7 @@ using R2API;
 using R2API.Utils;
 using RoR2;
 using RoR2.UI;
+using System.Runtime.CompilerServices;
 using System.Security;
 using System.Security.Permissions;
 using TMPro;
@@ -24,16 +25,39 @@ namespace DynamicOverheadText
     public class Class1 : BaseUnityPlugin
     {
         public static GameObject critText;
+        public static GameObject overCritText;
+
+        public static bool hypercritIsLoaded = false;
 
         public void Awake()
         {
             Hooks();
+            CreateTextPrefabs();
+            hypercritIsLoaded = BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("com.ThinkInvisible.Hypercrit");
+        }
+
+        public void CreateTextPrefabs()
+        {
             critText = CreateTextPrefab(
                 "<color=#69221a><b>Critical" +
                 "\nHit!</b></color>",
                 "CriticalHitText",
                 "",
                 2f);
+            if (hypercritIsLoaded)
+            {
+                overCritText = CreateTextPrefab(
+                    "<color=#3f140f><b>Hypercrit!</b></color>",
+                    "HyperCritHitText",
+                    "",
+                    2f);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+        public static void ModCompatMethodTemplate(GameObject gameObject)
+        {
+
         }
 
         public void CreateCritTextPrefab()
