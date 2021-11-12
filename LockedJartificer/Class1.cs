@@ -19,32 +19,32 @@ namespace LockedJartificer
     public class Class1 : BaseUnityPlugin
     {
         public static GameObject displayPrefab = Resources.Load<GameObject>("prefabs/networkedobjects/LockedMage");
+        public static GameObject mageDisplayPrefab;
         public static GameObject wispJarDisplay = Resources.Load<GameObject>("prefabs/pickupmodels/PickupWilloWisp");
         public static GameObject glassArtifact = Resources.Load<GameObject>("prefabs/pickupmodels/artifacts/PickupGlass");
         public static ConfigEntry<bool> DisableUnlockableFilter { get; set; }
+        public static ConfigEntry<bool> ModifyDisplay { get; set; }
 
         public void Awake()
         {
             DisableUnlockableFilter = Config.Bind("Default", "Disable Unlockable Filter", true, "Disables the unlockable filter of the lockedmage so that she shows up even if you have her unlocked.");
+            ModifyDisplay = Config.Bind("", "Modify Character Select", true, "If true, the character select for Artificer will be modified.");
             ModifyPrefab();
-            UnityEngine.SceneManagement.SceneManager.sceneLoaded += SceneManager_sceneLoaded;
 
-        }
 
-        private void SceneManager_sceneLoaded(UnityEngine.SceneManagement.Scene arg0, UnityEngine.SceneManagement.LoadSceneMode arg1)
-        {
-            if (arg0.name == "bazaar")
+            if (ModifyDisplay.Value)
             {
-                var oldMage = GameObject.Find("HOLDER: Store/HOLDER: Store Platforms/LockedMage");
-                var oldPosition = oldMage.transform.position;
-                var oldRotation = oldMage.transform.rotation;
-                UnityEngine.Object.Destroy(oldMage);
-                var newMage = UnityEngine.Object.Instantiate<GameObject>(displayPrefab);
-                newMage.transform.position = oldPosition;
-                newMage.transform.rotation = oldRotation;
-                newMage.transform.parent = GameObject.Find("HOLDER: Store/HOLDER: Store Platforms").transform;
+                var mageThing = Instantiate(displayPrefab);
+                Object.Destroy(mageThing.GetComponent<UnityEngine.Networking.NetworkIdentity>());
+                Destroy(mageThing.GetComponent<PurchaseInteraction>());
+                Destroy(mageThing.GetComponent<Highlight>());
+                Destroy(mageThing.GetComponent<RoR2.Hologram.HologramProjector>());
+                mageThing.transform.Find("ModelBase/mdlMage").position = Vector3.zero;
+                //mageThing.transform.Find("ModelBase/mdlMage").localScale = Vector3.zero;
+                RoR2Content.Survivors.Mage.displayPrefab = mageThing;
             }
         }
+
 
         public static void ModifyPrefab()
         {
