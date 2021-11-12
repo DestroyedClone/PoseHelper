@@ -26,15 +26,14 @@ namespace ROR1AltSkills
     public class OriginalSkillsPlugin : BaseUnityPlugin
     {
         internal static string modkeyword = "DC_ORIGSKILLS_KEYWORD_IDENTIFIER";
-        public static Color ImmuneColor = Color.yellow;
 
         public void Awake()
         {
             SetupLanguage();
 
             Acrid.AcridMain.Init();
-            Commando.CommandoMain.Init();
-            Huntress.HuntressMain.Init();
+            //Commando.CommandoMain.Init();
+            //Huntress.HuntressMain.Init();
             Loader.LoaderMain.Init(Config);
         }
 
