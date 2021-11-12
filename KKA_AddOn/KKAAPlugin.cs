@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using RoR2.UI;
 using BepInEx.Configuration;
+using System.Collections.Generic;
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -30,10 +31,40 @@ namespace KKA_AddOn
 
         public static ConfigEntry<float> particleSizeReduction;
 
+        public static Dictionary<string, Diorama> dioramas = new Dictionary<string, Diorama>()
+        {
+            {"Arena", new Diorama(){
+                dioramaObject = Resources.Load<GameObject>("prefabs/stagedisplay/ArenaDioramaDisplay"),
+            }}
+        };
+
+        public struct Diorama
+        {
+            public GameObject dioramaObject;
+            public Vector3 positionOffset;
+            public Vector3 rotation;
+            public Vector3 scale;
+
+            public void A()
+            {
+
+            }
+        }
+
         public void Awake()
         {
             particleSizeReduction = Config.Bind("Visuals", "Particle Effect Size Multiplier", 0.5f, "Certain particle effects will get reduced in size." +
                 "\nIncluding: ");
+            R2API.Utils.CommandHelper.AddToConsoleWhenReady();
+
+        }
+
+
+        [ConCommand(commandName = "spawnprefab", flags = ConVarFlags.ExecuteOnServer, helpText = "spawnprefab at your location {x} {y} {z}")]
+        public static void ChangeLight(ConCommandArgs args)
+        {
+            var a = UnityEngine.Object.Instantiate(Resources.Load<GameObject>(args.GetArgString(0)));
+            a.transform.position = args.senderBody.corePosition;
         }
     }
 }
