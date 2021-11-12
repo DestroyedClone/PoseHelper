@@ -2,7 +2,6 @@
 using BepInEx.Configuration;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
-using R2API.Utils;
 using RoR2;
 using System;
 using System.Collections.Generic;
@@ -18,8 +17,6 @@ using UnityEngine;
 namespace BossDropRewardDelay
 {
     [BepInPlugin("com.DestroyedClone.BossDropRewardDelay", "Boss Drop Reward Delay", "1.0.0")]
-    [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
-    [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
     public class Plugin : BaseUnityPlugin
     {
         public static ConfigEntry<float> cfgSpawnDelay;
