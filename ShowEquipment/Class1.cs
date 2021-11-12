@@ -181,27 +181,20 @@ namespace ShowEquipment
 
             public void Start()
             {
-                inventory = allyCardController?.sourceMaster?.inventory;
-                if (inventory)
+                if (allyCardController?.sourceMaster?.inventory)
                 {
-                    inventory.onInventoryChanged += Inventory_onInventoryChanged;
-                    UpdateSprite();
+                    inventory = allyCardController?.sourceMaster?.inventory;
+                    inventory.onInventoryChanged += UpdateSprite;
                 }
             }
-
             public void OnDestroy()
             {
-                inventory.onInventoryChanged -= Inventory_onInventoryChanged;
-            }
-
-            private void Inventory_onInventoryChanged()
-            {
-                UpdateSprite();
+                inventory.onInventoryChanged -= UpdateSprite;
             }
 
             public void UpdateSprite()
             {
-                if (inventory.currentEquipmentIndex != EquipmentIndex.None)
+                if (inventory && inventory.currentEquipmentIndex != EquipmentIndex.None)
                 {
                     image.enabled = false;
                     var equipmentDef = EquipmentCatalog.GetEquipmentDef(allyCardController.sourceMaster.inventory.currentEquipmentIndex);
