@@ -94,6 +94,7 @@ namespace ROR1AltSkills.Acrid
             var skillLocator = myCharacter.GetComponent<SkillLocator>();
 
             #region passive
+            /*
             LanguageAPI.Add("DC_CROCO_PASSIVE_POISON_NAME", "Poison");
             LanguageAPI.Add("DC_CROCO_PASSIVE_POISON_DESCRIPTION", $"Deals {OriginalPoisonDamageCoefficient * 100f}% damage per second to enemies.");
 
@@ -120,7 +121,7 @@ namespace ROR1AltSkills.Acrid
             };
 
             LoadoutAPI.AddSkillDef(passiveSkillDef);
-            AddPassiveSkill(myCharacter, passiveSkillDef);
+            AddPassiveSkill(myCharacter, passiveSkillDef);*/
             #endregion
 
             #region primary
