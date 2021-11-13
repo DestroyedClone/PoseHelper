@@ -1,5 +1,8 @@
 ﻿# No Heretic Transform
 
+| [![github issues/request link](https://raw.githubusercontent.com/DestroyedClone/PoseHelper/master/PoseHelper/github_link.webp)](https://github.com/DestroyedClone/PoseHelper/issues) | [![discord invite](https://raw.githubusercontent.com/DestroyedClone/PoseHelper/master/PoseHelper/discord_link.webp)](discord.gg/DpHu3qXMHK) |
+|--|--|
+
 Prevents turning into the [Heretic](https://riskofrain2.fandom.com/wiki/Heretic) after grabbing all 4 items of the Heresy set: [Visions of Heresy](https://riskofrain2.fandom.com/wiki/Visions_of_Heresy), [Hooks of Heresy](https://riskofrain2.fandom.com/wiki/Hooks_of_Heresy), [Strides of Heresy](https://riskofrain2.fandom.com/wiki/Hooks_of_Heresy), [Essence of Heresy](https://riskofrain2.fandom.com/wiki/Essence_of_Heresy).
 
 Should only require the host to need it, since the method only runs on the network.
