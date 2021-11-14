@@ -5,6 +5,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Compile Remove="Commando\TacticalDive.cs" />
 	  <Compile Remove="Loader\FireStraightHook.cs" />
 	  <Compile Remove="Loader\StraightPullState.cs" />
 	  <Compile Remove="Loader\SwingComboFistAlt - Copy.cs" />

@@ -27,7 +27,7 @@ namespace ROR1AltSkills.Acrid
         public static CustomBuff OriginalPoisonBuff;
         #endregion
         #region primary
-        public static readonly float FesteringWoundsDamageCoefficient = 1.2f;
+        public static readonly float FesteringWoundsDamageCoefficient = 1.8f;
         public static readonly float FesteringWoundsDPSCoefficient = 0.9f;
         #endregion
 
@@ -44,7 +44,7 @@ namespace ROR1AltSkills.Acrid
         public static readonly float CausticSludgeLifetime = 12f;
         public static readonly float CausticSludgeDuration = 2f;
         public static readonly float CausticSludgeSlowDuration = 3f;
-        public static readonly float CausticSludgeDamageCoefficient = 0.9f;
+        public static readonly float CausticSludgeDamageCoefficient = 0.5f;
 
         public static readonly float CausticSludgeLeapLandDamageCoefficient = 2f;
         #endregion
@@ -84,8 +84,8 @@ namespace ROR1AltSkills.Acrid
             SetupProjectiles();
             SetupSkills();
             SetupBuffs();
-            SetupModdedDamageTypes();
-            SetupModdedDots();
+            //SetupModdedDamageTypes();
+            //SetupModdedDots();
             Hooks();
         }
 
@@ -289,8 +289,8 @@ namespace ROR1AltSkills.Acrid
 
         private static void Hooks()
         {
-            On.RoR2.CrocoDamageTypeController.GetDamageType += CrocoDamageTypeController_GetDamageType;
-            On.RoR2.GlobalEventManager.OnHitEnemy += GlobalEventManager_OnHitEnemy;
+           // On.RoR2.CrocoDamageTypeController.GetDamageType += CrocoDamageTypeController_GetDamageType;
+            //On.RoR2.GlobalEventManager.OnHitEnemy += GlobalEventManager_OnHitEnemy;
         }
 
         private static void GlobalEventManager_OnHitEnemy(On.RoR2.GlobalEventManager.orig_OnHitEnemy orig, GlobalEventManager self, DamageInfo damageInfo, GameObject victim)

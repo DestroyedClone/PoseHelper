@@ -11,6 +11,7 @@ using EntityStates;
 using R2API;
 using RoR2.Skills;
 using RoR2.Projectile;
+using RoR2.Orbs;
 
 namespace ROR1AltSkills.Loader
 {
@@ -20,17 +21,32 @@ namespace ROR1AltSkills.Loader
         public static BodyIndex bodyIndex = myCharacter.GetComponent<CharacterBody>().bodyIndex;
 
         public static SteppedSkillDef KnuckleBoomSkillDef;
-        public static SkillDef UtilitySkillDef;
+        public static SkillDef DebrisShieldSkillDef;
 
         public static GameObject StraightHookProjectile;
 
         public static ConfigEntry<bool> DebrisShieldAffectsDrones;
+        public static ConfigEntry<DebrisShieldMode> DebrisShieldSelectedMode;
+        public static ConfigEntry<float> DebrisShieldDuration;
+        public static ConfigEntry<float> DebrisShieldCooldown;
+
+        public static CustomBuff DebrisShieldBarrierBuff;
+        public static CustomBuff PylonPoweredBuff;
+
+        public enum DebrisShieldMode
+        {
+            Immunity,
+            Shield,
+            Barrier
+        }
 
         public static GameObject ConduitPrefab;
 
         public static void Init(ConfigFile config)
         {
             SetupConfig(config);
+
+            ModifyLoader();
 
             SetupSkills();
 
@@ -41,9 +57,25 @@ namespace ROR1AltSkills.Loader
             Hooks();
         }
 
+        public static void ModifyLoader()
+        {
+            var loaderPrefab = RoR2.RoR2Content.Survivors.Loader.bodyPrefab;
+            var stateMachine = loaderPrefab.AddComponent<EntityStateMachine>();
+            stateMachine.customName = "DebrisShield";
+            stateMachine.initialStateType = new SerializableEntityStateType(typeof(EntityStates.BaseBodyAttachmentState));
+            stateMachine.mainStateType = new SerializableEntityStateType(typeof(EntityStates.BaseBodyAttachmentState));
+        }
+
         public static void SetupConfig(ConfigFile config)
         {
-            DebrisShieldAffectsDrones = config.Bind("SURVIVOR: LOADER", "Debris Shield Affects Your Drones", true, "If true, drones owned by the player will be give the buff too.");
+            string sectionName = "SURVIVOR: LOADER";
+            DebrisShieldAffectsDrones = config.Bind(sectionName, "Debris Shield Affects Your Drones", true, "If true, drones owned by the player will be given the buff too.");
+            DebrisShieldSelectedMode = config.Bind(sectionName, "Debris Shield Type", DebrisShieldMode.Shield, "Sets the type of shielding provided by the skill." +
+                "\nImmunity - Actually what the original skill provided in ROR1" +
+                "\nShield - Provides 100% of your health as shield. Dissipates on skill end." +
+                "\nBarrier - Provides 100% of your health as barrier. Dissipates on skill end.");
+            DebrisShieldDuration = config.Bind(sectionName, "Debris Shield Duration", 3f, "The duration in seconds of how long the buff lasts for.");
+            DebrisShieldCooldown = config.Bind(sectionName, "Debris Shield Cooldown", 5f, "The duration in seconds for the cooldown.");
         }
 
         public static void SetupPrefabs()
@@ -109,49 +141,65 @@ namespace ROR1AltSkills.Loader
             #endregion
 
             LanguageAPI.Add("DC_LOADER_SECONDARY_SHIELD_NAME", "Debris Shield");
-            LanguageAPI.Add("DC_LOADER_SECONDARY_SHIELD_DESCRIPTION", "Shield yourself for <style=cIsHealing>100% of your health for 3 seconds</style> while also <style=cIsUtility>increasing your move speed.</style>");
+            string desc = "";
+            switch (DebrisShieldSelectedMode.Value)
+            {
+                case DebrisShieldMode.Immunity:
+                    desc = $"Grant damage immunity to";
+                    break;
+                case DebrisShieldMode.Barrier:
+                    desc = $"Barricade";
+                    break;
+                case DebrisShieldMode.Shield:
+                    desc = $"Shield";
+                    break;
+            }
+            desc += $" yourself for <style=cIsHealing>100% of your health for {DebrisShieldDuration.Value} seconds</style> while also <style=cIsUtility>increasing your move speed.</style>";
+            if (DebrisShieldAffectsDrones.Value) desc += " This effect extends to your drones.";
+            LanguageAPI.Add("DC_LOADER_SECONDARY_SHIELD_DESCRIPTION", desc);
 
-            var mySkillDefSecondary = ScriptableObject.CreateInstance<SkillDef>();
-            mySkillDefSecondary.activationState = new SerializableEntityStateType(typeof(ActivateShield));
-            mySkillDefSecondary.activationStateMachineName = "Pylon";
-            mySkillDefSecondary.baseMaxStock = 1;
-            mySkillDefSecondary.baseRechargeInterval = 5f;
-            mySkillDefSecondary.cancelSprintingOnActivation = false;
-            mySkillDefSecondary.beginSkillCooldownOnSkillEnd = true;
-            mySkillDefSecondary.canceledFromSprinting = false;
-            mySkillDefSecondary.fullRestockOnAssign = true;
-            mySkillDefSecondary.interruptPriority = InterruptPriority.Any;
-            mySkillDefSecondary.isCombatSkill = false;
-            mySkillDefSecondary.mustKeyPress = false;
-            mySkillDefSecondary.rechargeStock = 1;
-            mySkillDefSecondary.requiredStock = 1;
-            mySkillDefSecondary.stockToConsume = 1;
-            mySkillDefSecondary.icon = RoR2Content.Items.PersonalShield.pickupIconSprite;
-            mySkillDefSecondary.skillDescriptionToken = "DC_LOADER_SECONDARY_SHIELD_DESCRIPTION";
-            mySkillDefSecondary.skillName = "DC_LOADER_SECONDARY_SHIELD_NAME";
-            mySkillDefSecondary.skillNameToken = mySkillDefSecondary.skillName;
+            DebrisShieldSkillDef = ScriptableObject.CreateInstance<SkillDef>();
+            DebrisShieldSkillDef.activationState = new SerializableEntityStateType(typeof(ActivateShield));
+            DebrisShieldSkillDef.activationStateMachineName = "DebrisShield";
+            DebrisShieldSkillDef.baseMaxStock = 1;
+            DebrisShieldSkillDef.baseRechargeInterval = DebrisShieldCooldown.Value;
+            DebrisShieldSkillDef.cancelSprintingOnActivation = false;
+            DebrisShieldSkillDef.beginSkillCooldownOnSkillEnd = false;
+            DebrisShieldSkillDef.canceledFromSprinting = false;
+            DebrisShieldSkillDef.fullRestockOnAssign = true;
+            DebrisShieldSkillDef.interruptPriority = InterruptPriority.Any;
+            DebrisShieldSkillDef.isCombatSkill = false;
+            DebrisShieldSkillDef.mustKeyPress = false;
+            DebrisShieldSkillDef.rechargeStock = 1;
+            DebrisShieldSkillDef.requiredStock = 1;
+            DebrisShieldSkillDef.stockToConsume = 1;
+            DebrisShieldSkillDef.icon = RoR2Content.Items.PersonalShield.pickupIconSprite;
+            DebrisShieldSkillDef.skillDescriptionToken = "DC_LOADER_SECONDARY_SHIELD_DESCRIPTION";
+            DebrisShieldSkillDef.skillName = "DC_LOADER_SECONDARY_SHIELD_NAME";
+            DebrisShieldSkillDef.skillNameToken = DebrisShieldSkillDef.skillName;
 
-            LoadoutAPI.AddSkillDef(mySkillDefSecondary);
+            LoadoutAPI.AddSkillDef(DebrisShieldSkillDef);
 
             var skillFamily = skillLocator.secondary.skillFamily;
 
             Array.Resize(ref skillFamily.variants, skillFamily.variants.Length + 1);
             skillFamily.variants[skillFamily.variants.Length - 1] = new SkillFamily.Variant
             {
-                skillDef = mySkillDefSecondary,
+                skillDef = DebrisShieldSkillDef,
                 unlockableDef = null,
-                viewableNode = new ViewablesCatalog.Node(mySkillDefSecondary.skillNameToken, false, null)
+                viewableNode = new ViewablesCatalog.Node(DebrisShieldSkillDef.skillNameToken, false, null)
             };
 
             //not a typo
+            //this is to give the option of keeping the respective skill slot
             skillFamily = skillLocator.utility.skillFamily;
 
             Array.Resize(ref skillFamily.variants, skillFamily.variants.Length + 1);
             skillFamily.variants[skillFamily.variants.Length - 1] = new SkillFamily.Variant
             {
-                skillDef = mySkillDefSecondary,
+                skillDef = DebrisShieldSkillDef,
                 unlockableDef = null,
-                viewableNode = new ViewablesCatalog.Node(mySkillDefSecondary.skillNameToken, false, null)
+                viewableNode = new ViewablesCatalog.Node(DebrisShieldSkillDef.skillNameToken, false, null)
             };
             #region utility
             /* this is the most demonic skillstate ive seen
@@ -193,6 +241,7 @@ namespace ROR1AltSkills.Loader
 
             #region special
 
+            /*
             LanguageAPI.Add("DC_LOADER_SPECIAL_CONDUIT_NAME", "Place Conduit");
             LanguageAPI.Add("DC_LOADER_SPECIAL_CONDUIT_DESCRIPTION", "Place two conduits to fuck off.");
 
@@ -227,13 +276,25 @@ namespace ROR1AltSkills.Loader
                 unlockableDef = null,
                 viewableNode = new ViewablesCatalog.Node(mySkillDefSpecial.skillNameToken, false, null)
             };
-
+            */
             #endregion
         }
 
         private static void SetupBuffs()
         {
+            DebrisShieldBarrierBuff = new CustomBuff("Debris Shield (Barrier)",
+                RoR2Content.Buffs.EngiShield.iconSprite, 
+                Color.yellow, 
+                false, 
+                false);
+            R2API.BuffAPI.Add(DebrisShieldBarrierBuff);
 
+            PylonPoweredBuff = new CustomBuff("Pylon Powered (Debris Shield)",
+                RoR2Content.Buffs.FullCrit.iconSprite,
+                Color.yellow,
+                false,
+                false);
+            BuffAPI.Add(PylonPoweredBuff);
         }
 
         private static void Hooks()
@@ -243,7 +304,91 @@ namespace ROR1AltSkills.Loader
 
             //On.EntityStates.BasicMeleeAttack.OnEnter += BasicMeleeAttack_OnEnter;
             //On.EntityStates.BasicMeleeAttack.PlayAnimation += BasicMeleeAttack_PlayAnimation;
+
+            if (LoaderMain.DebrisShieldSelectedMode.Value == DebrisShieldMode.Barrier)
+            {
+                On.RoR2.HealthComponent.AddBarrier += HealthComponent_AddBarrier;
+                On.RoR2.HealthComponent.Awake += HealthComponent_Awake;
+                On.RoR2.CharacterBody.AddTimedBuff_BuffDef_float += CharacterBody_AddTimedBuff_BuffDef_float;
+                On.RoR2.CharacterBody.OnBuffFinalStackLost += CharacterBody_OnBuffFinalStackLost;
+            }
+
+            On.RoR2.GlobalEventManager.OnHitEnemy += GlobalEventManager_OnHitEnemy;
         }
+
+        private static void GlobalEventManager_OnHitEnemy(On.RoR2.GlobalEventManager.orig_OnHitEnemy orig, GlobalEventManager self, DamageInfo damageInfo, GameObject victim)
+        {
+            orig(self, damageInfo, victim);
+            if (damageInfo.attacker && damageInfo.attacker.GetComponent<CharacterBody>())
+            {
+                var attackerBody = damageInfo.attacker.GetComponent<CharacterBody>();
+                if (attackerBody.HasBuff(PylonPoweredBuff.BuffDef) && !damageInfo.procChainMask.HasProc(ProcType.LoaderLightning))
+                {
+                    float damageCoefficient = 0.3f;
+                    float damageValue = Util.OnHitProcDamage(damageInfo.damage, attackerBody.damage, damageCoefficient);
+                    LightningOrb lightningOrb = new LightningOrb();
+                    lightningOrb.origin = damageInfo.position;
+                    lightningOrb.damageValue = damageValue;
+                    lightningOrb.isCrit = damageInfo.crit;
+                    lightningOrb.bouncesRemaining = 3;
+                    lightningOrb.teamIndex = attackerBody.teamComponent ? attackerBody.teamComponent.teamIndex : TeamIndex.None;
+                    lightningOrb.attacker = damageInfo.attacker;
+                    lightningOrb.bouncedObjects = new List<HealthComponent>
+                            {
+                                victim.GetComponent<HealthComponent>()
+                            };
+                    lightningOrb.procChainMask = damageInfo.procChainMask;
+                    lightningOrb.procChainMask.AddProc(ProcType.LoaderLightning);
+                    lightningOrb.procCoefficient = 0f;
+                    lightningOrb.lightningType = LightningOrb.LightningType.Loader;
+                    lightningOrb.damageColorIndex = DamageColorIndex.Item;
+                    lightningOrb.range = 20f;
+                    HurtBox hurtBox = lightningOrb.PickNextTarget(damageInfo.position);
+                    if (hurtBox)
+                    {
+                        lightningOrb.target = hurtBox;
+                        OrbManager.instance.AddOrb(lightningOrb);
+                    }
+                }
+            }
+        }
+
+        #region DebrisShield Barrier Type
+        private static void CharacterBody_AddTimedBuff_BuffDef_float(On.RoR2.CharacterBody.orig_AddTimedBuff_BuffDef_float orig, CharacterBody self, BuffDef buffDef, float duration)
+        {
+            orig(self, buffDef, duration);
+            if (buffDef == DebrisShieldBarrierBuff.BuffDef)
+            {
+                var comp = self.GetComponent<TrackDebrisShield>();
+                if (!comp)
+                    comp = self.gameObject.AddComponent<TrackDebrisShield>();
+                comp.OnBuffApplied();
+            }
+        }
+
+        private static void CharacterBody_OnBuffFinalStackLost(On.RoR2.CharacterBody.orig_OnBuffFinalStackLost orig, CharacterBody self, BuffDef buffDef)
+        {
+            orig(self, buffDef);
+            if (buffDef == DebrisShieldBarrierBuff.BuffDef)
+            {
+                self.GetComponent<TrackDebrisShield>()?.OnBuffLost();
+            }
+        }
+
+        private static void HealthComponent_Awake(On.RoR2.HealthComponent.orig_Awake orig, HealthComponent self)
+        {
+            orig(self);
+            if (!self.GetComponent<TrackDebrisShield>())
+                self.gameObject.AddComponent<TrackDebrisShield>().healthComponent = self;
+        }
+
+        private static void HealthComponent_AddBarrier(On.RoR2.HealthComponent.orig_AddBarrier orig, HealthComponent self, float value)
+        {
+            orig(self, value);
+            if (value > 0)
+                self.GetComponent<TrackDebrisShield>()?.OnAddBarrier(value);
+        }
+        #endregion
 
         private static bool IsSkillDef(EntityState entityState, SkillDef skillDef)
         {
@@ -291,6 +436,49 @@ namespace ROR1AltSkills.Loader
                 cock.overlapAttack.forceVector = Vector3.up;
             }
             orig(cock);
+        }
+
+
+        public class TrackDebrisShield : MonoBehaviour
+        {
+            public float barrierToRemove = 0f;
+            public HealthComponent healthComponent;
+
+            private bool acceptContributions = true;
+
+            public void OnAddBarrier(float amount)
+            {
+                if (acceptContributions)
+                {
+                    //Chat.AddMessage($"OnAddBarrier: {barrierToRemove} - {amount} = {barrierToRemove-amount}");
+                    barrierToRemove -= amount;
+                }
+            }
+
+            public void OnBuffLost()
+            {
+                if (barrierToRemove > 0)
+                {
+                    //Chat.AddMessage($"OnBuffLost: Expectation of resulting barrier: {healthComponent.Networkbarrier - barrierToRemove}");
+                    healthComponent.Networkbarrier = Mathf.Max(healthComponent.Networkbarrier - barrierToRemove, 0f);
+                    barrierToRemove = 0f;
+                }
+            }
+
+            public void OnBuffApplied()
+            {
+                var barrierLostPerSecond = healthComponent.body.barrierDecayRate;
+                var barrierLostAfterXSeconds = barrierLostPerSecond * DebrisShieldDuration.Value;
+
+                var barrierToGive = healthComponent.fullBarrier;// * DebrisShieldPercentage.Value;
+
+                barrierToRemove = barrierToGive - barrierLostAfterXSeconds;
+                //Chat.AddMessage("Expected Barrier to Remove: " + barrierToRemove);
+                acceptContributions = false;
+                healthComponent.AddBarrier(barrierToGive);
+                acceptContributions = true;
+                //healthComponent.Networkbarrier = healthComponent.fullBarrier;
+            }
         }
 
         #region i dont want to look at this so ill collapse it

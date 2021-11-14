@@ -32,7 +32,7 @@ namespace ROR1AltSkills
             SetupLanguage();
 
             Acrid.AcridMain.Init();
-            //Commando.CommandoMain.Init();
+            Commando.CommandoMain.Init();
             //Huntress.HuntressMain.Init();
             Loader.LoaderMain.Init(Config);
         }
