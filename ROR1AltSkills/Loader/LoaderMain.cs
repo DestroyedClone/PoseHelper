@@ -23,8 +23,6 @@ namespace ROR1AltSkills.Loader
         public static SteppedSkillDef KnuckleBoomSkillDef;
         public static SkillDef DebrisShieldSkillDef;
 
-        public static GameObject StraightHookProjectile;
-
         public static ConfigEntry<bool> DebrisShieldAffectsDrones;
         public static ConfigEntry<DebrisShieldMode> DebrisShieldSelectedMode;
         public static ConfigEntry<float> DebrisShieldDuration;
@@ -32,6 +30,10 @@ namespace ROR1AltSkills.Loader
 
         public static CustomBuff DebrisShieldBarrierBuff;
         public static CustomBuff PylonPoweredBuff;
+
+        private static int pylonPowerMaxBounces = 3;
+        private static float pylonPowerRange = 20;
+        private static float pylonPowerDamageCoefficient = 0.3f;
 
         public enum DebrisShieldMode
         {
@@ -52,7 +54,7 @@ namespace ROR1AltSkills.Loader
 
             SetupBuffs();
 
-            SetupPrefabs();
+            //SetupPrefabs();
 
             Hooks();
         }
@@ -81,17 +83,6 @@ namespace ROR1AltSkills.Loader
         public static void SetupPrefabs()
         {
             ConduitPrefab = new GameObject();
-        }
-
-        public static void SetupProjectiles()
-        {
-            var hook = Resources.Load<GameObject>("prefabs/projectiles/LoaderYankHook");
-            StraightHookProjectile = PrefabAPI.InstantiateClone(hook, "LoaderStraightHook");
-            var grappleController = StraightHookProjectile.GetComponent<RoR2.Projectile.ProjectileGrappleController>();
-            grappleController.yankMassLimit = 0;
-
-
-            ProjectileAPI.Add(StraightHookProjectile);
         }
 
         private static void SetupSkills()
@@ -141,21 +132,21 @@ namespace ROR1AltSkills.Loader
             #endregion
 
             LanguageAPI.Add("DC_LOADER_SECONDARY_SHIELD_NAME", "Debris Shield");
-            string desc = "";
+            string desc = (DebrisShieldAffectsDrones.Value ? "You and your drones gain" : "Gain");
+            desc += " <style=cIsHealing>100% health</style> as ";
             switch (DebrisShieldSelectedMode.Value)
             {
                 case DebrisShieldMode.Immunity:
-                    desc = $"Grant damage immunity to";
+                    desc += $"<style=cIsDamage>damage immunity";
                     break;
                 case DebrisShieldMode.Barrier:
-                    desc = $"Barricade";
+                    desc += $"<style=cIsDamage>barrier";
                     break;
                 case DebrisShieldMode.Shield:
-                    desc = $"Shield";
+                    desc += $"<style=cIsUtility>shield";
                     break;
             }
-            desc += $" yourself for <style=cIsHealing>100% of your health for {DebrisShieldDuration.Value} seconds</style> while also <style=cIsUtility>increasing your move speed.</style>";
-            if (DebrisShieldAffectsDrones.Value) desc += " This effect extends to your drones.";
+            desc += $"</style> and become <style=cIsUtility>electrified</style>, causing your attacks to <style=cIsUtility>zap up to {pylonPowerMaxBounces} times</style> within <style=cIsDamage>{pylonPowerRange}m</style> for <style=cIsDamage>{pylonPowerDamageCoefficient * 100f}% damage</style>.";
             LanguageAPI.Add("DC_LOADER_SECONDARY_SHIELD_DESCRIPTION", desc);
 
             DebrisShieldSkillDef = ScriptableObject.CreateInstance<SkillDef>();
@@ -286,12 +277,15 @@ namespace ROR1AltSkills.Loader
 
         private static void SetupBuffs()
         {
-            DebrisShieldBarrierBuff = new CustomBuff("Debris Shield (Barrier)",
-                RoR2Content.Buffs.EngiShield.iconSprite, 
-                Color.yellow, 
-                false, 
-                false);
-            R2API.BuffAPI.Add(DebrisShieldBarrierBuff);
+            if (DebrisShieldSelectedMode.Value == DebrisShieldMode.Barrier)
+            {
+                DebrisShieldBarrierBuff = new CustomBuff("Debris Shield (Barrier)",
+                    RoR2Content.Buffs.EngiShield.iconSprite,
+                    Color.yellow,
+                    false,
+                    false);
+                BuffAPI.Add(DebrisShieldBarrierBuff);
+            }
 
             PylonPoweredBuff = new CustomBuff("Pylon Powered (Debris Shield)",
                 RoR2Content.Buffs.FullCrit.iconSprite,
@@ -303,7 +297,6 @@ namespace ROR1AltSkills.Loader
 
         private static void Hooks()
         {
-            //On.RoR2.Projectile.ProjectileGrappleController.FlyState.FixedUpdateBehavior += FlyState_FixedUpdateBehavior;
             //On.EntityStates.Loader.SwingComboFist.PlayAnimation += SwingComboFist_PlayAnimation;
 
             //On.EntityStates.BasicMeleeAttack.OnEnter += BasicMeleeAttack_OnEnter;
@@ -328,13 +321,12 @@ namespace ROR1AltSkills.Loader
                 var attackerBody = damageInfo.attacker.GetComponent<CharacterBody>();
                 if (attackerBody.HasBuff(PylonPoweredBuff.BuffDef) && !damageInfo.procChainMask.HasProc(ProcType.LoaderLightning))
                 {
-                    float damageCoefficient = 0.3f;
-                    float damageValue = Util.OnHitProcDamage(damageInfo.damage, attackerBody.damage, damageCoefficient);
+                    float damageValue = Util.OnHitProcDamage(damageInfo.damage, attackerBody.damage, pylonPowerDamageCoefficient);
                     LightningOrb lightningOrb = new LightningOrb();
                     lightningOrb.origin = damageInfo.position;
                     lightningOrb.damageValue = damageValue;
                     lightningOrb.isCrit = damageInfo.crit;
-                    lightningOrb.bouncesRemaining = 3;
+                    lightningOrb.bouncesRemaining = pylonPowerMaxBounces;
                     lightningOrb.teamIndex = attackerBody.teamComponent ? attackerBody.teamComponent.teamIndex : TeamIndex.None;
                     lightningOrb.attacker = damageInfo.attacker;
                     lightningOrb.bouncedObjects = new List<HealthComponent>
@@ -346,7 +338,7 @@ namespace ROR1AltSkills.Loader
                     lightningOrb.procCoefficient = 0f;
                     lightningOrb.lightningType = LightningOrb.LightningType.Loader;
                     lightningOrb.damageColorIndex = DamageColorIndex.Item;
-                    lightningOrb.range = 20f;
+                    lightningOrb.range = pylonPowerRange;
                     HurtBox hurtBox = lightningOrb.PickNextTarget(damageInfo.position);
                     if (hurtBox)
                     {
@@ -534,49 +526,6 @@ namespace ROR1AltSkills.Loader
             }
 
             orig(self);
-        }
-
-        private static void FlyState_FixedUpdateBehavior(On.RoR2.Projectile.ProjectileGrappleController.FlyState.orig_FixedUpdateBehavior orig, BaseState self)
-        {
-            var here = self as ProjectileGrappleController.FlyState;
-            if (here.owner.characterBody?.skillLocator?.utility?.skillDef == UtilitySkillDef)
-            {
-                here.FixedUpdateBehavior();
-                if (here.isAuthority)
-                {
-                    if (here.grappleController.projectileStickOnImpactController.stuck)
-                    {
-                        EntityState entityState = null;
-                        if (here.grappleController.projectileStickOnImpactController.stuckBody) //combine with top with an OR?
-                        {
-                            Rigidbody component = here.grappleController.projectileStickOnImpactController.stuckBody.GetComponent<Rigidbody>();
-                            if (component)
-                            {
-                                CharacterBody component2 = component.GetComponent<CharacterBody>();
-                                if (!component2 || !component2.isPlayerControlled || component2.teamComponent.teamIndex != here.projectileController.teamFilter.teamIndex || FriendlyFireManager.ShouldDirectHitProceed(component2.healthComponent, here.projectileController.teamFilter.teamIndex))
-                                {
-                                    entityState = new StraightPullState();
-                                }
-                            }
-                        }
-                        if (entityState == null)
-                        {
-                            entityState = new ProjectileGrappleController.GripState();
-                        }
-                        here.DeductOwnerStock();
-                        here.outer.SetNextState(entityState);
-                        return;
-                    }
-                    if (here.duration <= here.fixedAge) //remove?
-                    {
-                        here.outer.SetNextState(new ProjectileGrappleController.ReturnState());
-                        return;
-                    }
-                }
-            } else
-            {
-                orig(self);
-            }
         }
         */
         #endregion
