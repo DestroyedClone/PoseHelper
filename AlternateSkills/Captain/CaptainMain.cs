@@ -22,10 +22,8 @@ namespace AlternateSkills.Captain
 
         public static void Init()
         {
-            Projectiles.SetupProjectiles();
+
             SetupSkills();
-            DamageTypes.SetupDamageTypes();
-            On.RoR2.GlobalEventManager.OnHitEnemy += GlobalEventManager_OnHitEnemy;
             //On.RoR2.EntityStateCatalog.Init += EntityStateCatalog_Init;
         }
 
@@ -34,21 +32,10 @@ namespace AlternateSkills.Captain
             Debug.Log($"ImpBossMonster");
         }
 
-        private static void GlobalEventManager_OnHitEnemy(On.RoR2.GlobalEventManager.orig_OnHitEnemy orig, GlobalEventManager self, DamageInfo damageInfo, GameObject victim)
-        {
-            orig(self, damageInfo, victim);
-            if (damageInfo.HasModdedDamageType(Captain.DamageTypes.irradiateDamageType))
-            {
-                MainPlugin.AddBuffAndDot(RoR2Content.Buffs.Blight, Projectiles.nukeBlightDuration, Projectiles.nukeBlightStacks, victim.GetComponent<CharacterBody>() ?? null);
-            }
-        }
-
         private static void SetupSkills()
         {
-            LanguageAPI.Add("CAPTAINSCEPTER_NAME", "OGM-72 'DIABLO' Strike");
-            LanguageAPI.Add("CAPTAINSCEPTER_DESCRIPTION", "Mark a specific location or enemy." +
-                " After <style=cIsUtility>60 seconds</style>, a Nuclear Bomb will fall down and deal <style=cIsDamage>100000% damage</style> to all enemies in the radius," +
-                " additionally applying <style=cIsDamage>10 stacks of Blight</style> to every entity on the map within line of sight of the blast.");
+            LanguageAPI.Add("CAPTAINSCEPTER_NAME", "");
+            LanguageAPI.Add("CAPTAINSCEPTER_DESCRIPTION", ".");
 
             var mySkillDef = ScriptableObject.CreateInstance<SkillDef>();
             mySkillDef.activationState = new SerializableEntityStateType(typeof(Captain.SetupNukeAlt));
