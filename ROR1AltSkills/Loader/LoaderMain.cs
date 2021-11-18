@@ -177,6 +177,10 @@ namespace ROR1AltSkills.Loader
             DebrisShieldSkillDef.skillDescriptionToken = "DC_LOADER_SECONDARY_SHIELD_DESCRIPTION";
             DebrisShieldSkillDef.skillName = "DC_LOADER_SECONDARY_SHIELD_NAME";
             DebrisShieldSkillDef.skillNameToken = DebrisShieldSkillDef.skillName;
+            DebrisShieldSkillDef.keywordTokens = new string[]
+            {
+                OriginalSkillsPlugin.modkeyword,
+            };
 
             LoadoutAPI.AddSkillDef(DebrisShieldSkillDef);
 

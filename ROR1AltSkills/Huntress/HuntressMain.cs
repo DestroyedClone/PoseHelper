@@ -51,6 +51,10 @@ namespace ROR1AltSkills.Huntress
             mySkillDef.skillDescriptionToken = "DC_HUNTRESS_SPECIAL_CLUSTERBOMBS_DESCRIPTION";
             mySkillDef.skillName = "DC_HUNTRESS_SPECIAL_CLUSTERBOMBS_NAME";
             mySkillDef.skillNameToken = mySkillDef.skillName;
+            mySkillDef.keywordTokens = new string[]
+            {
+                OriginalSkillsPlugin.modkeyword,
+            };
 
             LoadoutAPI.AddSkillDef(mySkillDef);
 

@@ -62,6 +62,10 @@ namespace ROR1AltSkills.Commando
             rollSkillDef.skillDescriptionToken = "DC_COMMANDO_UTILITY_TACTICALDIVE_DESCRIPTION";
             rollSkillDef.skillName = "DC_COMMANDO_UTILITY_TACTICALDIVE_NAME";
             rollSkillDef.skillNameToken = rollSkillDef.skillName;
+            rollSkillDef.keywordTokens = new string[]
+            {
+                OriginalSkillsPlugin.modkeyword,
+            };
 
             LoadoutAPI.AddSkillDef(rollSkillDef);
 
