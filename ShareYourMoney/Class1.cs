@@ -236,7 +236,7 @@ namespace ShareYourMoney
 
                 // Figure out how to communicate to the client how much money was dropped.
                 //Chat.AddMessage($"You have dropped ${(uint)goldReward}");
-                DamageNumberManager.instance.SpawnDamageNumber((int)goldReward, pickup.transform.position, false, TeamIndex.Player, DamageColorIndex.Item);
+                //DamageNumberManager.instance.SpawnDamageNumber((int)goldReward, pickup.transform.position, false, TeamIndex.Player, DamageColorIndex.Item);
 
                 NetworkServer.Spawn(pickup);
                 master.money = (uint)(Mathf.Max(0f, master.money - goldReward));
