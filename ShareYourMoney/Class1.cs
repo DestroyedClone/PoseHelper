@@ -5,6 +5,7 @@ using RoR2;
 using System.Security.Permissions;
 using UnityEngine;
 using UnityEngine.Networking;
+using System.Collections.Generic;
 
 #pragma warning disable CS0618 // Type or member is obsolete
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
@@ -21,10 +22,14 @@ namespace ShareYourMoney
         public static GameObject ShareMoneyPack;
         internal static BepInEx.Logging.ManualLogSource _logger;
 
+        // CFG
         public static KeyCode keyToDrop;
-        public static int baseChestCost = 25;
-
         public static float percentToDrop = 0.5f;
+        public static bool performanceMode = true;
+
+
+        public static int baseChestCost = 25;
+        public static bool preventMoneyDrops = false; //Server Method
 
         public static BuffDef pendingDoshBuff;    //Client adds the buff. If server detects buff, it removes it and triggers the money drop.
 
@@ -34,17 +39,80 @@ namespace ShareYourMoney
 
             keyToDrop = Config.Bind("", "Keybind", KeyCode.B, "Button to press to drop money").Value;
             percentToDrop = Config.Bind("", "Amount to Drop (Server-Side)", 0.5f, "Drop money equivalent to this percentage of the cost of a small chest.").Value;
+            performanceMode = Config.Bind("", "Performance Mode", true, "If true, then money dropped by clients will be combined to prevent clients flooding the map with dropped money objects." +
+                "\nRecommended for public hosts.").Value;
+
 
             CreatePrefab();
 
             On.RoR2.CharacterBody.Update += CharacterBody_Update;
-            On.RoR2.CharacterBody.FixedUpdate += CharacterBody_FixedUpdate;
+            if (performanceMode)
+            {
+                On.RoR2.CharacterBody.FixedUpdate += CharacterBody_FixedUpdate_PerformanceMode;
+            } else
+            {
+                On.RoR2.CharacterBody.FixedUpdate += CharacterBody_FixedUpdate;
+            }
             SetupMoneyBuff();
+
+            On.RoR2.SceneExitController.SetState += SceneExitController_SetState;
 
             //R2API.Utils.CommandHelper.AddToConsoleWhenReady();
 
             // Sure would be a shame if this thing fell out of bounds.
             //On.RoR2.MapZone.OnTriggerEnter += MapZone_OnTriggerEnter;
+        }
+
+        private void CharacterBody_FixedUpdate(On.RoR2.CharacterBody.orig_FixedUpdate orig, CharacterBody self)
+        {
+            orig(self);
+            if (NetworkServer.active)
+            {
+                if (preventMoneyDrops) return;
+                int doshCount = Mathf.Min(self.GetBuffCount(pendingDoshBuff.buffIndex), 8);    //Can queue up to 8
+                if (doshCount > 0)
+                {
+                    self.ClearTimedBuffs(pendingDoshBuff.buffIndex);
+                    if (self.master)
+                    {
+                        for (int i = 0; i < doshCount; i++)
+                        {
+                            ReleaseMoney(self.master);
+                        }
+                    }
+                }
+            }
+        }
+
+        private void SceneExitController_SetState(On.RoR2.SceneExitController.orig_SetState orig, SceneExitController self, SceneExitController.ExitState newState)
+        {
+            bool approved = newState != self.exitState;
+            orig(self, newState);
+            if (!approved) return;
+            switch (self.exitState)
+            {
+                case SceneExitController.ExitState.Idle:
+                    preventMoneyDrops = false;
+                    break;
+                case SceneExitController.ExitState.ExtractExp:
+                    preventMoneyDrops = true;
+                    RefundMoneyPackPickups();
+                    break;
+                default:
+                    preventMoneyDrops = true;
+                    break;
+            }
+        }
+
+        private static void RefundMoneyPackPickups()
+        {
+            foreach (var moneyPickup in new List<ModifiedMoneyPickup>(ModifiedMoneyPickup.instancesList))
+            {
+                if (moneyPickup)
+                {
+                    moneyPickup.Refund();
+                }
+            }
         }
 
         private void CharacterBody_Update(On.RoR2.CharacterBody.orig_Update orig, CharacterBody self)
@@ -56,6 +124,7 @@ namespace ShareYourMoney
             {
                 if (NetworkServer.active)
                 {
+                    if (preventMoneyDrops) return;
                     ReleaseMoney(self.master);
                 }
                 else
@@ -65,21 +134,19 @@ namespace ShareYourMoney
             }
         }
 
-        private void CharacterBody_FixedUpdate(On.RoR2.CharacterBody.orig_FixedUpdate orig, CharacterBody self)
+        private void CharacterBody_FixedUpdate_PerformanceMode(On.RoR2.CharacterBody.orig_FixedUpdate orig, CharacterBody self)
         {
             orig(self);
             if (NetworkServer.active)
             {
-                int doshCount = Mathf.Min(self.GetBuffCount(pendingDoshBuff.buffIndex), 8);    //Can queue up to 8
+                if (preventMoneyDrops) return;
+                int doshCount = self.GetBuffCount(pendingDoshBuff.buffIndex);
                 if (doshCount > 0)
                 {
                     self.ClearTimedBuffs(pendingDoshBuff.buffIndex);
                     if (self.master)
                     {
-                        for (int i = 0; i < doshCount; i++)
-                        {
-                            ReleaseMoney(self.master);
-                        }
+                        ReleaseMoney(self.master, doshCount);
                     }
                 }
             }
@@ -121,10 +188,10 @@ namespace ShareYourMoney
         }
 
         // Server Method
-        public static void ReleaseMoney(CharacterMaster master)
+        public static void ReleaseMoney(CharacterMaster master, int doshesDropped = 1)
         {
             if (!NetworkServer.active) return;
-            uint goldReward = (uint)Mathf.CeilToInt(Run.instance.GetDifficultyScaledCost(baseChestCost) * percentToDrop);
+            uint goldReward = (uint)Mathf.CeilToInt(Run.instance.GetDifficultyScaledCost(baseChestCost) * percentToDrop * doshesDropped);
             if (master && master.GetBody())
             {
                 // 15 - 25 = -10, so resulting money is 10 to drop
@@ -173,6 +240,28 @@ namespace ShareYourMoney
 
         private class ModifiedMoneyPickup : MonoBehaviour
         {
+            public static readonly List<ModifiedMoneyPickup> instancesList = new List<ModifiedMoneyPickup>();
+
+            private void OnEnable()
+            {
+                instancesList.Add(this);
+            }
+
+            private void OnDisable()
+            {
+                instancesList.Remove(this);
+            }
+
+            public void Refund()
+            {
+                allowPickup = false;
+                if (owner.master)
+                {
+                    owner.master.GiveMoney((uint)goldReward);
+                    Destroy(this.baseObject);
+                }
+            }
+
             private void FixedUpdate()
             {
                 // prevents early re-pickup by owner
@@ -188,6 +277,8 @@ namespace ShareYourMoney
             {
                 if (NetworkServer.active && this.alive)
                 {
+                    if (!allowPickup) return;
+
                     var characterBody = other.GetComponent<CharacterBody>();
                     if (characterBody && characterBody.isPlayerControlled && characterBody.master)
                     {
@@ -230,6 +321,8 @@ namespace ShareYourMoney
             public CharacterBody owner;
 
             private bool ownerCanPickup = false;
+
+            private bool allowPickup = true;
         }
     }
 }
