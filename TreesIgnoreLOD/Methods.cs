@@ -1,8 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using static CollisionLODOverride.Main;
 
-namespace TreesIgnoreLOD
+namespace CollisionLODOverride
 {
     public static class Methods
     {
@@ -79,8 +80,13 @@ namespace TreesIgnoreLOD
         {
             foreach (string path in chosenPathSet)
             {
-                GameObject.Find(path).GetComponent<LODGroup>().ForceLOD(lodOverrideValue);
+                var gameObj = GameObject.Find(path);
+                if (gameObj)
+                {
+                    gameObj.GetComponent<LODGroup>().ForceLOD(lodOverrideValue);
+                }
             }
+            _logger.LogMessage($"Overriding collideable LODGroups in scene using path set \"{nameof(chosenPathSet)}\"");
         }
     }
 }

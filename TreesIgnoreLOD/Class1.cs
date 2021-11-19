@@ -4,26 +4,29 @@ using R2API.Utils;
 using RoR2;
 using System.Security;
 using System.Security.Permissions;
-using static TreesIgnoreLOD.Methods;
+using static CollisionLODOverride.Methods;
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
 #pragma warning restore CS0618 // Type or member is obsolete
 
-namespace TreesIgnoreLOD
+namespace CollisionLODOverride
 {
     [BepInPlugin("com.DestroyedClone.CollisionLODOverride", "Collision LOD Override", "1.0.0")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
-    public class TreesIgnoreLODPlugin : BaseUnityPlugin
+    public class Main : BaseUnityPlugin
     {
         public static ConfigEntry<int> cfgLODOverride;
         public static int lodOverrideValue = 0;
         public static bool discoveryMode = false;
 
+        internal static BepInEx.Logging.ManualLogSource _logger;
+
         public void Start()
         {
+            _logger = Logger;
             R2API.Utils.CommandHelper.AddToConsoleWhenReady();
             cfgLODOverride = Config.Bind("", "LOD Override Level", 1, "I'm basing them off how I felt they looked, not anything technical." +
                 "\n" +
@@ -69,7 +72,7 @@ namespace TreesIgnoreLOD
         [ConCommand(commandName = "collision_lod_override_preset_modify", flags = ConVarFlags.ExecuteOnServer, helpText = "collision_lod_override_preset_modify {0, 1, 2, 3, -#} - Overrides the collideable LOD currently in the scene for preview, temporary.")]
         private static void ModifyPresetScene(ConCommandArgs args)
         {
-            var value = args.GetArgInt(1);
+            var value = args.GetArgInt(0);
             PatchScene(GetPathSet(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name), value);
         }
 
