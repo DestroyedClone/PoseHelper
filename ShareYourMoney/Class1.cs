@@ -12,9 +12,10 @@ using UnityEngine.Networking;
 
 namespace ShareYourMoney
 {
-    [BepInPlugin("com.DestroyedClone.ShareYourMoney", "Share Your Money", "1.0.0")]
+    [BepInPlugin("com.DestroyedClone.DoshDrop", "Dosh Drop", "1.0.0")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
-    [R2APISubmoduleDependency(nameof(PrefabAPI))]
+    [R2APISubmoduleDependency(nameof(PrefabAPI), nameof(BuffAPI))]
+    [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.EveryoneNeedSameModVersion)]
     public class Main : BaseUnityPlugin
     {
         public static GameObject ShareMoneyPack;
@@ -23,31 +24,76 @@ namespace ShareYourMoney
         public static KeyCode keyToDrop;
         public static int baseChestCost = 25;
 
-        public void Start()
+        public static float percentToDrop = 0.5f;
+
+        public static BuffDef pendingDoshBuff;    //Client adds the buff. If server detects buff, it removes it and triggers the money drop.
+
+        public void Awake()
         {
             _logger = Logger;
 
             keyToDrop = Config.Bind("", "Keybind", KeyCode.B, "Button to press to drop money").Value;
+            percentToDrop = Config.Bind("", "Amount to Drop (Server-Side)", 0.5f, "Drop money equivalent to this percentage of the cost of a small chest.").Value;
 
             CreatePrefab();
 
-            On.RoR2.PlayerCharacterMasterController.Update += PlayerCharacterMasterController_Update;
+            On.RoR2.CharacterBody.Update += CharacterBody_Update;
+            On.RoR2.CharacterBody.FixedUpdate += CharacterBody_FixedUpdate;
+            SetupMoneyBuff();
 
-            R2API.Utils.CommandHelper.AddToConsoleWhenReady();
+            //R2API.Utils.CommandHelper.AddToConsoleWhenReady();
 
             // Sure would be a shame if this thing fell out of bounds.
             //On.RoR2.MapZone.OnTriggerEnter += MapZone_OnTriggerEnter;
         }
 
+        private void CharacterBody_Update(On.RoR2.CharacterBody.orig_Update orig, CharacterBody self)
+        {
+            orig(self);
+            if (self.hasAuthority && self.isPlayerControlled && self.master
+                && !LocalUserManager.readOnlyLocalUsersList[0].isUIFocused
+                && Input.GetKeyDown(keyToDrop))
+            {
+                if (NetworkServer.active)
+                {
+                    ReleaseMoney(self.master);
+                }
+                else
+                {
+                    self.AddTimedBuffAuthority(pendingDoshBuff.buffIndex, 1000000f);
+                }
+            }
+        }
+
+        private void CharacterBody_FixedUpdate(On.RoR2.CharacterBody.orig_FixedUpdate orig, CharacterBody self)
+        {
+            orig(self);
+            if (NetworkServer.active)
+            {
+                int doshCount = Mathf.Min(self.GetBuffCount(pendingDoshBuff.buffIndex), 8);    //Can queue up to 8
+                if (doshCount > 0)
+                {
+                    self.ClearTimedBuffs(pendingDoshBuff.buffIndex);
+                    if (self.master)
+                    {
+                        for (int i = 0; i < doshCount; i++)
+                        {
+                            ReleaseMoney(self.master);
+                        }
+                    }
+                }
+            }
+        }
+
         // needs to be able to be sent by clients so they can drop custom money amounts
         // dunno if this just does that tho
-        [ConCommand(commandName = "dropmoney", flags = ConVarFlags.ExecuteOnServer, helpText = "dropmoney {amount}.")]
+        /*[ConCommand(commandName = "dropmoney", flags = ConVarFlags.ExecuteOnServer, helpText = "dropmoney {amount}.")]
         private static void CMDDropMoney(ConCommandArgs args)
         {
             var amountOverride = args.Count > 0 ? args.GetArgInt(0) : -1;
 
             ReleaseMoney(args.senderMaster.playerCharacterMasterController, amountOverride);
-        }
+        }*/
 
         private static void CreatePrefab()
         {
@@ -62,28 +108,27 @@ namespace ShareYourMoney
             Destroy(ShareMoneyPack.GetComponent<VelocityRandomOnStart>());
         }
 
-        private void PlayerCharacterMasterController_Update(On.RoR2.PlayerCharacterMasterController.orig_Update orig, PlayerCharacterMasterController self)
+        //Too lazy to set up a Networkbehaviour so here's a hacky workaround.
+        private void SetupMoneyBuff()
         {
-            orig(self);
-            // Using this method so i dont have to make a component's Update() input check shit
-            // Probably network check thing here.
-
-            //first part prevents fucking dropping shit while typing with uis open, like the console
-            if (!LocalUserManager.readOnlyLocalUsersList[0].isUIFocused && Input.GetKeyDown(keyToDrop))
-            {
-                ReleaseMoney(self);
-            }
+            pendingDoshBuff = ScriptableObject.CreateInstance<BuffDef>();
+            pendingDoshBuff.buffColor = new Color(1f, 215f / 255f, 0f);
+            pendingDoshBuff.canStack = true;
+            pendingDoshBuff.isDebuff = false;
+            pendingDoshBuff.name = "PendingDoshDrop";
+            pendingDoshBuff.iconSprite = Resources.Load<Sprite>("Textures/BuffIcons/texBuffCloakIcon");
+            BuffAPI.Add(new CustomBuff(pendingDoshBuff));
         }
 
         // Server Method
-        public static void ReleaseMoney(PlayerCharacterMasterController playerCharacterMasterController, float amountOverride = -1)
+        public static void ReleaseMoney(CharacterMaster master)
         {
-            var goldReward = (amountOverride > 0 ? amountOverride : Run.instance.GetDifficultyScaledCost(baseChestCost) / 2);
-            var master = playerCharacterMasterController.master;
+            if (!NetworkServer.active) return;
+            uint goldReward = (uint)Mathf.CeilToInt(Run.instance.GetDifficultyScaledCost(baseChestCost) * percentToDrop);
             if (master && master.GetBody())
             {
                 // 15 - 25 = -10, so resulting money is 10 to drop
-                if (master.money - goldReward < 0)
+                if (goldReward > master.money)
                 {
                     goldReward = master.money;
                 }
@@ -95,29 +140,30 @@ namespace ShareYourMoney
                     return;
                 }
 
-                var pickup = Instantiate(ShareMoneyPack);
-                pickup.transform.position = master.GetBody().corePosition; //dunno how to set it head level, aimorigin?
-                var moneyPickup = pickup.GetComponentInChildren<ModifiedMoneyPickup>();
+                GameObject pickup = Instantiate(ShareMoneyPack);
+                pickup.transform.position = master.GetBody().corePosition;
+                ModifiedMoneyPickup moneyPickup = pickup.GetComponentInChildren<ModifiedMoneyPickup>();
                 moneyPickup.goldReward = (int)goldReward;
                 moneyPickup.owner = master.GetBody() ?? null;
 
                 Rigidbody component = pickup.GetComponent<Rigidbody>();
 
+
                 Vector3 direction;
-                if (master.GetBody().equipmentSlot) //idk how else to do this
+                if (master.GetBody().inputBank)
                 {
-                    var aimRay = master.GetBody().equipmentSlot.GetAimRay();
+                    Ray aimRay = master.GetBody().inputBank.GetAimRay();
                     direction = aimRay.direction;
+                    pickup.transform.position = aimRay.origin;  //set position to aimray if aimray is found
                 }
                 else
                 {
                     direction = master.GetBody().transform.forward;
                 }
-
-                component.velocity = Vector3.up * 15f + (direction * 25f); // please fine tune
+                component.velocity = Vector3.up * 5f + (direction * 20f); // please fine tune
 
                 // Figure out how to communicate to the client how much money was dropped.
-                Chat.AddMessage($"You have dropped ${(uint)goldReward}");
+                //Chat.AddMessage($"You have dropped ${(uint)goldReward}");
                 DamageNumberManager.instance.SpawnDamageNumber((int)goldReward, pickup.transform.position, false, TeamIndex.Player, DamageColorIndex.Item);
 
                 NetworkServer.Spawn(pickup);
