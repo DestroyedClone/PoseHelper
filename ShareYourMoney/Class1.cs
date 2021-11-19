@@ -26,7 +26,8 @@ namespace ShareYourMoney
         public static KeyCode keyToDrop;
         public static float percentToDrop = 0.5f;
         public static bool performanceMode = true;
-
+        public static bool preventModUseOnStageEnd = true;
+        public static bool refundOnStageEnd = true;
 
         public static int baseChestCost = 25;
         public static bool preventMoneyDrops = false; //Server Method
@@ -39,9 +40,10 @@ namespace ShareYourMoney
 
             keyToDrop = Config.Bind("", "Keybind", KeyCode.B, "Button to press to drop money").Value;
             percentToDrop = Config.Bind("", "Amount to Drop (Server-Side)", 0.5f, "Drop money equivalent to this percentage of the cost of a small chest.").Value;
-            performanceMode = Config.Bind("", "Performance Mode", true, "If true, then money dropped by clients will be combined to prevent clients flooding the map with dropped money objects." +
-                "\nRecommended for public hosts.").Value;
-
+            performanceMode = Config.Bind("", "Performance Mode", true, "If true, then money dropped by clients will try to be combined to prevent clients flooding the map with dropped money objects." +
+                "\nOnly applied to thrown money, otherwise normal.").Value;
+            preventModUseOnStageEnd = Config.Bind("", "Prevent On Stage End", true, "If true, then money will be prevented from being dropped on ending the stage.").Value;
+            refundOnStageEnd = Config.Bind("", "Refund Drops On Stage End", true, "If true, then money will get refunded to owners upon ending the stage.").Value;
 
             CreatePrefab();
 
@@ -95,11 +97,14 @@ namespace ShareYourMoney
                     preventMoneyDrops = false;
                     break;
                 case SceneExitController.ExitState.ExtractExp:
-                    preventMoneyDrops = true;
-                    RefundMoneyPackPickups();
+                    if (preventModUseOnStageEnd)
+                        preventMoneyDrops = true;
+                    if (refundOnStageEnd)
+                        RefundMoneyPackPickups();
                     break;
                 default:
-                    preventMoneyDrops = true;
+                    if (preventModUseOnStageEnd)
+                        preventMoneyDrops = true;
                     break;
             }
         }
