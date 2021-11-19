@@ -28,39 +28,34 @@ namespace CollisionLODOverride
         {
             _logger = Logger;
             R2API.Utils.CommandHelper.AddToConsoleWhenReady();
-            cfgLODOverride = Config.Bind("", "LOD Override Level", 1, "I'm basing them off how I felt they looked, not anything technical." +
+            cfgLODOverride = Config.Bind("", "LOD Override Level", 2, "I'm basing them off how I felt they looked, not anything technical." +
                 "\n" +
                 "\n0 = Normal" +
                 "\n1 = Simpler" +
                 "\n2 = Simplest" +
                 "\n3 = Leaves are solid as you approach, sometimes trunks are just invisible." +
                 "\n-1/Negative numbers = Leaves are almost invisible until you approach them.");
+            SetConfigSetting(cfgLODOverride.Value);
 
-            UnityEngine.SceneManagement.SceneManager.sceneLoaded += SceneManager_sceneLoaded;
+            On.RoR2.SceneDirector.PopulateScene += SceneDirector_PopulateScene;
             On.RoR2.SettingsConVars.MaximumLodConVar.SetString += MaximumLodConVar_SetString;
 
             if (discoveryMode)
                 On.RoR2.SceneDirector.PopulateScene += Discover;
         }
 
+        private void SceneDirector_PopulateScene(On.RoR2.SceneDirector.orig_PopulateScene orig, SceneDirector self)
+        {
+            orig(self);
+            string[] chosenPathSet = GetPathSet(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+            PatchScene(chosenPathSet, cfgLODOverride.Value);
+        }
+
         private void MaximumLodConVar_SetString(On.RoR2.SettingsConVars.MaximumLodConVar.orig_SetString orig, RoR2.ConVar.BaseConVar self, string newValue)
         {
             orig(self, newValue);
             string[] chosenPathSet = GetPathSet(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
-            if (chosenPathSet != null)
-            {
-                //Chat.AddMessage("Overriding");
-                PatchScene(chosenPathSet, cfgLODOverride.Value);
-            }
-        }
-
-        private void SceneManager_sceneLoaded(UnityEngine.SceneManagement.Scene scene, UnityEngine.SceneManagement.LoadSceneMode loadSceneMode)
-        {
-            string[] chosenPathSet = GetPathSet(scene.name);
-            if (chosenPathSet != null)
-            {
-                PatchScene(chosenPathSet, cfgLODOverride.Value);
-            }
+            PatchScene(chosenPathSet, cfgLODOverride.Value);
         }
 
         private void Discover(On.RoR2.SceneDirector.orig_PopulateScene orig, SceneDirector self)
@@ -69,19 +64,38 @@ namespace CollisionLODOverride
             PrintSceneCollisions();
         }
 
-        [ConCommand(commandName = "collision_lod_override_preset_modify", flags = ConVarFlags.ExecuteOnServer, helpText = "collision_lod_override_preset_modify {0, 1, 2, 3, -#} - Overrides the collideable LOD currently in the scene for preview, temporary.")]
+        [ConCommand(commandName = "collision_lod_override_preview", flags = ConVarFlags.None, helpText = "collision_lod_override_preview {0, 1, 2, 3, -1} - Temporarily overrides the collideable LODs in scene.")]
+        private static void ModifyPresetScenePreview(ConCommandArgs args)
+        {
+            var value = args.GetArgInt(0);
+            var pathSet = GetPathSet(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+            if (pathSet == null)
+            {
+                _logger.LogWarning($"Could not find chosen pathSet for current scene ({UnityEngine.SceneManagement.SceneManager.GetActiveScene().name})!");
+                return;
+            }
+            PatchScene(pathSet, value);
+        }
+
+        [ConCommand(commandName = "collision_lod_override", flags = ConVarFlags.None, helpText = "collision_lod_override {0, 1, 2, 3, -1} - Temporarily overrides the collideable LODs in scene.")]
         private static void ModifyPresetScene(ConCommandArgs args)
         {
             var value = args.GetArgInt(0);
-            PatchScene(GetPathSet(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name), value);
+            SetConfigSetting(value);
+            var pathSet = GetPathSet(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+            if (pathSet == null)
+            {
+                _logger.LogWarning($"Could not find chosen pathSet for current scene ({UnityEngine.SceneManagement.SceneManager.GetActiveScene().name})!");
+                return;
+            }
+            PatchScene(pathSet, value);
         }
 
-        [ConCommand(commandName = "collision_lod_print", flags = ConVarFlags.ExecuteOnServer, helpText = "collision_lod_print {printPath:true/false} - Prints the scenename followed by the amount of collideable LOD groups, uncollideable LOD groups, and the total count." +
-            "\nOptionally, include 'true' to print the paths of the LOD objects for easy indexing to author.")]
+        [ConCommand(commandName = "collision_lod_print", flags = ConVarFlags.None, helpText = "collision_lod_print {printPath:True/False} - Prints the scenename followed by the amount of collideable LOD groups, uncollideable LOD groups, and the total count." +
+            "\nBoolean check to print the paths of the LOD objects for easy indexing to author.")]
         private static void DiscoverScene(ConCommandArgs args)
         {
-            bool shouldPrint = args.Count > 0 ? args.GetArgBool(0) : false;
-            PrintSceneCollisions(shouldPrint);
+            PrintSceneCollisions(args.GetArgBool(0));
         }
     }
 }

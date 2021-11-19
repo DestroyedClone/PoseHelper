@@ -9,8 +9,8 @@ namespace CollisionLODOverride
     {
         public static string[] GetPathSet(string sceneName = null)
         {
-            var attempt = PathSets.sceneName_to_pathSets.TryGetValue(sceneName, out string[] value);
-            return attempt ? value : null;
+            var attempt = PathSets.sceneName_to_pathSets.ContainsKey(sceneName);
+            return attempt ? PathSets.sceneName_to_pathSets[sceneName] : null;
         }
 
         // http://answers.unity.com/answers/8502/view.html
@@ -62,6 +62,7 @@ namespace CollisionLODOverride
             {
                 //https://stackoverflow.com/a/29575110
                 string nameOfString = (string.Join(",\n", cachedPathList.Select(x => x.ToString()).ToArray()));
+                nameOfString = "Paths To LODGroups:\n" + nameOfString;
                 if (nameOfString.Length < 16384)
                 {
                     Debug.Log(nameOfString);
@@ -76,17 +77,33 @@ namespace CollisionLODOverride
             }
         }
 
-        public static void PatchScene(string[] chosenPathSet, int lodOverrideValue)
+        public static bool PatchScene(string[] chosenPathSet, int lodOverrideValue)
         {
+            if (chosenPathSet == null)
+            {
+                //_logger.LogWarning($"Could not find chosen pathSet for current scene ({UnityEngine.SceneManagement.SceneManager.GetActiveScene().name})!");
+                return false;
+            }
+            _logger.LogMessage("Attempting to patch scene");
             foreach (string path in chosenPathSet)
             {
                 var gameObj = GameObject.Find(path);
                 if (gameObj)
                 {
                     gameObj.GetComponent<LODGroup>().ForceLOD(lodOverrideValue);
+                } else
+                {
+                    _logger.LogWarning($"Could not find GameObject with path {path}");
                 }
             }
-            _logger.LogMessage($"Overriding collideable LODGroups in scene using path set \"{nameof(chosenPathSet)}\"");
+            _logger.LogMessage($"Overriding collideable LODGroups in scene using path set \"{nameof(chosenPathSet)}\" and value {lodOverrideValue}");
+            return true;
+        }
+
+        public static void SetConfigSetting(int value)
+        {
+            var clamped = Mathf.Clamp(value, -1, 3);
+            cfgLODOverride.Value = clamped;
         }
     }
 }

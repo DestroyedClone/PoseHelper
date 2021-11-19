@@ -4,12 +4,6 @@ namespace CollisionLODOverride
 {
     public static class PathSets
     {
-        public static Dictionary<string, string[]> sceneName_to_pathSets = new Dictionary<string, string[]>()
-        {
-            { "blackbeach", blackbeachPaths },
-            { "foggyswamp", foggyswampPaths }
-        };
-
         public static readonly string[] blackbeachPaths = new string[]
         {
             "FOLIAGE/spmBbConif (13)",
@@ -69,6 +63,13 @@ namespace CollisionLODOverride
             "HOLDER: Root Bundles/FSRootBundleSmallCollision",
             "HOLDER: Hidden Altar Stuff/Foliage/FSRootBundleSmallCollision (4)",
             "HOLDER: Root Bundles/FSRootBundleSmallCollision (1)"
+        };
+
+
+        public static Dictionary<string, string[]> sceneName_to_pathSets = new Dictionary<string, string[]>()
+        {
+            { "blackbeach", blackbeachPaths },
+            { "foggyswamp", foggyswampPaths }
         };
     }
 }
