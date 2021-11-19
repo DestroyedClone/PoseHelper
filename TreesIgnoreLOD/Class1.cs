@@ -1,13 +1,10 @@
 ﻿using BepInEx;
+using BepInEx.Configuration;
 using R2API.Utils;
 using RoR2;
 using System.Security;
 using System.Security.Permissions;
-using UnityEngine;
-using BepInEx.Configuration;
-using System.Collections.Generic;
 using static TreesIgnoreLOD.Methods;
-using static TreesIgnoreLOD.PathSets;
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -63,14 +60,11 @@ namespace TreesIgnoreLOD
             }
         }
 
-
         private void Discover(On.RoR2.SceneDirector.orig_PopulateScene orig, SceneDirector self)
         {
             orig(self);
             PrintSceneCollisions();
         }
-
-
 
         [ConCommand(commandName = "collision_lod_override_preset_modify", flags = ConVarFlags.ExecuteOnServer, helpText = "collision_lod_override_preset_modify {0, 1, 2, 3, -#} - Overrides the collideable LOD currently in the scene for preview, temporary.")]
         private static void ModifyPresetScene(ConCommandArgs args)

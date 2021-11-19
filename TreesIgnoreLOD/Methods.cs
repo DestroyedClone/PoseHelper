@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using UnityEngine;
+﻿using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace TreesIgnoreLOD
 {
@@ -13,6 +11,7 @@ namespace TreesIgnoreLOD
             var attempt = PathSets.sceneName_to_pathSets.TryGetValue(sceneName, out string[] value);
             return attempt ? value : null;
         }
+
         // http://answers.unity.com/answers/8502/view.html
         public static string GetGameObjectPath(GameObject obj)
         {
@@ -34,7 +33,7 @@ namespace TreesIgnoreLOD
 
             var cachedPathList = new List<string>();
             foreach (var item in lodGroups)
-            {//item.fadeMode == LODFadeMode.SpeedTree && 
+            {//item.fadeMode == LODFadeMode.SpeedTree &&
                 total++;
                 var rigidBody = item.GetComponent<Rigidbody>();
                 var rigidBodies = item.GetComponentInChildren<Rigidbody>();
@@ -49,7 +48,7 @@ namespace TreesIgnoreLOD
                         var path = GetGameObjectPath(item.gameObject);
                         cachedPathList.Add($"\"{path}\"");
                     }
-                        Debug.Log($"{GetGameObjectPath(item.gameObject)}");
+                    Debug.Log($"{GetGameObjectPath(item.gameObject)}");
                     //item.ForceLOD(cfgLODOverride.Value);
                 }
                 else
@@ -65,7 +64,8 @@ namespace TreesIgnoreLOD
                 if (nameOfString.Length < 16384)
                 {
                     Debug.Log(nameOfString);
-                } else
+                }
+                else
                 {
                     foreach (var value in cachedPathList)
                     {
@@ -74,7 +74,6 @@ namespace TreesIgnoreLOD
                 }
             }
         }
-
 
         public static void PatchScene(string[] chosenPathSet, int lodOverrideValue)
         {
