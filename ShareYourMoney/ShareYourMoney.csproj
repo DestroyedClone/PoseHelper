@@ -5,6 +5,14 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <None Remove="bigbluecash" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <EmbeddedResource Include="bigbluecash" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<Reference Include="0Harmony">
 			<HintPath>..\PoseHelper\lib\0Harmony.dll</HintPath>
 		</Reference>

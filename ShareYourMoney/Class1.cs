@@ -2,10 +2,11 @@
 using R2API;
 using R2API.Utils;
 using RoR2;
+using System.Collections.Generic;
+using System.Reflection;
 using System.Security.Permissions;
 using UnityEngine;
 using UnityEngine.Networking;
-using System.Collections.Generic;
 
 #pragma warning disable CS0618 // Type or member is obsolete
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
@@ -13,7 +14,7 @@ using System.Collections.Generic;
 
 namespace ShareYourMoney
 {
-    [BepInPlugin("com.DestroyedClone.DoshDrop", "Dosh Drop", "1.0.0")]
+    [BepInPlugin("com.DestroyedClone.DoshDrop", "Dosh Drop", "1.0.1")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     [R2APISubmoduleDependency(nameof(PrefabAPI), nameof(BuffAPI))]
     [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.EveryoneNeedSameModVersion)]
@@ -24,6 +25,7 @@ namespace ShareYourMoney
 
         // CFG
         public static KeyCode keyToDrop;
+
         public static float percentToDrop = 0.5f;
         public static bool performanceMode = true;
         public static bool preventModUseOnStageEnd = true;
@@ -34,9 +36,15 @@ namespace ShareYourMoney
 
         public static BuffDef pendingDoshBuff;    //Client adds the buff. If server detects buff, it removes it and triggers the money drop.
 
+
+        public static AssetBundle MainAssets;
+        public static GameObject moneyAsset;
+
         public void Awake()
         {
             _logger = Logger;
+
+            SetupAssets();
 
             keyToDrop = Config.Bind("", "Keybind", KeyCode.B, "Button to press to drop money").Value;
             percentToDrop = Config.Bind("", "Amount to Drop (Server-Side)", 0.5f, "Drop money equivalent to this percentage of the cost of a small chest.").Value;
@@ -51,7 +59,8 @@ namespace ShareYourMoney
             if (performanceMode)
             {
                 On.RoR2.CharacterBody.FixedUpdate += CharacterBody_FixedUpdate_PerformanceMode;
-            } else
+            }
+            else
             {
                 On.RoR2.CharacterBody.FixedUpdate += CharacterBody_FixedUpdate;
             }
@@ -63,6 +72,15 @@ namespace ShareYourMoney
 
             // Sure would be a shame if this thing fell out of bounds.
             //On.RoR2.MapZone.OnTriggerEnter += MapZone_OnTriggerEnter;
+        }
+
+        private void SetupAssets()
+        {
+            using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("ShareYourMoney.bigbluecash"))
+            {
+                MainAssets = AssetBundle.LoadFromStream(stream);
+            }
+            moneyAsset = MainAssets.LoadAsset<GameObject>("Assets/bigbluecash/BBC.prefab");
         }
 
         private void CharacterBody_FixedUpdate(On.RoR2.CharacterBody.orig_FixedUpdate orig, CharacterBody self)
@@ -96,12 +114,14 @@ namespace ShareYourMoney
                 case SceneExitController.ExitState.Idle:
                     preventMoneyDrops = false;
                     break;
+
                 case SceneExitController.ExitState.ExtractExp:
                     if (preventModUseOnStageEnd)
                         preventMoneyDrops = true;
                     if (refundOnStageEnd)
                         RefundMoneyPackPickups();
                     break;
+
                 default:
                     if (preventModUseOnStageEnd)
                         preventMoneyDrops = true;
@@ -178,6 +198,14 @@ namespace ShareYourMoney
             modMoneyPickup.teamFilter = moneyPickup.teamFilter;
             Destroy(moneyPickup);
             Destroy(ShareMoneyPack.GetComponent<VelocityRandomOnStart>());
+
+            //var moneyCopy = Instantiate(moneyAsset);
+            ShareMoneyPack.GetComponentInChildren<MeshFilter>().sharedMesh = moneyAsset.GetComponentInChildren<MeshFilter>().sharedMesh;
+            var meshRenderer = ShareMoneyPack.GetComponentInChildren<MeshRenderer>();
+            //meshRenderer.material = moneyAsset.GetComponentInChildren<MeshRenderer>().material;
+            meshRenderer.SetMaterials(new List<Material>() { moneyAsset.GetComponentInChildren<MeshRenderer>().material });
+            meshRenderer.transform.localScale = Vector3.one * 9;
+            Destroy(ShareMoneyPack.transform.Find("Display/Mesh/Particle System").gameObject);
         }
 
         //Too lazy to set up a Networkbehaviour so here's a hacky workaround.
@@ -219,7 +247,6 @@ namespace ShareYourMoney
                 moneyPickup.owner = master.GetBody() ?? null;
 
                 Rigidbody component = pickup.GetComponent<Rigidbody>();
-
 
                 Vector3 direction;
                 if (master.GetBody().inputBank)

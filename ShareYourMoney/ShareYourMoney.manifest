@@ -1,0 +1,7 @@
+ManifestFileVersion: 0
+CRC: 628553929
+AssetBundleManifest:
+  AssetBundleInfos:
+    Info_0:
+      Name: bigbluecash
+      Dependencies: {}
