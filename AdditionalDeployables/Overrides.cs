@@ -57,6 +57,7 @@ namespace ProjectileLimiter
         {
             if (CanDeploy(self, PerPlayerDeployableType.Saw))
             {
+                self.subcooldownTimer = cfgSawCooldown;
                 return orig(self);
             }
             return false;
