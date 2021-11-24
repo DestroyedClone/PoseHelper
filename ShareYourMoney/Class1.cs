@@ -14,7 +14,7 @@ using UnityEngine.Networking;
 
 namespace ShareYourMoney
 {
-    [BepInPlugin("com.DestroyedClone.DoshDrop", "Dosh Drop", "1.0.1")]
+    [BepInPlugin("com.DestroyedClone.DoshDrop", "Dosh Drop", "1.0.2")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     [R2APISubmoduleDependency(nameof(PrefabAPI), nameof(BuffAPI))]
     [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.EveryoneNeedSameModVersion)]
@@ -67,11 +67,17 @@ namespace ShareYourMoney
             SetupMoneyBuff();
 
             On.RoR2.SceneExitController.SetState += SceneExitController_SetState;
+            Stage.onServerStageBegin += Stage_onServerStageBegin;
 
             //R2API.Utils.CommandHelper.AddToConsoleWhenReady();
 
             // Sure would be a shame if this thing fell out of bounds.
             //On.RoR2.MapZone.OnTriggerEnter += MapZone_OnTriggerEnter;
+        }
+
+        private void Stage_onServerStageBegin(Stage obj)
+        {
+            preventMoneyDrops = false;
         }
 
         private void SetupAssets()
