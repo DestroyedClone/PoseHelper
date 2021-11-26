@@ -1,27 +1,21 @@
 ﻿using BepInEx;
-using R2API;
-using R2API.Utils;
+
+//using R2API.Utils;
 using RoR2;
 using System.Collections.Generic;
-using System.Reflection;
+using System.Linq;
 using System.Security.Permissions;
 using UnityEngine;
-using UnityEngine.Networking;
-using System.Linq;
-using EntityStates;
-using System;
 
 #pragma warning disable CS0618 // Type or member is obsolete
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
 #pragma warning restore CS0618 // Type or member is obsolete
 
 [assembly: HG.Reflection.SearchableAttribute.OptIn]
+
 namespace SaveModdedProfileOnClose
 {
     [BepInPlugin("com.DestroyedClone.Profile", "Profile", "1.0.0")]
-    [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
-    //[R2APISubmoduleDependency(nameof(PrefabAPI), nameof(BuffAPI))]
-    [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.EveryoneNeedSameModVersion)]
     public class Main : BaseUnityPlugin
     {
         internal static BepInEx.Logging.ManualLogSource _logger;
@@ -52,7 +46,6 @@ namespace SaveModdedProfileOnClose
                         continue;
 
                     _logger.LogMessage($"Checking {survivorName}");
-
 
                     int index = 0;
 
@@ -135,6 +128,12 @@ namespace SaveModdedProfileOnClose
                         }
                     }
 
+                    /* ?
+                    foreach (var genericSkill in survivorDef.bodyPrefab.GetComponents<GenericSkill>())
+                    {
+                        ApplyChange(genericSkill);
+                    }*/
+
                     ApplyChange(skillLoc.primary);
                     ApplyChange(skillLoc.secondary);
                     ApplyChange(skillLoc.utility);
@@ -157,7 +156,7 @@ namespace SaveModdedProfileOnClose
                     if (skillLoc.primary && skillLoc.primary.skillFamily)
                     {
                         _logger.LogMessage($"Primary Skill: {skillLoc.primary.skillName} + {((ScriptableObject)skillLoc.primary.skillFamily).name}");
-                        foreach(var variant in skillLoc.primary.skillFamily.variants)
+                        foreach (var variant in skillLoc.primary.skillFamily.variants)
                         {
                             _logger.LogMessage($"{variant.skillDef.skillNameToken}");
                         }
