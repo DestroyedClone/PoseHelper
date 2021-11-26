@@ -5,6 +5,7 @@ using RoR2;
 using System.Security.Permissions;
 using UnityEngine;
 using UnityEngine.Networking;
+using System.Collections.Generic;
 
 #pragma warning disable CS0618 // Type or member is obsolete
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
@@ -14,26 +15,115 @@ namespace ShareYourFood
 {
     [BepInPlugin("com.DestroyedClone.ShareYourFood", "Share Your Food", "1.0.0")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
-    [R2APISubmoduleDependency(nameof(PrefabAPI))]
+    [R2APISubmoduleDependency(nameof(PrefabAPI), nameof(BuffAPI))]
+    [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.EveryoneNeedSameModVersion)]
     public class Main : BaseUnityPlugin
     {
         public static GameObject fruitPickup;
 
+        public static KeyCode keyToDrop;
+        public static float healPercentage;
+        public static float destroyOnTimerLength;
+        public static float modifierKeyLeeWay;
+        public static bool changeDescription;
+        //todo max amount per player?
+
+        public static BuffDef modifierKeyBuff;
+
+        //TILER2 shit
+        //When a game runs with TILER2, the first selected language is null so we have to wait once
+        public static int incremeter = 0;
+
+        internal static BepInEx.Logging.ManualLogSource _logger;
+
+
         public void Start()
         {
+            _logger = Logger;
             CreatePrefab();
+            SetupModifierKeyBuff();
+
+            keyToDrop = Config.Bind("Client", "Modifier Keybind", KeyCode.LeftAlt, "Holding this button and pressing your equipment use button will drop the Fruit.").Value;
+            healPercentage = Config.Bind("Sync w/ Server", "Heal Percentage", 0.5f, "The percentage of maximum health healed upon walking over.").Value;
+            destroyOnTimerLength = Config.Bind("Sync w/ Server", "Duration", 45, "The amount of time in seconds that the pickup will be alive for. Set to -1 for infinite.").Value;
+            changeDescription = Config.Bind("Client", "Change Description", true, "If true, then the description will have information about the modifier key in it.").Value;
+
+            if (changeDescription)
+                Language.onCurrentLanguageChanged += Language_onCurrentLanguageChanged;
 
             On.RoR2.EquipmentSlot.FireFruit += EquipmentSlot_FireFruit;
+            On.RoR2.CharacterBody.Update += CharacterBody_Update;
+        }
+
+        private void Language_onCurrentLanguageChanged()
+        {
+            if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("com.ThinkInvisible.TILER2") && incremeter == 0)
+            {
+                incremeter++;
+                return;
+            }
+
+            var keyName = "EQUIPMENT_FRUIT_DESC";
+
+            void UpdateLanguage(string newString, string language)
+            {
+                LanguageAPI.Add(keyName, Language.GetString(keyName, language) + " " + newString, language);
+                _logger.LogMessage($"Updated Fruit Desc for {language}");
+            }
+
+            UpdateLanguage($"Wenn du {keyToDrop} gedrückt hältst und benutzt, wirfst du ihn, um einen Verbündeten zu heilen.", "de");
+            UpdateLanguage($"Holding down {keyToDrop} and using will throw it to heal an ally.", "en");
+            UpdateLanguage($"Si mantienes pulsada {keyToDrop} y la utilizas, la lanzarás para curar a un aliado.", "es-419");
+            UpdateLanguage($"En maintenant {keyToDrop} et en l'utilisant, vous le lancerez pour soigner un allié.", "fr");
+            UpdateLanguage($"Tenendo premuto {keyToDrop} e usandolo lo lancerà per curare un alleato.", "it");
+            UpdateLanguage($"{keyToDrop}を押しながら使用すると、味方を回復するために投げられます。", "ja");
+            UpdateLanguage($"{keyToDrop}를 누르고 있으면 던져서 아군을 치료합니다.", "ko"); //google
+            UpdateLanguage($"Segurando o {keyToDrop} e usando-o para curar um aliado.", "pt-BR");
+            UpdateLanguage($"Удерживая {keyToDrop} и используя, вы бросите его, чтобы вылечить союзника.", "RU");
+            UpdateLanguage($"{keyToDrop}'yi basılı tutmak ve kullanmak, bir müttefiki iyileştirmek için onu fırlatır.", "tr"); //google
+            UpdateLanguage($"按住{keyToDrop}并使用会扔掉它来治疗一个盟友。", "zh-cn");
+            Language.onCurrentLanguageChanged -= Language_onCurrentLanguageChanged;
+        }
+
+        private void CharacterBody_Update(On.RoR2.CharacterBody.orig_Update orig, CharacterBody self)
+        {
+            orig(self);
+            if (self.hasAuthority && self.isPlayerControlled && self.master
+                && !LocalUserManager.readOnlyLocalUsersList[0].isUIFocused)
+            {
+                if (Input.GetKey(keyToDrop))
+                {
+                    self.AddTimedBuffAuthority(modifierKeyBuff.buffIndex, 1f);
+                } 
+            }
+        }
+
+        private void SetupModifierKeyBuff()
+        {
+            modifierKeyBuff = ScriptableObject.CreateInstance<BuffDef>();
+            modifierKeyBuff.buffColor = new Color(1f, 215f / 255f, 0f);
+            modifierKeyBuff.canStack = false;
+            modifierKeyBuff.isDebuff = false;
+            modifierKeyBuff.name = "ReadyToThrowFruit";
+            modifierKeyBuff.iconSprite = Resources.Load<Sprite>("Textures/BuffIcons/texBuffCloakIcon");
+            BuffAPI.Add(new CustomBuff(modifierKeyBuff));
         }
 
         private static void CreatePrefab()
         {
             fruitPickup = PrefabAPI.InstantiateClone(Resources.Load<GameObject>("Prefabs/NetworkedObjects/HealPack"), "FruitPack", true);
-            fruitPickup.transform.rotation = Quaternion.identity;
-            fruitPickup.transform.localRotation = Quaternion.identity;
+            fruitPickup.transform.eulerAngles = Vector3.zero;
 
-            Object.Destroy(fruitPickup.GetComponent<DestroyOnTimer>());
-            Destroy(fruitPickup.GetComponent<BeginRapidlyActivatingAndDeactivating>());
+            if (destroyOnTimerLength <= 0)
+            {
+                Object.Destroy(fruitPickup.GetComponent<DestroyOnTimer>());
+                Destroy(fruitPickup.GetComponent<BeginRapidlyActivatingAndDeactivating>());
+            }
+            else
+            {
+                fruitPickup.GetComponent<DestroyOnTimer>().duration = destroyOnTimerLength;
+                fruitPickup.GetComponent<BeginRapidlyActivatingAndDeactivating>().delayBeforeBeginningBlinking = destroyOnTimerLength * 0.85f;
+            }
             Destroy(fruitPickup.GetComponent<VelocityRandomOnStart>());
             Destroy(fruitPickup.transform.Find("GravitationController").gameObject);
 
@@ -45,7 +135,7 @@ namespace ShareYourFood
 
             fruitPickup.GetComponent<Rigidbody>().freezeRotation = true;
 
-            fruitPickup.AddComponent<ConstantForce>();
+            //fruitPickup.AddComponent<ConstantForce>();
 
             var fruitModel = Instantiate(Resources.Load<GameObject>("prefabs/pickupmodels/PickupFruit"), fruitPickup.transform.Find("HealthOrbEffect"));
 
@@ -56,20 +146,53 @@ namespace ShareYourFood
             jarLid.localScale = new Vector3(1f, 1f, 0.3f);
             jarLid.localPosition = new Vector3(0f, -0.9f, 0f);
 
+            var marble = Resources.Load<GameObject>("prefabs/pickupmodels/PickupMask");
+
+            jarLid.GetComponent<MeshRenderer>().material = marble.GetComponentInChildren<MeshRenderer>().material;
+
             foodPickup.modelObject = fruitModel;
         }
 
+        //method is only called by server?
+        private void ThrowFruit(EquipmentSlot equipmentSlot)
+        {
+            GameObject pickup = UnityEngine.Object.Instantiate<GameObject>(fruitPickup, equipmentSlot.characterBody.transform.position, UnityEngine.Random.rotation);
+            pickup.GetComponent<TeamFilter>().teamIndex = equipmentSlot.teamComponent.teamIndex;
+            FoodPickup foodPickup = pickup.GetComponentInChildren<FoodPickup>();
+            foodPickup.owner = equipmentSlot.characterBody;
+            pickup.transform.localScale = new Vector3(1f, 1f, 1f);
+
+            Vector3 direction;
+            if (equipmentSlot.characterBody.inputBank)
+            {
+                Ray aimRay = equipmentSlot.characterBody.inputBank.GetAimRay();
+                direction = aimRay.direction;
+                pickup.transform.position = aimRay.origin;  //set position to aimray if aimray is found
+            }
+            else
+            {
+                direction = equipmentSlot.transform.forward;
+            }
+            Rigidbody component = pickup.GetComponent<Rigidbody>();
+            component.velocity = Vector3.up * 5f + (direction * 20f); // please fine tune
+            pickup.transform.eulerAngles = Vector3.zero;
+
+            NetworkServer.Spawn(pickup);
+        }
+
+
         private bool EquipmentSlot_FireFruit(On.RoR2.EquipmentSlot.orig_FireFruit orig, EquipmentSlot self)
         {
-            if (Input.GetKey(KeyCode.LeftAlt))
+            if (NetworkServer.active)
             {
-                GameObject pickup = UnityEngine.Object.Instantiate<GameObject>(fruitPickup, self.characterBody.transform.position, UnityEngine.Random.rotation);
-                pickup.GetComponent<TeamFilter>().teamIndex = self.teamComponent.teamIndex;
-                FoodPickup foodPickup = pickup.GetComponentInChildren<FoodPickup>();
-                foodPickup.owner = self.characterBody;
-                pickup.transform.localScale = new Vector3(1f, 1f, 1f);
-                NetworkServer.Spawn(pickup);
-                return true;
+                _logger.LogMessage($"{self.hasEffectiveAuthority} {Input.GetKey(keyToDrop)} {self.characterBody.HasBuff(modifierKeyBuff)}");
+                bool canThrow = self.hasEffectiveAuthority ? Input.GetKey(keyToDrop) : self.characterBody.HasBuff(modifierKeyBuff);
+                if (canThrow)
+                {
+                    self.characterBody.RemoveBuff(modifierKeyBuff);
+                    ThrowFruit(self);
+                    return true;
+                }
             }
 
             return orig(self);
@@ -77,16 +200,13 @@ namespace ShareYourFood
 
         public class FoodPickup : MonoBehaviour
         {
-            // Token: 0x060010F4 RID: 4340 RVA: 0x000475AC File Offset: 0x000457AC
-
-            private void Start()
-            {
-                gameObject.transform.rotation = Quaternion.identity;
-            }
-
             private void Update()
             {
                 this.localTime += Time.deltaTime;
+                if (localTime > durationBeforeOwnerPickup)
+                {
+                    ownerCanPickup = true;
+                }
                 if (modelObject)
                 {
                     Transform transform = this.modelObject.transform;
@@ -96,21 +216,40 @@ namespace ShareYourFood
                 }
             }
 
+            private void FixedUpdate()
+            {
+                gameObject.transform.rotation = Quaternion.identity;
+            }
+
             private void OnTriggerStay(Collider other)
             {
                 if (NetworkServer.active && this.alive && TeamComponent.GetObjectTeam(other.gameObject) == this.teamFilter.teamIndex)
                 {
-                    CharacterBody component = other.GetComponent<CharacterBody>();
-                    if (component != owner)
+                    CharacterBody body = other.GetComponent<CharacterBody>();
+                    if (body != owner)
                     {
-                        var equipmentSlot = component.equipmentSlot;
-                        if (equipmentSlot)
-                        {
-                            equipmentSlot.FireFruit();
-                            UnityEngine.Object.Destroy(this.baseObject);
-                        }
+                        ModdedFireFruit(body);
+                        UnityEngine.Object.Destroy(this.baseObject);
+                    } else if (ownerCanPickup && body.inventory.GetEquipmentIndex() == RoR2Content.Equipment.Fruit.equipmentIndex)
+                    {
+                        //bool equipmentChargesLessThanMax = body.inventory.GetEquipmentRestockableChargeCount(body.inventory.activeEquipmentSlot) < body.inventory.GetActiveEquipmentMaxCharges();
+
+                        body.inventory.RestockEquipmentCharges(body.inventory.activeEquipmentSlot, 1);
+                        UnityEngine.Object.Destroy(this.baseObject);
                     }
                 }
+            }
+            private bool ModdedFireFruit(CharacterBody characterbody)
+            {
+                if (characterbody.healthComponent)
+                {
+                    EffectData effectData = new EffectData();
+                    effectData.origin = base.transform.position;
+                    effectData.SetNetworkedObjectReference(base.gameObject);
+                    EffectManager.SpawnEffect(Resources.Load<GameObject>("Prefabs/Effects/FruitHealEffect"), effectData, true);
+                    characterbody.healthComponent.HealFraction(0.5f, default(ProcChainMask));
+                }
+                return true;
             }
 
             // Token: 0x04000F18 RID: 3864
@@ -135,7 +274,9 @@ namespace ShareYourFood
 
             public float spinSpeed = 55f;
 
-            //public bool ownerCanPickup = false;
+            private float durationBeforeOwnerPickup = 3f;
+
+            private bool ownerCanPickup = false;
         }
     }
 }
