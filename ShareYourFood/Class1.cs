@@ -5,7 +5,6 @@ using RoR2;
 using System.Security.Permissions;
 using UnityEngine;
 using UnityEngine.Networking;
-using System.Collections.Generic;
 
 #pragma warning disable CS0618 // Type or member is obsolete
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
@@ -36,8 +35,7 @@ namespace ShareYourFood
 
         internal static BepInEx.Logging.ManualLogSource _logger;
 
-
-        public void Start()
+        public void Awake()
         {
             _logger = Logger;
             CreatePrefab();
@@ -68,7 +66,7 @@ namespace ShareYourFood
             void UpdateLanguage(string newString, string language)
             {
                 LanguageAPI.Add(keyName, Language.GetString(keyName, language) + " " + newString, language);
-                _logger.LogMessage($"Updated Fruit Desc for {language}");
+                //_logger.LogMessage($"Updated Fruit Desc for {language}");
             }
 
             UpdateLanguage($"Wenn du {keyToDrop} gedrückt hältst und benutzt, wirfst du ihn, um einen Verbündeten zu heilen.", "de");
@@ -88,13 +86,13 @@ namespace ShareYourFood
         private void CharacterBody_Update(On.RoR2.CharacterBody.orig_Update orig, CharacterBody self)
         {
             orig(self);
-            if (self.hasAuthority && self.isPlayerControlled && self.master
+            if (self.hasAuthority && self.isPlayerControlled
                 && !LocalUserManager.readOnlyLocalUsersList[0].isUIFocused)
             {
-                if (Input.GetKey(keyToDrop))
+                if (Input.GetKey(keyToDrop) && self.inventory?.currentEquipmentIndex == RoR2Content.Equipment.Fruit.equipmentIndex)
                 {
                     self.AddTimedBuffAuthority(modifierKeyBuff.buffIndex, 1f);
-                } 
+                }
             }
         }
 
@@ -104,8 +102,8 @@ namespace ShareYourFood
             modifierKeyBuff.buffColor = new Color(1f, 215f / 255f, 0f);
             modifierKeyBuff.canStack = false;
             modifierKeyBuff.isDebuff = false;
-            modifierKeyBuff.name = "ReadyToThrowFruit";
-            modifierKeyBuff.iconSprite = Resources.Load<Sprite>("Textures/BuffIcons/texBuffCloakIcon");
+            modifierKeyBuff.name = "Activate your Foreign Fruit to throw!";
+            modifierKeyBuff.iconSprite = RoR2Content.Equipment.Fruit.pickupIconSprite;
             BuffAPI.Add(new CustomBuff(modifierKeyBuff));
         }
 
@@ -180,19 +178,13 @@ namespace ShareYourFood
             NetworkServer.Spawn(pickup);
         }
 
-
         private bool EquipmentSlot_FireFruit(On.RoR2.EquipmentSlot.orig_FireFruit orig, EquipmentSlot self)
         {
-            if (NetworkServer.active)
+            //_logger.LogMessage($"{self.hasEffectiveAuthority} {Input.GetKey(keyToDrop)} {self.characterBody.HasBuff(modifierKeyBuff)}");
+            if (self.characterBody.HasBuff(modifierKeyBuff))
             {
-                _logger.LogMessage($"{self.hasEffectiveAuthority} {Input.GetKey(keyToDrop)} {self.characterBody.HasBuff(modifierKeyBuff)}");
-                bool canThrow = self.hasEffectiveAuthority ? Input.GetKey(keyToDrop) : self.characterBody.HasBuff(modifierKeyBuff);
-                if (canThrow)
-                {
-                    self.characterBody.RemoveBuff(modifierKeyBuff);
-                    ThrowFruit(self);
-                    return true;
-                }
+                ThrowFruit(self);
+                return true;
             }
 
             return orig(self);
@@ -228,9 +220,10 @@ namespace ShareYourFood
                     CharacterBody body = other.GetComponent<CharacterBody>();
                     if (body != owner)
                     {
-                        ModdedFireFruit(body);
+                        EatDaFruit(body);
                         UnityEngine.Object.Destroy(this.baseObject);
-                    } else if (ownerCanPickup && body.inventory.GetEquipmentIndex() == RoR2Content.Equipment.Fruit.equipmentIndex)
+                    }
+                    else if (ownerCanPickup && body.inventory.GetEquipmentIndex() == RoR2Content.Equipment.Fruit.equipmentIndex)
                     {
                         //bool equipmentChargesLessThanMax = body.inventory.GetEquipmentRestockableChargeCount(body.inventory.activeEquipmentSlot) < body.inventory.GetActiveEquipmentMaxCharges();
 
@@ -239,7 +232,9 @@ namespace ShareYourFood
                     }
                 }
             }
-            private bool ModdedFireFruit(CharacterBody characterbody)
+
+            //FireFruit but independent...
+            private bool EatDaFruit(CharacterBody characterbody)
             {
                 if (characterbody.healthComponent)
                 {
