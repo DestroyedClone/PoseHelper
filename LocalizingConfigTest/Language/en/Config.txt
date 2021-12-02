@@ -1,0 +1,14 @@
+﻿{
+	strings:
+	{
+	"CFG_CategoryLanguage": "Language",
+	"CFG_LanguageString": "The current language is: {0}",
+
+
+	"CFG_Category1": "Category",
+	"CFG_BaseAmount": "Base Amount",
+	"CFG_BaseAmountDescription": "The value of how much is given with only one of it.",
+	"CFG_StackAmount": "Stack Amount",
+	"CFG_StackAmountDescription": "The value of how much is given per stack of it."
+	}
+}

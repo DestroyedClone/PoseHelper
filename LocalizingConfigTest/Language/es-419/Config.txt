@@ -1,0 +1,14 @@
+﻿{
+	strings:
+	{
+	"CFG_CategoryLanguage": "Idioma",
+	"CFG_LanguageString": "El idioma actual es: {0}",
+
+
+	"CFG_Category1": "Categoría",
+	"CFG_BaseAmount": "Importe base",
+	"CFG_BaseAmountDescription": "El valor de cuánto se da con sólo uno de ellos.",
+	"CFG_StackAmount": "Cantidad de la pila",
+	"CFG_StackAmountDescription": "El valor de cuánto se da por pila de la misma."
+	}
+}
