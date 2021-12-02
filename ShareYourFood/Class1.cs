@@ -25,6 +25,7 @@ namespace ShareYourFood
         public static float destroyOnTimerLength;
         public static float modifierKeyLeeWay;
         public static bool changeDescription;
+        public static int maxAmount;
         //todo max amount per player?
 
         public static BuffDef modifierKeyBuff;
@@ -43,6 +44,7 @@ namespace ShareYourFood
             healPercentage = Config.Bind("Sync w/ Server", "Heal Percentage", 0.5f, "The percentage of maximum health healed upon walking over.").Value;
             destroyOnTimerLength = Config.Bind("Sync w/ Server", "Duration", 45, "The amount of time in seconds that the pickup will be alive for. Set to -1 for infinite.").Value;
             changeDescription = Config.Bind("Client", "Change Description", true, "If true, then the description will have information about the modifier key in it.").Value;
+            maxAmount = Config.Bind("Sync w/ Server", "Max Amount of Fruit in World", 200, "What is the maximum amount of thrown fruit in the world?").Value;
 
             if (changeDescription)
                 Language.onCurrentLanguageChanged += Language_onCurrentLanguageChanged;
@@ -70,38 +72,48 @@ namespace ShareYourFood
                 //_logger.LogMessage($"Updated Fruit Desc for {language}");
             }
 
-            switch(Language.currentLanguageName)
+            switch (Language.currentLanguageName)
             {
                 case "de":
                     UpdateLanguage($"Wenn du {keyToDrop} gedrückt hältst und benutzt, wirfst du ihn, um einen Verbündeten zu heilen.", "de");
                     break;
+
                 case "en":
                     UpdateLanguage($"Holding down {keyToDrop} and using will throw it to heal an ally.", "en");
                     break;
+
                 case "es-419":
                     UpdateLanguage($"Si mantienes pulsada {keyToDrop} y la utilizas, la lanzarás para curar a un aliado.", "es-419");
                     break;
+
                 case "fr":
                     UpdateLanguage($"En maintenant {keyToDrop} et en l'utilisant, vous le lancerez pour soigner un allié.", "fr");
                     break;
+
                 case "it":
                     UpdateLanguage($"Tenendo premuto {keyToDrop} e usandolo lo lancerà per curare un alleato.", "it");
                     break;
+
                 case "ja":
                     UpdateLanguage($"{keyToDrop}を押しながら使用すると、味方を回復するために投げられます。", "ja");
                     break;
+
                 case "ko":
                     UpdateLanguage($"{keyToDrop}를 누르고 있으면 던져서 아군을 치료합니다.", "ko"); //google
                     break;
+
                 case "pt-BR":
                     UpdateLanguage($"Segurando o {keyToDrop} e usando-o para curar um aliado.", "pt-BR");
                     break;
+
                 case "RU":
                     UpdateLanguage($"Удерживая {keyToDrop} и используя, вы бросите его, чтобы вылечить союзника.", "RU");
                     break;
+
                 case "tr":
                     UpdateLanguage($"{keyToDrop}'yi basılı tutmak ve kullanmak, bir müttefiki iyileştirmek için onu fırlatır.", "tr"); //google
                     break;
+
                 case "zh-cn":
                     UpdateLanguage($"按住{keyToDrop}并使用会扔掉它来治疗一个盟友。", "zh-cn");
                     break;
@@ -117,7 +129,7 @@ namespace ShareYourFood
             {
                 if (Input.GetKey(keyToDrop) && self.inventory?.currentEquipmentIndex == RoR2Content.Equipment.Fruit.equipmentIndex)
                 {
-                    self.AddTimedBuffAuthority(modifierKeyBuff.buffIndex, 1f);
+                    self.AddTimedBuffAuthority(modifierKeyBuff.buffIndex, 0.5f);
                 }
             }
         }
@@ -177,31 +189,36 @@ namespace ShareYourFood
             foodPickup.modelObject = fruitModel;
         }
 
-        //method is only called by server?
-        private void ThrowFruit(EquipmentSlot equipmentSlot)
+        //method is only called by server
+        private bool ThrowFruit(EquipmentSlot equipmentSlot)
         {
-            GameObject pickup = UnityEngine.Object.Instantiate<GameObject>(fruitPickup, equipmentSlot.characterBody.transform.position, UnityEngine.Random.rotation);
-            pickup.GetComponent<TeamFilter>().teamIndex = equipmentSlot.teamComponent.teamIndex;
-            FoodPickup foodPickup = pickup.GetComponentInChildren<FoodPickup>();
-            foodPickup.owner = equipmentSlot.characterBody;
-            pickup.transform.localScale = new Vector3(1f, 1f, 1f);
-
-            Vector3 direction;
-            if (equipmentSlot.characterBody.inputBank)
+            if (InstanceTracker.GetInstancesList<FoodPickup>()?.Count < maxAmount)
             {
-                Ray aimRay = equipmentSlot.characterBody.inputBank.GetAimRay();
-                direction = aimRay.direction;
-                pickup.transform.position = aimRay.origin;  //set position to aimray if aimray is found
-            }
-            else
-            {
-                direction = equipmentSlot.transform.forward;
-            }
-            Rigidbody component = pickup.GetComponent<Rigidbody>();
-            component.velocity = Vector3.up * 5f + (direction * 20f); // please fine tune
-            pickup.transform.eulerAngles = Vector3.zero;
+                GameObject pickup = UnityEngine.Object.Instantiate<GameObject>(fruitPickup, equipmentSlot.characterBody.transform.position, UnityEngine.Random.rotation);
+                pickup.GetComponent<TeamFilter>().teamIndex = equipmentSlot.teamComponent.teamIndex;
+                FoodPickup foodPickup = pickup.GetComponentInChildren<FoodPickup>();
+                foodPickup.owner = equipmentSlot.characterBody;
+                pickup.transform.localScale = new Vector3(1f, 1f, 1f);
 
-            NetworkServer.Spawn(pickup);
+                Vector3 direction;
+                if (equipmentSlot.characterBody.inputBank)
+                {
+                    Ray aimRay = equipmentSlot.characterBody.inputBank.GetAimRay();
+                    direction = aimRay.direction;
+                    pickup.transform.position = aimRay.origin;  //set position to aimray if aimray is found
+                }
+                else
+                {
+                    direction = equipmentSlot.transform.forward;
+                }
+                Rigidbody component = pickup.GetComponent<Rigidbody>();
+                component.velocity = Vector3.up * 5f + (direction * 20f); // please fine tune
+                pickup.transform.eulerAngles = Vector3.zero;
+
+                NetworkServer.Spawn(pickup);
+                return true;
+            }
+            return false;
         }
 
         private bool EquipmentSlot_FireFruit(On.RoR2.EquipmentSlot.orig_FireFruit orig, EquipmentSlot self)
@@ -209,8 +226,7 @@ namespace ShareYourFood
             //_logger.LogMessage($"{self.hasEffectiveAuthority} {Input.GetKey(keyToDrop)} {self.characterBody.HasBuff(modifierKeyBuff)}");
             if (self.characterBody.HasBuff(modifierKeyBuff))
             {
-                ThrowFruit(self);
-                return true;
+                return ThrowFruit(self);
             }
 
             return orig(self);
@@ -218,6 +234,16 @@ namespace ShareYourFood
 
         public class FoodPickup : MonoBehaviour
         {
+            private void OnEnable()
+            {
+                InstanceTracker.Add(this);
+            }
+
+            private void OnDisable()
+            {
+                InstanceTracker.Remove(this);
+            }
+
             private void Update()
             {
                 this.localTime += Time.deltaTime;
