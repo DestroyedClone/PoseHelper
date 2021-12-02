@@ -38,8 +38,6 @@ namespace ShareYourFood
         public void Awake()
         {
             _logger = Logger;
-            CreatePrefab();
-            SetupModifierKeyBuff();
 
             keyToDrop = Config.Bind("Client", "Modifier Keybind", KeyCode.LeftAlt, "Holding this button and pressing your equipment use button will drop the Fruit.").Value;
             healPercentage = Config.Bind("Sync w/ Server", "Heal Percentage", 0.5f, "The percentage of maximum health healed upon walking over.").Value;
@@ -48,6 +46,9 @@ namespace ShareYourFood
 
             if (changeDescription)
                 Language.onCurrentLanguageChanged += Language_onCurrentLanguageChanged;
+
+            CreatePrefab();
+            SetupModifierKeyBuff();
 
             On.RoR2.EquipmentSlot.FireFruit += EquipmentSlot_FireFruit;
             On.RoR2.CharacterBody.Update += CharacterBody_Update;
@@ -69,18 +70,43 @@ namespace ShareYourFood
                 //_logger.LogMessage($"Updated Fruit Desc for {language}");
             }
 
-            UpdateLanguage($"Wenn du {keyToDrop} gedrückt hältst und benutzt, wirfst du ihn, um einen Verbündeten zu heilen.", "de");
-            UpdateLanguage($"Holding down {keyToDrop} and using will throw it to heal an ally.", "en");
-            UpdateLanguage($"Si mantienes pulsada {keyToDrop} y la utilizas, la lanzarás para curar a un aliado.", "es-419");
-            UpdateLanguage($"En maintenant {keyToDrop} et en l'utilisant, vous le lancerez pour soigner un allié.", "fr");
-            UpdateLanguage($"Tenendo premuto {keyToDrop} e usandolo lo lancerà per curare un alleato.", "it");
-            UpdateLanguage($"{keyToDrop}を押しながら使用すると、味方を回復するために投げられます。", "ja");
-            UpdateLanguage($"{keyToDrop}를 누르고 있으면 던져서 아군을 치료합니다.", "ko"); //google
-            UpdateLanguage($"Segurando o {keyToDrop} e usando-o para curar um aliado.", "pt-BR");
-            UpdateLanguage($"Удерживая {keyToDrop} и используя, вы бросите его, чтобы вылечить союзника.", "RU");
-            UpdateLanguage($"{keyToDrop}'yi basılı tutmak ve kullanmak, bir müttefiki iyileştirmek için onu fırlatır.", "tr"); //google
-            UpdateLanguage($"按住{keyToDrop}并使用会扔掉它来治疗一个盟友。", "zh-cn");
-            Language.onCurrentLanguageChanged -= Language_onCurrentLanguageChanged;
+            switch(Language.currentLanguageName)
+            {
+                case "de":
+                    UpdateLanguage($"Wenn du {keyToDrop} gedrückt hältst und benutzt, wirfst du ihn, um einen Verbündeten zu heilen.", "de");
+                    break;
+                case "en":
+                    UpdateLanguage($"Holding down {keyToDrop} and using will throw it to heal an ally.", "en");
+                    break;
+                case "es-419":
+                    UpdateLanguage($"Si mantienes pulsada {keyToDrop} y la utilizas, la lanzarás para curar a un aliado.", "es-419");
+                    break;
+                case "fr":
+                    UpdateLanguage($"En maintenant {keyToDrop} et en l'utilisant, vous le lancerez pour soigner un allié.", "fr");
+                    break;
+                case "it":
+                    UpdateLanguage($"Tenendo premuto {keyToDrop} e usandolo lo lancerà per curare un alleato.", "it");
+                    break;
+                case "ja":
+                    UpdateLanguage($"{keyToDrop}を押しながら使用すると、味方を回復するために投げられます。", "ja");
+                    break;
+                case "ko":
+                    UpdateLanguage($"{keyToDrop}를 누르고 있으면 던져서 아군을 치료합니다.", "ko"); //google
+                    break;
+                case "pt-BR":
+                    UpdateLanguage($"Segurando o {keyToDrop} e usando-o para curar um aliado.", "pt-BR");
+                    break;
+                case "RU":
+                    UpdateLanguage($"Удерживая {keyToDrop} и используя, вы бросите его, чтобы вылечить союзника.", "RU");
+                    break;
+                case "tr":
+                    UpdateLanguage($"{keyToDrop}'yi basılı tutmak ve kullanmak, bir müttefiki iyileştirmek için onu fırlatır.", "tr"); //google
+                    break;
+                case "zh-cn":
+                    UpdateLanguage($"按住{keyToDrop}并使用会扔掉它来治疗一个盟友。", "zh-cn");
+                    break;
+            }
+            //Language.onCurrentLanguageChanged -= Language_onCurrentLanguageChanged;
         }
 
         private void CharacterBody_Update(On.RoR2.CharacterBody.orig_Update orig, CharacterBody self)
