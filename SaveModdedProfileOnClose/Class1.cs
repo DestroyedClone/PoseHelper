@@ -1,6 +1,4 @@
 ﻿using BepInEx;
-
-//using R2API.Utils;
 using RoR2;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,9 +13,11 @@ using UnityEngine;
 
 namespace SaveModdedProfileOnClose
 {
-    [BepInPlugin("com.DestroyedClone.Profile", "Profile", "1.0.0")]
+    [BepInPlugin("com.DestroyedClone.SaveModdedProfileOnClose", "Save Modded Profile On Close", "1.0.0")]
     public class Main : BaseUnityPlugin
     {
+
+
         internal static BepInEx.Logging.ManualLogSource _logger;
 
         public static List<string> modifiedBodyNames = new List<string>();
