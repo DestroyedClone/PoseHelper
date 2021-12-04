@@ -38,6 +38,8 @@ namespace KKA_AddOn
             }}
         };
 
+        public static bool shouldGiveExperience = true;
+
         public struct Diorama
         {
             public GameObject dioramaObject;
@@ -57,8 +59,34 @@ namespace KKA_AddOn
                 "\nIncluding: ");
             R2API.Utils.CommandHelper.AddToConsoleWhenReady();
 
+            //CharacterBody.onBodyStartGlobal += CharacterBody_onBodyStartGlobal;
+            On.RoR2.ExperienceManager.AwardExperience += DenyExperience;
+
         }
 
+        private void DenyExperience(On.RoR2.ExperienceManager.orig_AwardExperience orig, ExperienceManager self, Vector3 origin, CharacterBody body, ulong amount)
+        {
+            if (shouldGiveExperience)
+                orig(self, origin, body, amount);
+            return;
+        }
+
+        private void CharacterBody_onBodyStartGlobal(CharacterBody obj)
+        {
+            if (!obj.isPlayerControlled && obj.teamComponent.teamIndex == TeamIndex.Player)
+            {
+                var a = obj.gameObject.AddComponent<WeatherParticles>();
+                a.lockPosition = true;
+            }
+        }
+
+
+        [ConCommand(commandName = "lock_exp", flags = ConVarFlags.ExecuteOnServer, helpText = "lock_exp {true|false} - Prevents experience being awarded.")]
+        public static void CMD_LockExp(ConCommandArgs args)
+        {
+            shouldGiveExperience = !shouldGiveExperience;
+            Debug.Log($"Experience has been {(shouldGiveExperience ? "un" : "")}locked.");
+        }
 
         [ConCommand(commandName = "spawnprefab", flags = ConVarFlags.ExecuteOnServer, helpText = "spawnprefab at your location {x} {y} {z}")]
         public static void ChangeLight(ConCommandArgs args)
