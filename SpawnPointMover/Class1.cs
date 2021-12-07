@@ -1,14 +1,9 @@
 ﻿using BepInEx;
-using BepInEx.Configuration;
-using R2API.Utils;
 using RoR2;
+using System.Collections.Generic;
 using System.Security;
 using System.Security.Permissions;
-using System.Collections.Generic;
 using UnityEngine;
-using R2API;
-using RoR2.Projectile;
-
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -18,8 +13,6 @@ using RoR2.Projectile;
 namespace SpawnPointMover
 {
     [BepInPlugin("com.DestroyedClone.SpawnPointMover", "SpawnPointMover", "1.0.0")]
-    [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
-    [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
     public class Main : BaseUnityPlugin
     {
         public static Vector3 newPosition;
