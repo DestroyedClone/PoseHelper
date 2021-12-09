@@ -1,6 +1,5 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
-using R2API.Utils;
 using RoR2;
 using System.Collections.Generic;
 using System.Security;
@@ -16,8 +15,6 @@ using UnityEngine;
 namespace MonsterTeamSwap
 {
     [BepInPlugin("com.DestroyedClone.MonsterTeamSwap", "Monster Team Swap", "1.0.0")]
-    [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
-    [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
     public class Class1 : BaseUnityPlugin
     {
         public static ConfigEntry<string> cfgNone;
@@ -43,11 +40,11 @@ namespace MonsterTeamSwap
         public void SetupConfig()
         {
             string description = "Add the names of Bodies you want to force switch the teams of.";
-            cfgNone = Config.Bind("Team Index Overrides", "None", "", description);
-            cfgNeutral = Config.Bind("Team Index Overrides", "Neutral", "ImpBody,ImpBossBody", description);
-            cfgPlayer = Config.Bind("Team Index Overrides", "Player", "", description);
+            cfgNone = Config.Bind("Team Index Overrides", "None", "", description + " This is the name of a Team Index, not an exclusion list.");
+            cfgNeutral = Config.Bind("Team Index Overrides", "Neutral", "", description);
+            cfgPlayer = Config.Bind("Team Index Overrides", "Player", "", description + " Careful, without friendly fire you won't be able to damage them.");
             cfgMonster = Config.Bind("Team Index Overrides", "Monster", "", description);
-            cfgLunar = Config.Bind("Team Index Overrides", "Lunar", "", description);
+            cfgLunar = Config.Bind("Team Index Overrides", "Lunar", "ImpBody,ImpBossBody", description);
         }
 
         private GameObject OverrideTeamSpawn(On.RoR2.DirectorCore.orig_TrySpawnObject orig, DirectorCore self, DirectorSpawnRequest directorSpawnRequest)
