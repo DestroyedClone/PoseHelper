@@ -16,16 +16,11 @@ namespace PersonalizedPodPrefabs
     {
         public override string BodyName => RoR2Content.Survivors.Croco.bodyPrefab.name;
 
-        public override void Init(ConfigFile config)
+        public override GameObject CreatePod()
         {
-            SetupPod();
-        }
-
-        private void SetupPod()
-        {
-            GameObject podPrefab = PrefabAPI.InstantiateClone(roboCratePodPrefab, "AcridPodPrefab");
-            RoR2Content.Survivors.Croco.bodyPrefab.GetComponent<CharacterBody>().preferredPodPrefab = podPrefab;
+            GameObject podPrefab = PrefabAPI.InstantiateClone(roboCratePodPrefab, PodPrefabName);
             podPrefab.AddComponent<AcridPodComponent>();
+            return podPrefab;
         }
 
         public class AcridPodComponent : PodComponent
@@ -63,7 +58,7 @@ namespace PersonalizedPodPrefabs
                 int acidPoolAmount = 8;
                 float angle = 360f / acidPoolAmount;
                 Quaternion rotation = Quaternion.AngleAxis(angle, Vector3.up);
-                var nextPosition = passengerBody.footPosition + Vector3.forward * 2f;
+                var nextPosition = passengerBody.footPosition + Vector3.forward * 6f;
 
                 int i = 0;
                 while (i < acidPoolAmount)

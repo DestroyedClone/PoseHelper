@@ -18,6 +18,28 @@ namespace PersonalizedPodPrefabs
                 return "Pod: " + BodyName;
             }
         }
-        public abstract void Init(ConfigFile config);
+        public virtual string PodPrefabName
+        {
+            get
+            {
+                return BodyName + "PodPrefab";
+            }
+        }
+
+        public virtual void AssignPodPrefab()
+        {
+            var survivorDef = SurvivorCatalog.FindSurvivorDefFromBody(BodyCatalog.FindBodyPrefab(BodyName));
+            survivorDef.bodyPrefab.GetComponent<CharacterBody>().preferredPodPrefab = CreatePod();
+        }
+        public virtual void Init(ConfigFile config)
+        {
+            AssignPodPrefab();
+        }
+
+        public virtual GameObject CreatePod()
+        {
+            PersonalizePodPlugin._logger.LogWarning($"PodBase found for {BodyName} but no modifications were done to it! Assigning Robocrate.");
+            return PersonalizePodPlugin.roboCratePodPrefab;
+        }
     }
 }
