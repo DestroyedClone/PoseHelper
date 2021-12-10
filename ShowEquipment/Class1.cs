@@ -110,7 +110,8 @@ namespace ShowEquipment
                 && (( master.masterIndex == EquipmentDroneMasterIndex && cfgNameEquipmentMode.Value == NameEquipmentMode.EquipmentDrones) || cfgNameEquipmentMode.Value == NameEquipmentMode.Any)
                 && master.inventory && master.inventory.currentEquipmentIndex != EquipmentIndex.None)
             {
-                if (master.teamIndex == LocalUserManager.GetFirstLocalUser()?.cachedMaster?.teamIndex)
+                var firstLocalUser = LocalUserManager.GetFirstLocalUser();
+                if (firstLocalUser != null && firstLocalUser.cachedMaster && master.teamIndex == firstLocalUser.cachedMaster.teamIndex)
                 {
                     self.nameLabel.text += $" ({Language.GetString(EquipmentCatalog.GetEquipmentDef(master.inventory.currentEquipmentIndex).nameToken)})";
                 }
@@ -181,9 +182,9 @@ namespace ShowEquipment
 
             public void Start()
             {
-                if (allyCardController?.sourceMaster?.inventory)
+                if (allyCardController && allyCardController.sourceMaster && allyCardController.sourceMaster.inventory)
                 {
-                    inventory = allyCardController?.sourceMaster?.inventory;
+                    inventory = allyCardController.sourceMaster.inventory;
                     inventory.onInventoryChanged += UpdateSprite;
                 }
             }
