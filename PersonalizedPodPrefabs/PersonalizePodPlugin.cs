@@ -18,7 +18,6 @@ using Path = System.IO.Path;
 #pragma warning restore CS0618 // Type or member is obsolete
 
 [assembly: HG.Reflection.SearchableAttribute.OptIn]
-
 namespace PersonalizedPodPrefabs
 {
     [BepInPlugin("com.DestroyedClone.PersonalizedPodPrefabs", "Personalized Pod Prefabs", "1.0.0")]
@@ -52,13 +51,14 @@ namespace PersonalizedPodPrefabs
         public static void AssemblyShit()
         {
             var PodTypes = Assembly.GetExecutingAssembly().GetTypes().Where(type => !type.IsAbstract && type.IsSubclassOf(typeof(PodBase)));
-
+            _logger.LogMessage($"Amount of pod types added: "+ PodTypes.Count());
             foreach (var podType in PodTypes)
             {
                 PodBase podBase = (PodBase)Activator.CreateInstance(podType);
                 if (ValidatePod(instance.Config, podBase))
                 {
                     podBase.Init(instance.Config);
+                    _logger.LogMessage("Added pod for " + podBase.BodyName);
                 }
             }
 
@@ -67,7 +67,7 @@ namespace PersonalizedPodPrefabs
             if (survivorDef)
             {
                 _logger.LogMessage("Enforcer is loaded, setting him up.");
-                Enfucker.Init(survivorDef);
+                //Enfucker.Init(survivorDef);
                 return;
             }
         }
@@ -85,7 +85,7 @@ namespace PersonalizedPodPrefabs
                 var enabled = configFile.Bind<bool>(podBase.ConfigCategory, "Enable Pod Modification?", true, "[Server] Should this body's pod get modified?").Value;
                 if (enabled)
                 {
-                    // whatever
+                    return true;
                 }
             }
             return false;
