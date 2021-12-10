@@ -25,6 +25,9 @@ namespace PersonalizedPodPrefabs
 
         public class AcridPodComponent : PodComponent
         {
+            private int acidPoolAmount = 8;
+            private float acidPoolDistance = 8f;
+
             protected override void VehicleSeat_onPassengerExit(GameObject passenger)
             {
                 var characterBody = passenger.GetComponent<CharacterBody>();
@@ -55,10 +58,9 @@ namespace PersonalizedPodPrefabs
 
             private void SpawnAcidPools(CharacterBody passengerBody)
             {
-                int acidPoolAmount = 8;
                 float angle = 360f / acidPoolAmount;
                 Quaternion rotation = Quaternion.AngleAxis(angle, Vector3.up);
-                var nextPosition = passengerBody.footPosition + Vector3.forward * 6f;
+                var nextPosition = passengerBody.footPosition + Vector3.forward * acidPoolDistance;
 
                 int i = 0;
                 while (i < acidPoolAmount)
