@@ -28,6 +28,7 @@ namespace ShowEquipment
         public static MasterCatalog.MasterIndex EquipmentDroneMasterIndex;
         public static GameObject AllyCard = Resources.Load<GameObject>("prefabs/ui/AllyCard");
 
+        internal static BepInEx.Logging.ManualLogSource _logger;
 
         public enum NameEquipmentMode
         {
@@ -44,6 +45,8 @@ namespace ShowEquipment
 
         public void Start()
         {
+            _logger = Logger;
+
             AllyCard_ShowEquipment = Config.Bind("Ally Cards", "Show Equipment Icon", NameEquipmentMode.Any);
             cfgNameEquipmentCategory = Config.Bind("", "Name Category", NameEquipmentCategory.AllyCard, 
                 "AllyCard = Shows up only on the ally cards" +
@@ -185,8 +188,13 @@ namespace ShowEquipment
                 if (allyCardController && allyCardController.sourceMaster && allyCardController.sourceMaster.inventory)
                 {
                     inventory = allyCardController.sourceMaster.inventory;
-                    inventory.onInventoryChanged += UpdateSprite;
                 }
+                if (!inventory)
+                {
+                    _logger.LogWarning("Aborting! Either 'sourceMaster' or 'inventory' was missing, disabling to prevent further errors.");
+                    enabled = false;
+                }
+                inventory.onInventoryChanged += UpdateSprite;
             }
             public void OnDestroy()
             {
@@ -198,7 +206,7 @@ namespace ShowEquipment
                 if (inventory && inventory.currentEquipmentIndex != EquipmentIndex.None)
                 {
                     image.enabled = false;
-                    var equipmentDef = EquipmentCatalog.GetEquipmentDef(allyCardController.sourceMaster.inventory.currentEquipmentIndex);
+                    var equipmentDef = EquipmentCatalog.GetEquipmentDef(inventory.currentEquipmentIndex);
                     image.sprite = equipmentDef.pickupIconSprite;
                     image.enabled = true;
                 } else
