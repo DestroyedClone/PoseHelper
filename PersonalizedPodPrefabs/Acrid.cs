@@ -30,10 +30,17 @@ namespace PersonalizedPodPrefabs
 
         public class AcridPodComponent : PodComponent
         {
-            protected override void VehicleSeat_onPassengerExit(GameObject obj)
+            protected override void VehicleSeat_onPassengerExit(GameObject passenger)
             {
-                Vector3 position = obj.transform.position;
-                var characterBody = obj.GetComponent<CharacterBody>();
+                var characterBody = passenger.GetComponent<CharacterBody>();
+                if (characterBody)
+                {
+                    SpawnAcidPools(characterBody);
+                }
+            }
+
+            private void SpawnAcidPool(CharacterBody characterBody, Vector3 position)
+            {
                 if (characterBody)
                 {
                     position = characterBody.footPosition;
@@ -44,11 +51,27 @@ namespace PersonalizedPodPrefabs
                     crit = false,
                     force = 0f,
                     damage = characterBody ? characterBody.damage : 18f,
-                    owner = obj,
+                    owner = characterBody.gameObject,
                     rotation = Quaternion.identity,
                     position = position
                 };
                 ProjectileManager.instance.FireProjectile(fireProjectileInfo);
+            }
+
+            private void SpawnAcidPools(CharacterBody passengerBody)
+            {
+                int acidPoolAmount = 8;
+                float angle = 360f / acidPoolAmount;
+                Quaternion rotation = Quaternion.AngleAxis(angle, Vector3.up);
+                var nextPosition = passengerBody.footPosition + Vector3.forward * 2f;
+
+                int i = 0;
+                while (i < acidPoolAmount)
+                { // I *would* prefer raytraces
+                    SpawnAcidPool(passengerBody, nextPosition);
+                    i++;
+                    nextPosition = rotation * nextPosition;
+                }
             }
         }
     }
