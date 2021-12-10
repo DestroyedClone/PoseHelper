@@ -37,6 +37,9 @@ namespace PersonalizedPodPrefabs
 
         public static PersonalizePodPlugin instance;
 
+        //Events
+        public static event Action<VehicleSeat, GameObject> onPodLandedServer;
+
         // enfucker
 
         public void Start()
@@ -45,13 +48,34 @@ namespace PersonalizedPodPrefabs
             _logger = Logger;
             genericPodPrefab = RoR2Content.Survivors.Commando.bodyPrefab.GetComponent<CharacterBody>().preferredPodPrefab;
             roboCratePodPrefab = RoR2Content.Survivors.Toolbot.bodyPrefab.GetComponent<CharacterBody>().preferredPodPrefab;
+
+            Hooks();
+        }
+
+        private void Hooks()
+        {
+            On.EntityStates.SurvivorPod.Landed.OnEnter += CallLandedAction;
+        }
+
+        private void CallLandedAction(On.EntityStates.SurvivorPod.Landed.orig_OnEnter orig, EntityStates.SurvivorPod.Landed self)
+        {
+            orig(self);
+            if (self.vehicleSeat && !self.vehicleSeat.ejectOnCollision)
+            {
+                Action<VehicleSeat, GameObject> action2 = onPodLandedServer;
+                if (action2 == null)
+                {
+                    return;
+                }
+                action2(self.vehicleSeat, self.vehicleSeat.passengerBodyObject);
+            }
         }
 
         [RoR2.SystemInitializer(dependencies: typeof(RoR2.SurvivorCatalog))]
-        public static void AssemblyShit()
+        public static void AssemblySetup()
         {
             var PodTypes = Assembly.GetExecutingAssembly().GetTypes().Where(type => !type.IsAbstract && type.IsSubclassOf(typeof(PodBase)));
-            _logger.LogMessage($"Amount of pod types added: "+ PodTypes.Count());
+            int podAmount = 0;
             foreach (var podType in PodTypes)
             {
                 PodBase podBase = (PodBase)Activator.CreateInstance(podType);
@@ -59,8 +83,10 @@ namespace PersonalizedPodPrefabs
                 {
                     podBase.Init(instance.Config);
                     _logger.LogMessage("Added pod for " + podBase.BodyName);
+                    podAmount++;
                 }
             }
+            _logger.LogMessage($"Amount of pod types added: " + podAmount);
 
 
             var survivorDef = SurvivorCatalog.FindSurvivorDefFromBody(BodyCatalog.FindBodyPrefab("EnforcerBody"));
