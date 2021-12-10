@@ -135,6 +135,10 @@ namespace ShowEquipment
                 var component = display.gameObject.AddComponent<AllyCardEquipment>();
                 component.image = display.GetComponent<Image>();
                 component.allyCardController = self;
+                /*
+                component.tooltipProvider = display.gameObject.AddComponent<TooltipProvider>();
+                component.tooltipProvider.titleColor = new Color32(255, 128, 0, 255);
+                component.tooltipProvider.bodyColor = new Color32(127, 127, 127, 255);*/
             }
         }
 
@@ -183,6 +187,8 @@ namespace ShowEquipment
             public AllyCardController allyCardController;
             public Inventory inventory;
 
+            public TooltipProvider tooltipProvider;
+
             public void Start()
             {
                 if (allyCardController && allyCardController.sourceMaster && allyCardController.sourceMaster.inventory)
@@ -191,7 +197,7 @@ namespace ShowEquipment
                 }
                 if (!inventory)
                 {
-                    _logger.LogWarning("Aborting! Either 'sourceMaster' or 'inventory' was missing, disabling to prevent further errors.");
+                    _logger.LogWarning($"Aborting! 'Inventory' was missing, disabling to prevent further errors. (sourceMaster name {(allyCardController ? allyCardController.sourceMaster.name : "Unknown Master")})");
                     enabled = false;
                 }
                 inventory.onInventoryChanged += UpdateSprite;
@@ -209,6 +215,11 @@ namespace ShowEquipment
                     var equipmentDef = EquipmentCatalog.GetEquipmentDef(inventory.currentEquipmentIndex);
                     image.sprite = equipmentDef.pickupIconSprite;
                     image.enabled = true;
+                    if (tooltipProvider)
+                    {
+                        tooltipProvider.titleToken = equipmentDef.nameToken;
+                        tooltipProvider.bodyToken = equipmentDef.pickupToken;
+                    }
                 } else
                 {
                     image.enabled = false;
