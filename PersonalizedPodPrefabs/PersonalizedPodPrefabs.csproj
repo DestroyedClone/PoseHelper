@@ -5,6 +5,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Compile Remove="Enfucker.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<Reference Include="0Harmony">
 			<HintPath>..\PoseHelper\lib\0Harmony.dll</HintPath>
 		</Reference>

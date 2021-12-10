@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using R2API;
 using RoR2.Projectile;
-using static PersonalizedPodPrefabs.Main;
+using static PersonalizedPodPrefabs.PersonalizePodPlugin;
 
 namespace PersonalizedPodPrefabs
 {
