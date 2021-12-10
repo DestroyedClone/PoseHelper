@@ -1,15 +1,9 @@
-﻿using BepInEx;
-using BepInEx.Configuration;
-using R2API.Utils;
+﻿using R2API;
 using RoR2;
-using System.Security;
-using System.Security.Permissions;
-using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
-using R2API;
-using RoR2.Projectile;
-using static PersonalizedPodPrefabs.PersonalizePodPlugin;
 using UnityEngine.Networking;
+using static PersonalizedPodPrefabs.PersonalizePodPlugin;
 
 namespace PersonalizedPodPrefabs
 {
@@ -26,14 +20,19 @@ namespace PersonalizedPodPrefabs
 
         public class Bandit2PodComponent : PodComponent
         {
-            private readonly float buffDuration = 10f;
+            //private readonly float buffDuration = 10f;
             protected override void VehicleSeat_onPassengerExit(GameObject passenger)
             {
                 if (!NetworkServer.active) return;
                 var characterBody = passenger.GetComponent<CharacterBody>();
                 if (characterBody)
                 {
-                    characterBody.AddTimedBuff(RoR2Content.Buffs.Cloak, buffDuration);
+                    var entityStateMachine = characterBody.GetComponents<EntityStateMachine>().FirstOrDefault(esm => esm.customName == "Stealth");
+                    if (entityStateMachine != null)
+                    {
+                        entityStateMachine.SetNextState(new EntityStates.Bandit2.StealthMode());
+                    }
+                    //characterBody.AddTimedBuff(RoR2Content.Buffs.Cloak, buffDuration);
                 }
             }
         }
