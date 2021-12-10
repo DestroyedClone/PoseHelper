@@ -15,7 +15,7 @@ using BepInEx.Configuration;
 
 namespace ShowEquipment
 {
-    [BepInPlugin("com.DestroyedClone.ShowEquipment", "Show Equipment", "1.0.0")]
+    [BepInPlugin("com.DestroyedClone.ShowEquipment", "Show Equipment", "1.0.1")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
     public class ShowEquipmentPlugin : BaseUnityPlugin
