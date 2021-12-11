@@ -13,6 +13,15 @@ namespace UnknownErrorFixes
         public void Start()
         {
             On.RoR2.Projectile.ProjectileSteerTowardTarget.FixedUpdate += ProjectileSteerTowardTarget_FixedUpdate;
+            On.RoR2.AntiGravityForce.FixedUpdate += AntiGravityForce_FixedUpdate;
+        }
+
+        private void AntiGravityForce_FixedUpdate(On.RoR2.AntiGravityForce.orig_FixedUpdate orig, RoR2.AntiGravityForce self)
+        {
+            if (self.rb)
+            {
+                orig(self);
+            }
         }
 
         private void ProjectileSteerTowardTarget_FixedUpdate(On.RoR2.Projectile.ProjectileSteerTowardTarget.orig_FixedUpdate orig, RoR2.Projectile.ProjectileSteerTowardTarget self)
@@ -21,7 +30,6 @@ namespace UnknownErrorFixes
             {
                 orig(self);
             }
-            return;
         }
     }
 }
