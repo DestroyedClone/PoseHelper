@@ -7,7 +7,7 @@ using System.Security.Permissions;
 
 namespace UnknownErrorFixes
 {
-    [BepInPlugin("com.DestroyedClone.UnknownErrorFixes", "UnknownErrorFixes", "1.0.0")]
+    [BepInPlugin("com.DestroyedClone.UnknownErrorFixes", "UnknownErrorFixes", "1.0.1")]
     public class Main : BaseUnityPlugin
     {
         public void Start()
