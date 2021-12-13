@@ -1,13 +1,7 @@
-﻿using BepInEx;
-using BepInEx.Configuration;
-using R2API.Utils;
+﻿using R2API;
 using RoR2;
-using System.Security;
-using System.Security.Permissions;
-using System.Collections.Generic;
-using UnityEngine;
-using R2API;
 using RoR2.Projectile;
+using UnityEngine;
 using static PersonalizedPodPrefabs.PersonalizePodPlugin;
 
 namespace PersonalizedPodPrefabs
@@ -15,6 +9,7 @@ namespace PersonalizedPodPrefabs
     public class Acrid : PodBase
     {
         public override string BodyName => RoR2Content.Survivors.Croco.bodyPrefab.name;
+        public override bool ShouldAddVolatileBatteryHook => true;
 
         public override GameObject CreatePod()
         {
@@ -25,8 +20,15 @@ namespace PersonalizedPodPrefabs
 
         public class AcridPodComponent : PodComponent
         {
-            private int acidPoolAmount = 8;
-            private float acidPoolDistance = 8f;
+            private readonly int acidPoolAmount = 8;
+            private readonly float acidPoolDistance = 8f;
+
+            protected override void Start()
+            {
+                addExitAction = true;
+                addLandingAction = false;
+                base.Start();
+            }
 
             protected override void VehicleSeat_onPassengerExit(GameObject passenger)
             {
@@ -34,6 +36,8 @@ namespace PersonalizedPodPrefabs
                 if (characterBody)
                 {
                     SpawnAcidPools(characterBody);
+                    if (cfgShouldDropVolatileBattery)
+                        PersonalizePodPlugin.SpawnBattery(characterBody.footPosition);
                 }
             }
 

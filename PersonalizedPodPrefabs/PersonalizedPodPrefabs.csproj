@@ -6,6 +6,7 @@
 
 	<ItemGroup>
 	  <Compile Remove="Enfucker.cs" />
+	  <Compile Remove="Template.cs" />
 	</ItemGroup>
 
 	<ItemGroup>

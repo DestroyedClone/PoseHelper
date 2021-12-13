@@ -1,23 +1,22 @@
 ﻿using R2API;
 using RoR2;
-using System.Linq;
 using UnityEngine;
 using static PersonalizedPodPrefabs.PersonalizePodPlugin;
 
 namespace PersonalizedPodPrefabs
 {
-    public class Bandit2 : PodBase
+    public class Commando : PodBase
     {
-        public override string BodyName => RoR2Content.Survivors.Bandit2.bodyPrefab.name;
+        public override string BodyName => RoR2Content.Survivors.Commando.bodyPrefab.name;
 
         public override GameObject CreatePod()
         {
             GameObject podPrefab = PrefabAPI.InstantiateClone(genericPodPrefab, PodPrefabName);
-            podPrefab.AddComponent<Bandit2PodComponent>();
+            podPrefab.AddComponent<CommandoPodComponent>();
             return podPrefab;
         }
 
-        public class Bandit2PodComponent : PodComponent
+        public class CommandoPodComponent : PodComponent
         {
             protected override void Start()
             {
@@ -28,16 +27,9 @@ namespace PersonalizedPodPrefabs
 
             protected override void VehicleSeat_onPassengerExit(GameObject passenger)
             {
-                if (!isServer) return;
                 var characterBody = passenger.GetComponent<CharacterBody>();
-                if (characterBody)
-                {
-                    var entityStateMachine = characterBody.GetComponents<EntityStateMachine>().FirstOrDefault(esm => esm.customName == "Stealth");
-                    if (entityStateMachine != null)
-                    {
-                        entityStateMachine.SetNextState(new EntityStates.Bandit2.StealthMode());
-                    }
-                }
+                if (characterBody && isServer)
+                    characterBody.AddTimedBuff(RoR2Content.Buffs.Energized, 8f);
             }
         }
     }

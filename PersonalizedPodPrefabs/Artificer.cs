@@ -1,88 +1,57 @@
-﻿using BepInEx;
-using BepInEx.Configuration;
-using R2API.Utils;
+﻿using EntityStates.Mage;
+using R2API;
 using RoR2;
-using System.Security;
-using System.Security.Permissions;
 using System.Collections.Generic;
 using UnityEngine;
-using R2API;
-using RoR2.Projectile;
 using static PersonalizedPodPrefabs.PersonalizePodPlugin;
-using UnityEngine.Networking;
-using EntityStates.Mage;
 
 namespace PersonalizedPodPrefabs
 {
     public class Artificer : PodBase
     {
-        public override string BodyName => "MageBody";
+        public static Dictionary<string, BuffDef> primaryToken_to_buffDef = new Dictionary<string, BuffDef>()
+        {
+            { "MAGE_PRIMARY_FIRE_NAME" , RoR2Content.Buffs.AffixRed },
+            { "MAGE_PRIMARY_LIGHTNING_NAME", RoR2Content.Buffs.AffixBlue }
+        };
+
+        public override string BodyName => RoR2Content.Survivors.Mage.bodyPrefab.name;
 
         public override GameObject CreatePod()
         {
             GameObject podPrefab = PrefabAPI.InstantiateClone(genericPodPrefab, PodPrefabName);
+            /*podPrefab.GetComponentInChildren<MeshRenderer>().material
+                = SurvivorCatalog.FindSurvivorDefFromBody(BodyCatalog.FindBodyPrefab(BodyName))
+                .displayPrefab.transform.Find("MageMesh").GetComponent<SkinnedMeshRenderer>().material;*/
             podPrefab.AddComponent<ArtificerPodComponent>();
             return podPrefab;
         }
 
         private class ArtificerPodComponent : PodComponent
         {
-            private string landingType;
+            private readonly float buffDuration = 8f;
 
             protected override void Start()
             {
+                addLandingAction = false;
+                addExitAction = true;
                 base.Start();
-                landingType = EvaluatePrimarySkillDef();
-                PersonalizePodPlugin.onPodLandedServer += PersonalizePodPlugin_onPodLandedServer;
             }
 
-            private void PersonalizePodPlugin_onPodLandedServer(VehicleSeat eventVehicleSeat, GameObject passengerBodyObject)
+            protected override void VehicleSeat_onPassengerExit(GameObject passenger)
             {
-                if (eventVehicleSeat == vehicleSeat)
-                    CreateLandingEffect(eventVehicleSeat.gameObject, passengerBodyObject);
-            }
-
-            protected override void OnDestroy()
-            {
-                base.OnDestroy();
-                PersonalizePodPlugin.onPodLandedServer -= PersonalizePodPlugin_onPodLandedServer;
-            }
-
-            private string EvaluatePrimarySkillDef()
-            {
-                if (vehicleSeat.currentPassengerBody && vehicleSeat.currentPassengerBody.skillLocator)
+                if (isServer)
                 {
-                    if (vehicleSeat.currentPassengerBody.skillLocator.primary)
+                    var characterBody = passenger.GetComponent<CharacterBody>();
+                    if (characterBody && characterBody.skillLocator && characterBody.skillLocator.primary)
                     {
-                        var skillDef = vehicleSeat.currentPassengerBody.skillLocator.primary.skillDef;
-                        if (skillDef == vehicleSeat.currentPassengerBody.skillLocator.primary.baseSkill)
+                        var token = characterBody.skillLocator.primary.skillDef.skillNameToken;
+                        if (primaryToken_to_buffDef.TryGetValue(token, out BuffDef buffDef))
                         {
-                            return "Fire";
-                        } else
-                        {
-                            return "Shock";
+                            characterBody.AddTimedBuff(buffDef, buffDuration);
                         }
                     }
                 }
-                return "Fire";
-            }
-
-            private void CreateLandingEffect(GameObject podObject, GameObject passengerObject)
-            {
-                if (NetworkServer.active)
-                {
-                    switch (landingType)
-                    {
-                        case "Fire":
-                            ShootFire(podObject, passengerObject);
-                            break;
-                        case "Shock":
-                        default:
-                            ShootShock(podObject, passengerObject);
-                            break;
-                    }
-                }
-
             }
 
             private BlastAttack CreateBlastAttack(GameObject podObject, GameObject passengerObject)
@@ -123,7 +92,6 @@ namespace PersonalizedPodPrefabs
                 effectData.origin = blastAttack.position;
                 EffectManager.SpawnEffect(FlyUpState.blinkPrefab, effectData, true);
             }
-
         }
     }
 }

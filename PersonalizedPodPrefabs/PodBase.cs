@@ -26,6 +26,9 @@ namespace PersonalizedPodPrefabs
             }
         }
 
+        public static bool cfgShouldDropVolatileBattery;
+        public virtual bool ShouldAddVolatileBatteryHook { get; set; } = false;
+
         public virtual void AssignPodPrefab()
         {
             var survivorDef = SurvivorCatalog.FindSurvivorDefFromBody(BodyCatalog.FindBodyPrefab(BodyName));
@@ -34,6 +37,15 @@ namespace PersonalizedPodPrefabs
         public virtual void Init(ConfigFile config)
         {
             AssignPodPrefab();
+            SetupConfig(config);
+        }
+
+        public virtual void SetupConfig(ConfigFile config)
+        {
+            if (ShouldAddVolatileBatteryHook)
+            {
+                cfgShouldDropVolatileBattery = config.Bind(ConfigCategory, "Drop Fuel Array?", true, "If true, then after exiting, a fuel array will be dropped.").Value;
+            }
         }
 
         public virtual GameObject CreatePod()
