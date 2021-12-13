@@ -2,15 +2,13 @@
 using R2API;
 using R2API.Utils;
 using RoR2;
-using RoR2.Projectile;
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using System.Security;
 using System.Security.Permissions;
 using UnityEngine;
-using System;
-using System.Linq;
-using System.Reflection;
-using Path = System.IO.Path;
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -18,6 +16,7 @@ using Path = System.IO.Path;
 #pragma warning restore CS0618 // Type or member is obsolete
 
 [assembly: HG.Reflection.SearchableAttribute.OptIn]
+
 namespace PersonalizedPodPrefabs
 {
     [BepInPlugin("com.DestroyedClone.PersonalizedPodPrefabs", "Personalized Pod Prefabs", "1.0.0")]
@@ -40,6 +39,7 @@ namespace PersonalizedPodPrefabs
 
         //Events
         public static event Action<VehicleSeat, GameObject> onPodLandedServer;
+
         public static event Action<VehicleSeat, GameObject> onRoboPodLandedServer;
 
         // enfucker
@@ -131,7 +131,6 @@ namespace PersonalizedPodPrefabs
                 }
             }
             _logger.LogMessage($"Amount of pod types added: " + podAmount);
-
 
             var survivorDef = SurvivorCatalog.FindSurvivorDefFromBody(BodyCatalog.FindBodyPrefab("EnforcerBody"));
             if (survivorDef)
@@ -253,5 +252,4 @@ namespace PersonalizedPodPrefabs
             }
         }
     }
-
 }
