@@ -19,7 +19,7 @@ using UnityEngine;
 
 namespace PersonalizedPodPrefabs
 {
-    [BepInPlugin("com.DestroyedClone.PersonalizedPodPrefabs", "Personalized Pod Prefabs", "1.0.0")]
+    [BepInPlugin("com.DestroyedClone.PersonalizedPodPrefabs", "Personalized Pod Prefabs", "0.1.0")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     //[BepInDependency("com.TeamMoonstorm.Starstorm2", BepInDependency.DependencyFlags.SoftDependency)]
     [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.DifferentModVersionsAreOk)]
