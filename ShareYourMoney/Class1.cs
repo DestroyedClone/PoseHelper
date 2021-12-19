@@ -14,9 +14,9 @@ using UnityEngine.Networking;
 
 namespace ShareYourMoney
 {
-    [BepInPlugin("com.DestroyedClone.DoshDrop", "Dosh Drop", "1.0.2")]
+    [BepInPlugin("com.DestroyedClone.DoshDrop", "Dosh Drop", "1.1.0")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
-    [R2APISubmoduleDependency(nameof(PrefabAPI), nameof(BuffAPI))]
+    [R2APISubmoduleDependency(nameof(PrefabAPI), nameof(BuffAPI), nameof(LanguageAPI))]
     [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.EveryoneNeedSameModVersion)]
     public class Main : BaseUnityPlugin
     {
@@ -33,9 +33,9 @@ namespace ShareYourMoney
 
         public static int baseChestCost = 25;
         public static bool preventMoneyDrops = false; //Server Method
+        public static bool england = false;
 
         public static BuffDef pendingDoshBuff;    //Client adds the buff. If server detects buff, it removes it and triggers the money drop.
-
 
         public static AssetBundle MainAssets;
         public static GameObject moneyAsset;
@@ -52,8 +52,9 @@ namespace ShareYourMoney
                 "\nOnly applied to thrown money, otherwise normal.").Value;
             preventModUseOnStageEnd = Config.Bind("", "Prevent On Stage End", true, "If true, then money will be prevented from being dropped on ending the stage.").Value;
             refundOnStageEnd = Config.Bind("", "Refund Drops On Stage End", true, "If true, then money will get refunded to owners upon ending the stage.").Value;
+            england = Config.Bind("", "English (England)", true, "Renames the English translation for Money to a more regionally appropriate term.").Value;
 
-            CreatePrefab();
+            SetupPrefab();
 
             On.RoR2.CharacterBody.Update += CharacterBody_Update;
             if (performanceMode)
@@ -65,19 +66,16 @@ namespace ShareYourMoney
                 On.RoR2.CharacterBody.FixedUpdate += CharacterBody_FixedUpdate;
             }
             SetupMoneyBuff();
+            SetupLanguage();
 
             On.RoR2.SceneExitController.SetState += SceneExitController_SetState;
             Stage.onServerStageBegin += Stage_onServerStageBegin;
+            On.RoR2.OutsideInteractableLocker.LockPurchasable += OutsideInteractableLocker_LockPurchasable;
 
             //R2API.Utils.CommandHelper.AddToConsoleWhenReady();
 
             // Sure would be a shame if this thing fell out of bounds.
             //On.RoR2.MapZone.OnTriggerEnter += MapZone_OnTriggerEnter;
-        }
-
-        private void Stage_onServerStageBegin(Stage obj)
-        {
-            preventMoneyDrops = false;
         }
 
         private void SetupAssets()
@@ -87,6 +85,88 @@ namespace ShareYourMoney
                 MainAssets = AssetBundle.LoadFromStream(stream);
             }
             moneyAsset = MainAssets.LoadAsset<GameObject>("Assets/bigbluecash/BBC.prefab");
+        }
+
+        private static void SetupPrefab()
+        {
+            //prevent rolling somehow?
+            ShareMoneyPack = PrefabAPI.InstantiateClone(Resources.Load<GameObject>("Prefabs/NetworkedObjects/BonusMoneyPack"), "ShareMoneyPack", true);
+            var moneyPickup = ShareMoneyPack.transform.Find("PackTrigger").GetComponent<MoneyPickup>();
+            var modMoneyPickup = moneyPickup.gameObject.AddComponent<ModifiedMoneyPickup>();
+            modMoneyPickup.baseObject = moneyPickup.baseObject;
+            modMoneyPickup.pickupEffectPrefab = moneyPickup.pickupEffectPrefab;
+            modMoneyPickup.teamFilter = moneyPickup.teamFilter;
+            Destroy(moneyPickup);
+            Destroy(ShareMoneyPack.GetComponent<VelocityRandomOnStart>());
+            ShareMoneyPack.transform.Find("GravityTrigger").gameObject.SetActive(false);
+
+            //var moneyCopy = Instantiate(moneyAsset);
+            ShareMoneyPack.GetComponentInChildren<MeshFilter>().sharedMesh = moneyAsset.GetComponentInChildren<MeshFilter>().sharedMesh;
+            var meshRenderer = ShareMoneyPack.GetComponentInChildren<MeshRenderer>();
+            //meshRenderer.material = moneyAsset.GetComponentInChildren<MeshRenderer>().material;
+            meshRenderer.SetMaterials(new List<Material>() { moneyAsset.GetComponentInChildren<MeshRenderer>().material });
+            meshRenderer.transform.localScale = Vector3.one * 9;
+            Destroy(ShareMoneyPack.transform.Find("Display/Mesh/Particle System").gameObject);
+
+            //var genericDisplay = ShareMoneyPack.AddComponent<GenericDisplayNameProvider>();
+            //genericDisplay.displayToken = "Dosh";
+
+            var purchaseInteraction = ShareMoneyPack.AddComponent<PurchaseInteraction>();
+            purchaseInteraction.contextToken = "Pickup dosh?"; //shouldnt be visible
+            purchaseInteraction.costType = CostTypeIndex.Money;
+            purchaseInteraction.displayNameToken = "DC_DOSH_PICKUP";
+            purchaseInteraction.setUnavailableOnTeleporterActivated = false;
+            purchaseInteraction.automaticallyScaleCostWithDifficulty = false;
+            purchaseInteraction.lockGameObject = null;
+
+            purchaseInteraction.gameObject.AddComponent<MoneyPickupMarker>();
+
+            var pingInfoProvider = ShareMoneyPack.AddComponent<PingInfoProvider>();
+            pingInfoProvider.pingIconOverride = Resources.Load<Sprite>("textures/miscicons/texrulebonusstartingmoney");
+
+            modMoneyPickup.purchaseInteraction = purchaseInteraction;
+        }
+
+        //Too lazy to set up a Networkbehaviour so here's a hacky workaround.
+        private void SetupMoneyBuff()
+        {
+            pendingDoshBuff = ScriptableObject.CreateInstance<BuffDef>();
+            pendingDoshBuff.buffColor = new Color(1f, 215f / 255f, 0f);
+            pendingDoshBuff.canStack = true;
+            pendingDoshBuff.isDebuff = false;
+            pendingDoshBuff.name = "PendingDoshDrop";
+            pendingDoshBuff.iconSprite = Resources.Load<Sprite>("Textures/BuffIcons/texBuffCloakIcon");
+            BuffAPI.Add(new CustomBuff(pendingDoshBuff));
+        }
+
+        private void SetupLanguage()
+        {
+            var token = "DC_DOSH_PICKUP";
+            LanguageAPI.Add(token, england ? "Dosh" : "Money");
+            LanguageAPI.Add(token, "Geld", "de");
+            LanguageAPI.Add(token, "Dinero", "es-419");
+            LanguageAPI.Add(token, "Argent", "FR");
+            LanguageAPI.Add(token, "Soldi", "IT");
+            LanguageAPI.Add(token, "お金", "ja");
+            LanguageAPI.Add(token, "돈", "ko");
+            LanguageAPI.Add(token, "Dinheiro", "pt-BR");
+            LanguageAPI.Add(token, "Деньги", "RU");
+            LanguageAPI.Add(token, "Para", "tr");
+            LanguageAPI.Add(token, "钱", "zh-CN");
+        }
+
+        private void OutsideInteractableLocker_LockPurchasable(On.RoR2.OutsideInteractableLocker.orig_LockPurchasable orig, OutsideInteractableLocker self, PurchaseInteraction purchaseInteraction)
+        {
+            if (purchaseInteraction.GetComponent<MoneyPickupMarker>())
+            {
+                return;
+            }
+            orig(self, purchaseInteraction);
+        }
+
+        private void Stage_onServerStageBegin(Stage obj)
+        {
+            preventMoneyDrops = false;
         }
 
         private void CharacterBody_FixedUpdate(On.RoR2.CharacterBody.orig_FixedUpdate orig, CharacterBody self)
@@ -193,39 +273,6 @@ namespace ShareYourMoney
             ReleaseMoney(args.senderMaster.playerCharacterMasterController, amountOverride);
         }*/
 
-        private static void CreatePrefab()
-        {
-            //prevent rolling somehow?
-            ShareMoneyPack = PrefabAPI.InstantiateClone(Resources.Load<GameObject>("Prefabs/NetworkedObjects/BonusMoneyPack"), "ShareMoneyPack", true);
-            var moneyPickup = ShareMoneyPack.transform.Find("PackTrigger").GetComponent<MoneyPickup>();
-            var modMoneyPickup = moneyPickup.gameObject.AddComponent<ModifiedMoneyPickup>();
-            modMoneyPickup.baseObject = moneyPickup.baseObject;
-            modMoneyPickup.pickupEffectPrefab = moneyPickup.pickupEffectPrefab;
-            modMoneyPickup.teamFilter = moneyPickup.teamFilter;
-            Destroy(moneyPickup);
-            Destroy(ShareMoneyPack.GetComponent<VelocityRandomOnStart>());
-
-            //var moneyCopy = Instantiate(moneyAsset);
-            ShareMoneyPack.GetComponentInChildren<MeshFilter>().sharedMesh = moneyAsset.GetComponentInChildren<MeshFilter>().sharedMesh;
-            var meshRenderer = ShareMoneyPack.GetComponentInChildren<MeshRenderer>();
-            //meshRenderer.material = moneyAsset.GetComponentInChildren<MeshRenderer>().material;
-            meshRenderer.SetMaterials(new List<Material>() { moneyAsset.GetComponentInChildren<MeshRenderer>().material });
-            meshRenderer.transform.localScale = Vector3.one * 9;
-            Destroy(ShareMoneyPack.transform.Find("Display/Mesh/Particle System").gameObject);
-        }
-
-        //Too lazy to set up a Networkbehaviour so here's a hacky workaround.
-        private void SetupMoneyBuff()
-        {
-            pendingDoshBuff = ScriptableObject.CreateInstance<BuffDef>();
-            pendingDoshBuff.buffColor = new Color(1f, 215f / 255f, 0f);
-            pendingDoshBuff.canStack = true;
-            pendingDoshBuff.isDebuff = false;
-            pendingDoshBuff.name = "PendingDoshDrop";
-            pendingDoshBuff.iconSprite = Resources.Load<Sprite>("Textures/BuffIcons/texBuffCloakIcon");
-            BuffAPI.Add(new CustomBuff(pendingDoshBuff));
-        }
-
         // Server Method
         public static void ReleaseMoney(CharacterMaster master, int doshesDropped = 1)
         {
@@ -276,9 +323,14 @@ namespace ShareYourMoney
             }
         }
 
+        private class MoneyPickupMarker : MonoBehaviour
+        { }
+
         private class ModifiedMoneyPickup : MonoBehaviour
         {
             public static readonly List<ModifiedMoneyPickup> instancesList = new List<ModifiedMoneyPickup>();
+
+            public PurchaseInteraction purchaseInteraction;
 
             private void OnEnable()
             {
@@ -288,6 +340,12 @@ namespace ShareYourMoney
             private void OnDisable()
             {
                 instancesList.Remove(this);
+            }
+
+            private void Start()
+            {
+                if (NetworkServer.active)
+                    purchaseInteraction.Networkcost = goldReward;
             }
 
             public void Refund()
