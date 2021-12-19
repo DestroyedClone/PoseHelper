@@ -14,7 +14,7 @@ using UnityEngine.Networking;
 
 namespace ShareYourMoney
 {
-    [BepInPlugin("com.DestroyedClone.DoshDrop", "Dosh Drop", "1.1.0")]
+    [BepInPlugin("com.DestroyedClone.DoshDrop", "Dosh Drop", "1.0.3")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     [R2APISubmoduleDependency(nameof(PrefabAPI), nameof(BuffAPI), nameof(LanguageAPI))]
     [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.EveryoneNeedSameModVersion)]
