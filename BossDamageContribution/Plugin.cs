@@ -32,15 +32,18 @@ namespace BossDamageContribution
     public class Plugin : BaseUnityPlugin
     {
         // Figure out some way to cache the CharacterBody's name
-        // Switch to submitchat for networking
         // Work it into a UI element
-        // Minions should probably be included in the player's damage instead of their own bodies
         //public static bool hookState = false;
 
         public static List<BossGroup> activeBossGroups = new List<BossGroup>();
 
+        // config
+        public static ConfigEntry<bool> cfgMinionsIncluded;
+
         public void Start()
         {
+            cfgMinionsIncluded = Config.Bind("", "Owner Gets Minion Damage", true, "If true, then the damage dealt by minions will be attributed to the owner.");
+
             BossGroup.onBossGroupStartServer += BossGroup_onBossGroupStartServer;
             BossGroup.onBossGroupDefeatedServer += BossGroup_onBossGroupDefeatedServer;
             On.RoR2.HealthComponent.TakeDamage += HealthComponent_TakeDamage;
@@ -134,15 +137,26 @@ namespace BossDamageContribution
 
             public void AddDamage(CharacterMaster attackerMaster, float damage)
             {
-                if (character_to_damage.ContainsKey(attackerMaster))
+                var master = attackerMaster;
+                if (cfgMinionsIncluded.Value)
                 {
-                    character_to_damage[attackerMaster] += damage;
+                    //https://discord.com/channels/562704639141740588/562704639569428506/759856897536163840
+                    if (attackerMaster.minionOwnership &&
+                        attackerMaster.minionOwnership.ownerMaster)
+                    {
+                        master = attackerMaster.minionOwnership.ownerMaster;
+                    }
+                }
+
+                if (character_to_damage.ContainsKey(master))
+                {
+                    character_to_damage[master] += damage;
                 }
                 else
                 {
-                    character_to_damage.Add(attackerMaster, damage);
+                    character_to_damage.Add(master, damage);
                     //cachedNames.Add(attackerMaster, attackerMaster.GetBody().GetDisplayName());
-                    var body = attackerMaster.GetBody();
+                    //var body = attackerMaster.GetBody();
                     //Chat.AddMessage("Starting tracking for " + (body.isPlayerControlled ? body.GetUserName() : body.GetDisplayName()));
                 }
                 totalDamageDealt += damage;
