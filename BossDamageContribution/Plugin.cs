@@ -30,16 +30,23 @@ namespace BossDamageContribution
         public static List<BossGroup> activeBossGroups = new List<BossGroup>();
 
         // config
-        public static ConfigEntry<bool> cfgMinionsIncluded;
+        public static ConfigEntry<bool> cfgMinionDamageIsOwner;
 
         public static ConfigEntry<int> cfgPlaces;
 
+        public static ConfigEntry<bool> cfgMinionShowsOwnerName;
+
         public void Start()
         {
-            cfgMinionsIncluded = Config.Bind("", "Owner Gets Minion Damage", true, "If true, then the damage dealt by minions will be attributed to the owner of those minions.");
+            string minionCat = "Minions";
+
+            cfgMinionDamageIsOwner = Config.Bind(minionCat, "Owner Gets Minion Damage", true, "If true, then the damage dealt by minions will be attributed to the owner of those minions.");
+            cfgMinionShowsOwnerName = Config.Bind(minionCat, "Minion Shows Owner Name", false, "If true, then the result shown will show the owner of the minion after their name." +
+                "\nEx: Engineer Turret (TheEngi)" +
+                "\nThis setting is incompatible if \"Owner Gets Minion Damage\" is true, since the minion won't be included in the list.");
             cfgPlaces = Config.Bind("", "Top Damage Places", 3, "The number of places available. There will be a last place which is accumulative of the rest." +
                 "\nEx: With 2 places, plrA dealt 1500, plrB dealt 500, plrC dealt 250, and plrD dealt 125" +
-                "\nThe result would look something like like:" +
+                "\nThe result would look something like:" +
                 "\n1: plrA (1500)" +
                 "\n2: plrB (500)" +
                 "\nThe Rest: (375)");
@@ -135,7 +142,7 @@ namespace BossDamageContribution
             public void AddDamage(CharacterMaster attackerMaster, float damage)
             {
                 var master = attackerMaster;
-                if (cfgMinionsIncluded.Value)
+                if (cfgMinionDamageIsOwner.Value)
                 {
                     //https://discord.com/channels/562704639141740588/562704639569428506/759856897536163840
                     if (attackerMaster.minionOwnership &&
@@ -177,6 +184,7 @@ namespace BossDamageContribution
                 int currentPlace = 1;
                 float everyoneElseDamage = 0;
                 //Chat.AddMessage($"Announcing places {places} with currentPlace {currentPlace}");
+                bool tryGetMinionName = cfgMinionShowsOwnerName.Value && !cfgMinionDamageIsOwner.Value;
                 foreach (var result in ordered)
                 {
                     //Chat.AddMessage($"{currentPlace}");
@@ -184,9 +192,10 @@ namespace BossDamageContribution
                     if (currentPlace <= cfgPlaces.Value)
                     {
                         //Chat.AddMessage("placeCheck");
-                        if (result.Key) // if the charactermaster exists
+                        var resultMaster = result.Key;
+                        if (resultMaster) // if the charactermaster exists
                         {
-                            var resultBody = result.Key.GetBody();
+                            var resultBody = resultMaster.GetBody();
                             if (resultBody)
                             {
                                 if (resultBody.isPlayerControlled) //switch to tertiary operator?
@@ -196,6 +205,17 @@ namespace BossDamageContribution
                                 else
                                 {
                                     name = resultBody.GetDisplayName();
+                                    if (tryGetMinionName)
+                                    {
+                                        if (resultMaster.minionOwnership && resultMaster.minionOwnership.ownerMaster)
+                                        {
+                                            var minionOwnerBody = resultMaster.minionOwnership.ownerMaster.GetBody();
+                                            if (minionOwnerBody)
+                                            {
+                                                name += $" ({(minionOwnerBody.isPlayerControlled ? minionOwnerBody.GetUserName() : minionOwnerBody.GetDisplayName())})";
+                                            } //eeeee this looks so gross
+                                        }
+                                    }
                                 }
                             }
                         }
