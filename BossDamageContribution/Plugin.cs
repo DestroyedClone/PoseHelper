@@ -75,20 +75,16 @@ namespace BossDamageContribution
                 On.RoR2.HealthComponent.TakeDamage -= HealthComponent_TakeDamage;
         }
 
-        private void HealthComponent_TakeDamage(On.RoR2.HealthComponent.orig_TakeDamage orig, HealthComponent self, DamageInfo damageInfo)
+        private void RecordDamage(GameObject attackerObject, CharacterBody victimBody, float damageDealt)
         {
-            var damageDealt = self.health;
-            orig(self, damageInfo);
-            if (!damageInfo.attacker || !damageInfo.attacker.GetComponent<CharacterBody>()) return;
-            damageDealt -= self.health;
             bool shouldBreak = false;
             foreach (var tracker in InstanceTracker.GetInstancesList<BossDamageTracker>())
             {
                 foreach (var bossMaster in tracker.bossGroup.combatSquad.membersList)
                 {
-                    if (bossMaster.GetBody() == self.body)
+                    if (bossMaster.GetBody() == victimBody)
                     {
-                        var attackerBody = damageInfo.attacker.GetComponent<CharacterBody>();
+                        var attackerBody = attackerObject.GetComponent<CharacterBody>();
                         if (attackerBody && attackerBody.master)
                         {
                             tracker.AddDamage(attackerBody.master, damageDealt);
@@ -98,6 +94,17 @@ namespace BossDamageContribution
                     }
                 }
                 if (shouldBreak) break;
+            }
+        }
+
+        private void HealthComponent_TakeDamage(On.RoR2.HealthComponent.orig_TakeDamage orig, HealthComponent self, DamageInfo damageInfo)
+        {
+            var damageDealt = self.health;
+            orig(self, damageInfo);
+            damageDealt -= self.health;
+            if (damageInfo.attacker)
+            {
+                RecordDamage(damageInfo.attacker, self.body, damageDealt);
             }
         }
 
