@@ -24,6 +24,7 @@ namespace BossDamageContribution
         // Work it into a UI element
         // Localize tokens
         // Track non-attributed damage and self damage by the boss (Pots, REX self harm, fall damage, etc)
+        // Damage right now only tracks effective damage (health lost) not damage taken, so maybe add an option for that?
         //public static bool hookState = false;
 
         public static List<BossGroup> activeBossGroups = new List<BossGroup>();
