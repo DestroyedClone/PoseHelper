@@ -36,8 +36,7 @@ namespace BossDamageContribution
         // Switch to submitchat for networking
         // Work it into a UI element
         // Minions should probably be included in the player's damage instead of their own bodies
-        // Track CharacterMaster instead of body, b/c dios and other revives
-        public static bool hookState = false;
+        //public static bool hookState = false;
         public static int currentBossGroupCount = 0;
 
         public void Start()
@@ -60,7 +59,6 @@ namespace BossDamageContribution
             var damageDealt = self.health;
             orig(self, damageInfo);
             if (!damageInfo.attacker || !damageInfo.attacker.GetComponent<CharacterBody>()) return;
-            var attackerBody = damageInfo.attacker.GetComponent<CharacterBody>();
             damageDealt -= self.health;
             bool shouldBreak = false;
             foreach (var tracker in InstanceTracker.GetInstancesList<BossDamageTracker>())
@@ -69,7 +67,11 @@ namespace BossDamageContribution
                 {
                     if (bossMaster.GetBody() == self.body)
                     {
-                        tracker.AddDamage(attackerBody, damageDealt);
+                        var attackerBody = damageInfo.attacker.GetComponent<CharacterBody>();
+                        if (attackerBody && attackerBody.master)
+                        {
+                            tracker.AddDamage(attackerBody.master, damageDealt);
+                        }
                         shouldBreak = true;
                         break;
                     }
@@ -109,12 +111,11 @@ namespace BossDamageContribution
             }
         }
 
-
-
         private class BossDamageTracker : MonoBehaviour
         {
             public BossGroup bossGroup;
-            public Dictionary<CharacterBody, float> character_to_damage = new Dictionary<CharacterBody, float>();
+            public Dictionary<CharacterMaster, float> character_to_damage = new Dictionary<CharacterMaster, float>();
+            //public Dictionary<CharacterMaster, string> cachedNames = new Dictionary<CharacterMaster, string>();
             public float totalDamageDealt = 0;
 
             public static void A()
@@ -122,16 +123,17 @@ namespace BossDamageContribution
 
             }
 
-            public void AddDamage(CharacterBody attackerBody, float damage)
+            public void AddDamage(CharacterMaster attackerMaster, float damage)
             {
-                if (character_to_damage.ContainsKey(attackerBody))
+                if (character_to_damage.ContainsKey(attackerMaster))
                 {
-                    character_to_damage[attackerBody] += damage;
+                    character_to_damage[attackerMaster] += damage;
                 }
                 else
                 {
-                    character_to_damage.Add(attackerBody, damage);
-                    Chat.AddMessage("Starting tracking for " + attackerBody.GetDisplayName());
+                    character_to_damage.Add(attackerMaster, damage);
+                    //cachedNames.Add(attackerMaster, attackerMaster.GetBody().GetDisplayName());
+                    //Chat.AddMessage("Starting tracking for " + cachedNames[attackerMaster]);
                 }
                 totalDamageDealt += damage;
             }
@@ -139,11 +141,6 @@ namespace BossDamageContribution
             private void OnEnable()
             {
                 InstanceTracker.Add(this);
-            }
-
-            private void Start()
-            {
-
             }
 
             private void OnDisable()
@@ -164,9 +161,13 @@ namespace BossDamageContribution
                     string name = "???";
                     if (currentPlace <= places)
                     {
-                        if (result.Key)
+                        if (result.Key) // if the charactermaster exists
                         {
-                            name = result.Key.GetDisplayName();
+                            var resultBody = result.Key.GetBody();
+                            if (resultBody)
+                            {
+                                name = resultBody.GetDisplayName();
+                            }
                         }
                         var percentageString = (result.Value / totalDamageDealt) * 100;
                         results += $"\n({currentPlace}) <style=cIsUtility>{name}</style> - <style=cIsDamage>{result.Value}</style> ({percentageString:F2}%)";
@@ -179,7 +180,10 @@ namespace BossDamageContribution
                 {
                     var everyoneElsePercentage = (everyoneElseDamage / totalDamageDealt) * 100;
                     results += $"\n({currentPlace}) <style=cIsUtility>The Rest</style> - <style=cIsDamage>{everyoneElseDamage}</style> ({everyoneElsePercentage:F2}%)";
-                    Chat.AddMessage(results);
+                    Chat.SendBroadcastChat(new Chat.SimpleChatMessage()
+                    {
+                        baseToken = results
+                    });
                 }
             }
         }
