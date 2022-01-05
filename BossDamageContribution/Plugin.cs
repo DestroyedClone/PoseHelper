@@ -91,7 +91,7 @@ namespace BossDamageContribution
             if (currentBossGroupCount == 0)
             {
                 Subscribe(true);
-                //Chat.AddMessage("Currently there's bossgroups!");
+                Chat.AddMessage("Currently there's bossgroups!");
             }
             currentBossGroupCount++;
         }
@@ -107,7 +107,7 @@ namespace BossDamageContribution
             if (currentBossGroupCount == 0)
             {
                 Subscribe(false);
-                //Chat.AddMessage("No more bossgroups!");
+                Chat.AddMessage("No more bossgroups!");
             }
         }
 
@@ -133,7 +133,8 @@ namespace BossDamageContribution
                 {
                     character_to_damage.Add(attackerMaster, damage);
                     //cachedNames.Add(attackerMaster, attackerMaster.GetBody().GetDisplayName());
-                    //Chat.AddMessage("Starting tracking for " + cachedNames[attackerMaster]);
+                    var body = attackerMaster.GetBody();
+                    Chat.AddMessage("Starting tracking for " + (body.isPlayerControlled ? body.GetUserName() : body.GetDisplayName()));
                 }
                 totalDamageDealt += damage;
             }
@@ -166,7 +167,13 @@ namespace BossDamageContribution
                             var resultBody = result.Key.GetBody();
                             if (resultBody)
                             {
-                                name = resultBody.GetDisplayName();
+                                if (resultBody.isPlayerControlled) //switch to tertiary operator?
+                                {
+                                    name = resultBody.GetUserName();
+                                } else
+                                {
+                                    name = resultBody.GetDisplayName();
+                                }
                             }
                         }
                         var percentageString = (result.Value / totalDamageDealt) * 100;
