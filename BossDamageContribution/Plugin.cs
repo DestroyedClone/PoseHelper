@@ -31,19 +31,30 @@ namespace BossDamageContribution
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
     public class Plugin : BaseUnityPlugin
     {
-        // What happens if there's a bossgroup, but the stage moves on anyways?
         // Figure out some way to cache the CharacterBody's name
         // Switch to submitchat for networking
         // Work it into a UI element
         // Minions should probably be included in the player's damage instead of their own bodies
         //public static bool hookState = false;
-        public static int currentBossGroupCount = 0;
+
+        public static List<BossGroup> activeBossGroups = new List<BossGroup>();
 
         public void Start()
         {
             BossGroup.onBossGroupStartServer += BossGroup_onBossGroupStartServer;
             BossGroup.onBossGroupDefeatedServer += BossGroup_onBossGroupDefeatedServer;
             On.RoR2.HealthComponent.TakeDamage += HealthComponent_TakeDamage;
+            Stage.onServerStageBegin += ResetStoredBossGroups;
+        }
+
+        private void ResetStoredBossGroups(Stage obj)
+        {
+            if (activeBossGroups.Count > 0)
+            {
+                //Chat.AddMessage("Restarting active bossgroups");
+                activeBossGroups.Clear();
+                Subscribe(false);
+            }
         }
 
         public void Subscribe(bool add)
@@ -88,26 +99,26 @@ namespace BossDamageContribution
                 var bdt = bossGroup.gameObject.AddComponent<BossDamageTracker>();
                 bdt.bossGroup = bossGroup;
             }
-            if (currentBossGroupCount == 0)
+            if (activeBossGroups.Count == 0)
             {
                 Subscribe(true);
                 //Chat.AddMessage($"Bossgroup Count: {currentBossGroupCount}");
             }
-            currentBossGroupCount++;
+            activeBossGroups.Add(bossGroup);
         }
 
         private void BossGroup_onBossGroupDefeatedServer(BossGroup bossGroup)
         {
-            currentBossGroupCount--;
+            activeBossGroups.Remove(bossGroup);
             var bdt = bossGroup.gameObject.GetComponent<BossDamageTracker>();
             if (bdt)
             {
                 bdt.AnnounceResults();
             }
-            if (currentBossGroupCount == 0)
+            if (activeBossGroups.Count == 0)
             {
                 Subscribe(false);
-                Chat.AddMessage("No more bossgroups!");
+                //Chat.AddMessage("No more bossgroups!");
             }
         }
 
@@ -132,7 +143,7 @@ namespace BossDamageContribution
                     character_to_damage.Add(attackerMaster, damage);
                     //cachedNames.Add(attackerMaster, attackerMaster.GetBody().GetDisplayName());
                     var body = attackerMaster.GetBody();
-                    Chat.AddMessage("Starting tracking for " + (body.isPlayerControlled ? body.GetUserName() : body.GetDisplayName()));
+                    //Chat.AddMessage("Starting tracking for " + (body.isPlayerControlled ? body.GetUserName() : body.GetDisplayName()));
                 }
                 totalDamageDealt += damage;
             }
