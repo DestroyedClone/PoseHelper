@@ -33,6 +33,8 @@ namespace BossDamageContribution
     {
         // Figure out some way to cache the CharacterBody's name
         // Work it into a UI element
+        // Localize tokens
+        // Track non-attributed damage and self damage by the boss (Pots, REX self harm, fall damage, etc)
         //public static bool hookState = false;
 
         public static List<BossGroup> activeBossGroups = new List<BossGroup>();
@@ -43,7 +45,7 @@ namespace BossDamageContribution
 
         public void Start()
         {
-            cfgMinionsIncluded = Config.Bind("", "Owner Gets Minion Damage", true, "If true, then the damage dealt by minions will be attributed to the owner.");
+            cfgMinionsIncluded = Config.Bind("", "Owner Gets Minion Damage", true, "If true, then the damage dealt by minions will be attributed to the owner of those minions.");
             cfgPlaces = Config.Bind("", "Top Damage Places", 3, "The number of places available. There will be a last place which is accumulative of the rest." +
                 "\nEx: With 2 places, plrA dealt 1500, plrB dealt 500, plrC dealt 250, and plrD dealt 125" +
                 "\nThe result would look something like like:" +
