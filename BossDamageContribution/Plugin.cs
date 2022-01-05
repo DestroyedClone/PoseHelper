@@ -1,23 +1,12 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
-using Mono.Cecil.Cil;
-using MonoMod.Cil;
 using R2API.Utils;
 using RoR2;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security;
 using System.Security.Permissions;
 using UnityEngine;
-
-using System.Collections.ObjectModel;
-using System.Globalization;
-using RoR2.ConVar;
-using RoR2.Networking;
-using Unity;
-using UnityEngine.Networking;
-using RoR2.UI;
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -41,6 +30,7 @@ namespace BossDamageContribution
 
         // config
         public static ConfigEntry<bool> cfgMinionsIncluded;
+
         public static ConfigEntry<int> cfgPlaces;
 
         public void Start()
@@ -101,7 +91,6 @@ namespace BossDamageContribution
                 }
                 if (shouldBreak) break;
             }
-
         }
 
         private void BossGroup_onBossGroupStartServer(BossGroup bossGroup)
@@ -138,9 +127,9 @@ namespace BossDamageContribution
         {
             public BossGroup bossGroup;
             public Dictionary<CharacterMaster, float> character_to_damage = new Dictionary<CharacterMaster, float>();
+
             //public Dictionary<CharacterMaster, string> cachedNames = new Dictionary<CharacterMaster, string>();
             public float totalDamageDealt = 0;
-
 
             public void AddDamage(CharacterMaster attackerMaster, float damage)
             {
@@ -202,7 +191,8 @@ namespace BossDamageContribution
                                 if (resultBody.isPlayerControlled) //switch to tertiary operator?
                                 {
                                     name = resultBody.GetUserName();
-                                } else
+                                }
+                                else
                                 {
                                     name = resultBody.GetDisplayName();
                                 }
