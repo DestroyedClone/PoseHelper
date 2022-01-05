@@ -39,10 +39,17 @@ namespace BossDamageContribution
 
         // config
         public static ConfigEntry<bool> cfgMinionsIncluded;
+        public static ConfigEntry<int> cfgPlaces;
 
         public void Start()
         {
             cfgMinionsIncluded = Config.Bind("", "Owner Gets Minion Damage", true, "If true, then the damage dealt by minions will be attributed to the owner.");
+            cfgPlaces = Config.Bind("", "Top Damage Places", 3, "The number of places available. There will be a last place which is accumulative of the rest." +
+                "\nEx: With 2 places, plrA dealt 1500, plrB dealt 500, plrC dealt 250, and plrD dealt 125" +
+                "\nThe result would look something like like:" +
+                "\n1: plrA (1500)" +
+                "\n2: plrB (500)" +
+                "\nThe Rest: (375)");
 
             BossGroup.onBossGroupStartServer += BossGroup_onBossGroupStartServer;
             BossGroup.onBossGroupDefeatedServer += BossGroup_onBossGroupDefeatedServer;
@@ -132,8 +139,6 @@ namespace BossDamageContribution
             //public Dictionary<CharacterMaster, string> cachedNames = new Dictionary<CharacterMaster, string>();
             public float totalDamageDealt = 0;
 
-            public int places = 3;
-
 
             public void AddDamage(CharacterMaster attackerMaster, float damage)
             {
@@ -184,7 +189,7 @@ namespace BossDamageContribution
                 {
                     //Chat.AddMessage($"{currentPlace}");
                     string name = "???";
-                    if (currentPlace <= places)
+                    if (currentPlace <= cfgPlaces.Value)
                     {
                         //Chat.AddMessage("placeCheck");
                         if (result.Key) // if the charactermaster exists
