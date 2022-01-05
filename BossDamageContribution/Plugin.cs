@@ -91,7 +91,7 @@ namespace BossDamageContribution
             if (currentBossGroupCount == 0)
             {
                 Subscribe(true);
-                Chat.AddMessage("Currently there's bossgroups!");
+                //Chat.AddMessage($"Bossgroup Count: {currentBossGroupCount}");
             }
             currentBossGroupCount++;
         }
@@ -118,10 +118,8 @@ namespace BossDamageContribution
             //public Dictionary<CharacterMaster, string> cachedNames = new Dictionary<CharacterMaster, string>();
             public float totalDamageDealt = 0;
 
-            public static void A()
-            {
+            public int places = 3;
 
-            }
 
             public void AddDamage(CharacterMaster attackerMaster, float damage)
             {
@@ -154,14 +152,16 @@ namespace BossDamageContribution
                 var ordered = character_to_damage.OrderByDescending(key => key.Value);
                 string results = "";
 
-                int places = 3;
                 int currentPlace = 1;
                 float everyoneElseDamage = 0;
+                //Chat.AddMessage($"Announcing places {places} with currentPlace {currentPlace}");
                 foreach (var result in ordered)
                 {
+                    //Chat.AddMessage($"{currentPlace}");
                     string name = "???";
                     if (currentPlace <= places)
                     {
+                        //Chat.AddMessage("placeCheck");
                         if (result.Key) // if the charactermaster exists
                         {
                             var resultBody = result.Key.GetBody();
@@ -187,11 +187,11 @@ namespace BossDamageContribution
                 {
                     var everyoneElsePercentage = (everyoneElseDamage / totalDamageDealt) * 100;
                     results += $"\n({currentPlace}) <style=cIsUtility>The Rest</style> - <style=cIsDamage>{everyoneElseDamage}</style> ({everyoneElsePercentage:F2}%)";
-                    Chat.SendBroadcastChat(new Chat.SimpleChatMessage()
-                    {
-                        baseToken = results
-                    });
                 }
+                Chat.SendBroadcastChat(new Chat.SimpleChatMessage()
+                {
+                    baseToken = results
+                });
             }
         }
     }
