@@ -1,4 +1,5 @@
 ﻿using BepInEx;
+using BepInEx.Configuration;
 using R2API;
 using R2API.Utils;
 using RoR2;
@@ -20,8 +21,12 @@ namespace UmbraLandInPods
     [R2APISubmoduleDependency(nameof(EffectAPI), nameof(PrefabAPI))]
     public class Class1 : BaseUnityPlugin
     {
+        public static ConfigEntry<float> cfgDestroyTimer;
+
         public void Start()
         {
+            cfgDestroyTimer = Config.Bind("", "Umbra Survivor Pod Delete Delay", 10f, "The amount of time, in seconds, that the game will wait before deleting the pod.");
+
             On.RoR2.CombatSquad.AddMember += CombatSquad_AddMember;
             On.EntityStates.SurvivorPod.Landed.OnEnter += ExitIfUmbra;
             //RoR2.VehicleSeat.onPassengerExitGlobal += VehicleSeat_onPassengerExitGlobal;
@@ -36,7 +41,7 @@ namespace UmbraLandInPods
             {
                 dot = self.gameObject.AddComponent<DestroyOnTimer>();
             }
-            dot.duration = 10f;
+            dot.duration = cfgDestroyTimer.Value;
         }
 
         private void CombatSquad_AddMember(On.RoR2.CombatSquad.orig_AddMember orig, CombatSquad self, CharacterMaster memberMaster)
