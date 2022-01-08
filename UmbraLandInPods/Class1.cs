@@ -13,9 +13,9 @@ using UnityEngine;
 #pragma warning restore CS0618 // Type or member is obsolete
 [assembly: HG.Reflection.SearchableAttribute.OptIn]
 
-namespace UmbraLandInPods
+namespace UmbraSurvivorPods
 {
-    [BepInPlugin("com.DestroyedClone.UmbraLandInPods", "Umbra Land In Pods", "1.0.0")]
+    [BepInPlugin("com.DestroyedClone.UmbraSurvivorPods", "Umbra Survivor Pods", "1.0.0")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
     [R2APISubmoduleDependency(nameof(EffectAPI), nameof(PrefabAPI))]
