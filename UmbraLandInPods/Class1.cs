@@ -31,17 +31,32 @@ namespace UmbraSurvivorPods
             On.EntityStates.SurvivorPod.Landed.OnEnter += ExitIfUmbra;
             //RoR2.VehicleSeat.onPassengerExitGlobal += VehicleSeat_onPassengerExitGlobal;
             On.EntityStates.SurvivorPod.ReleaseFinished.OnEnter += ReleaseFinished_OnEnter;
+            On.EntityStates.SurvivorPod.Release.OnEnter += Release_OnEnter;
+        }
+
+        private void Release_OnEnter(On.EntityStates.SurvivorPod.Release.orig_OnEnter orig, EntityStates.SurvivorPod.Release self)
+        {
+            if (self.vehicleSeat && self.vehicleSeat.currentPassengerBody && IsUmbra(self.vehicleSeat.currentPassengerBody))
+            {
+                var dot = self.gameObject.GetComponent<DestroyOnTimer>();
+                if (!dot)
+                {
+                    dot = self.gameObject.AddComponent<DestroyOnTimer>();
+                }
+                dot.duration = cfgDestroyTimer.Value;
+                dot.enabled = false;
+            }
+            orig(self);
         }
 
         private void ReleaseFinished_OnEnter(On.EntityStates.SurvivorPod.ReleaseFinished.orig_OnEnter orig, EntityStates.SurvivorPod.ReleaseFinished self)
         {
             orig(self);
             var dot = self.gameObject.GetComponent<DestroyOnTimer>();
-            if (!dot)
+            if (dot)
             {
-                dot = self.gameObject.AddComponent<DestroyOnTimer>();
+                dot.enabled = true;
             }
-            dot.duration = cfgDestroyTimer.Value;
         }
 
         private void CombatSquad_AddMember(On.RoR2.CombatSquad.orig_AddMember orig, CombatSquad self, CharacterMaster memberMaster)
