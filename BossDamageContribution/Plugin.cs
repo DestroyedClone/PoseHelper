@@ -13,9 +13,9 @@ using UnityEngine;
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
 #pragma warning restore CS0618 // Type or member is obsolete
 
-namespace BossDamageContribution
+namespace BossDamageTracker
 {
-    [BepInPlugin("com.DestroyedClone.BossDamageContribution", "Boss Damage Contribution", "1.0.0")]
+    [BepInPlugin("com.DestroyedClone.BossDamageTracker", "Boss Damage Tracker", "1.0.0")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
     public class Plugin : BaseUnityPlugin
@@ -186,7 +186,7 @@ namespace BossDamageContribution
             public void AnnounceResults()
             {
                 var ordered = character_to_damage.OrderByDescending(key => key.Value);
-                string results = "";
+                string results = $"={bossGroup.bestObservedName}";
 
                 int currentPlace = 1;
                 float everyoneElseDamage = 0;
