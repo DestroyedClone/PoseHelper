@@ -57,20 +57,29 @@ namespace HeresyAddon
             if (self is EntityStates.GlobalSkills.LunarNeedle.FireLunarNeedle)
             {
                 var fireLunarNeedle = (FireLunarNeedle)self;
+                bool isNotHeldOrEmpty = fireLunarNeedle.activatorSkillSlot.stock == 0 || !fireLunarNeedle.inputBank.skill1.down;
                 switch (fireLunarNeedle.characterBody.baseNameToken)
                 {
                     case "TOOLBOT_BODY_NAME":
-                        fireLunarNeedle.GetModelAnimator().SetBool("isFiringNailgun", false);
+                        if (isNotHeldOrEmpty)
+                            fireLunarNeedle.GetModelAnimator().SetBool("isFiringNailgun", false);
                         break;
                     case "CAPTAIN_BODY_NAME":
-                        if (fireLunarNeedle.activatorSkillSlot.stock == 0 || !fireLunarNeedle.inputBank.skill1.down)
+                        if (isNotHeldOrEmpty)
                         {
                             fireLunarNeedle.PlayAnimation("Gesture, Additive", "FireCaptainShotgun", fireLunarNeedle.playbackRateParam, fireLunarNeedle.duration);
                             fireLunarNeedle.PlayAnimation("Gesture, Override", "FireCaptainShotgun", fireLunarNeedle.playbackRateParam, fireLunarNeedle.duration);
                         }
                         break;
                     case "HUNTRESS_BODY_NAME":
-                        self.PlayAnimation("Body", "FireArrowSnipe", "FireArrowSnipe.playbackRate", 0.1f);
+                        if (isNotHeldOrEmpty)
+                            self.PlayAnimation("Body", "FireArrowSnipe", "FireArrowSnipe.playbackRate", 0.1f);
+                        break;
+                    case "BANDIT2_BODY_NAME":
+                        if (isNotHeldOrEmpty)
+                        {
+                            self.PlayAnimation("Gesture, Additive", (self.characterBody.isSprinting && self.characterMotor && self.characterMotor.isGrounded) ? "ReloadSimple" : "Reload", "Reload.playbackRate", fireLunarNeedle.duration);
+                        }
                         break;
                 }
             }
