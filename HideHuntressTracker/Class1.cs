@@ -1,5 +1,4 @@
 ﻿using BepInEx;
-using R2API;
 using R2API.Utils;
 using RoR2;
 using System.Security;
@@ -16,7 +15,6 @@ namespace HideHuntressTracker
     [BepInPlugin("com.DestroyedClone.HideHuntressTracker", "HideHuntressTracker", "1.0.0")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.DifferentModVersionsAreOk)]
-    [R2APISubmoduleDependency(nameof(EffectAPI), nameof(PrefabAPI))]
     public class Class1 : BaseUnityPlugin
     {
         public void Start()
