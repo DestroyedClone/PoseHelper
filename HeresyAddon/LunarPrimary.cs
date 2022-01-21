@@ -7,10 +7,10 @@ namespace HeresyAddon
 {
     public class LunarPrimary
     {
-        public static bool stepperCommando = false;
-        public static bool stepperMage = false;
-        public static bool stepperEngi = false;
-        public static bool stepperLoader = false;
+        //public static bool stepperCommando = false;
+        //public static bool stepperMage = false;
+        //public static bool stepperEngi = false;
+       // public static bool stepperLoader = false;
 
         public static void FireLunarNeedle_OnEnter(On.EntityStates.GlobalSkills.LunarNeedle.FireLunarNeedle.orig_OnEnter orig, global::EntityStates.GlobalSkills.LunarNeedle.FireLunarNeedle self)
         {
@@ -19,7 +19,8 @@ namespace HeresyAddon
             switch (self.characterBody.baseNameToken)
             {
                 case "COMMANDO_BODY_NAME":
-                    OnEnter_Commando(self);
+                    orig(self);
+                    //OnEnter_Commando(self); //Disabled due to console spam
                     break;
 
                 case "CROCO_BODY_NAME":
@@ -106,18 +107,20 @@ namespace HeresyAddon
 
         private static void OnEnter_Loader(FireLunarNeedle self)
         {
-            stepperLoader = !stepperLoader;
-            string animationStateName = (stepperLoader) ? "SwingFistRight" : "SwingFistLeft";
-            self.PlayCrossfade("Gesture, Additive", animationStateName, "SwingFist.playbackRate", self.duration, 0.1f);
-            self.PlayCrossfade("Gesture, Override", animationStateName, "SwingFist.playbackRate", self.duration, 0.1f);
+            //var stepper = self.characterBody.GetComponent<Class1.HeresyStepperTracker>();
+            //stepper.stepperLoader = !stepper.stepperLoader;
+            //string animationStateName = (stepper.Step()) ? "SwingFistRight" : "SwingFistLeft";
+            //self.PlayCrossfade("Gesture, Additive", animationStateName, "SwingFist.playbackRate", self.duration, 0.1f);
+            //self.PlayCrossfade("Gesture, Override", animationStateName, "SwingFist.playbackRate", self.duration, 0.1f);
+            self.PlayCrossfade("FullBody, Override", "ChargePunch", "ChargePunch.playbackRate", self.duration, 0.1f);
             FireNeedle(self, "Head"); //todo find good muzzle
         }
 
         private static void OnEnter_Huntress(FireLunarNeedle self)
         {
-            //self.PlayAnimation("Gesture, Additive", "FireArrow", "FireArrow.playbackRate", self.duration);
-            //self.PlayAnimation("Gesture, Override", "FireArrow", "FireArrow.playbackRate", self.duration);
-            self.PlayAnimation("Body", "FireArrowSnipe", "FireArrowSnipe.playbackRate", self.duration); 
+            self.PlayAnimation("Gesture, Additive", "FireArrow", "FireArrow.playbackRate", self.duration * 2f);
+            self.PlayAnimation("Gesture, Override", "FireArrow", "FireArrow.playbackRate", self.duration * 2f);
+            //self.PlayAnimation("Body", "FireArrowSnipe", "FireArrowSnipe.playbackRate", self.duration); 
             FireNeedle(self, "Muzzle");
         }
 
@@ -127,7 +130,8 @@ namespace HeresyAddon
 
         private static void OnEnter_Engi(FireLunarNeedle self)
         {
-            if (stepperEngi)
+            var stepper = self.characterBody.GetComponent<Class1.HeresyStepperTracker>();
+            if (stepper.Step())
             {
                 self.PlayCrossfade("Gesture Left Cannon, Additive", "FireGrenadeLeft", 0.1f);
                 FireNeedle(self, "MuzzleLeft");
@@ -137,7 +141,6 @@ namespace HeresyAddon
                 self.PlayCrossfade("Gesture Right Cannon, Additive", "FireGrenadeRight", 0.1f);
                 FireNeedle(self, "MuzzleRight");
             }
-            stepperEngi = !stepperEngi;
         }
 
         private static void OnEnter_Captain(FireLunarNeedle self)
@@ -151,8 +154,8 @@ namespace HeresyAddon
 
         private static void OnEnter_Bandit2(FireLunarNeedle self)
         {
-            //self.PlayAnimation("Gesture, Additive", "FireMainWeapon", self.playbackRateParam, self.duration);
-            self.PlayAnimation("Gesture, Additive", (self.characterBody.isSprinting && self.characterMotor && self.characterMotor.isGrounded) ? "ReloadSimple" : "Reload", "Reload.playbackRate", self.duration);
+            self.PlayAnimation("Gesture, Additive", "FireMainWeapon", self.playbackRateParam, self.duration);
+            //self.PlayAnimation("Gesture, Additive", (self.characterBody.isSprinting && self.characterMotor && self.characterMotor.isGrounded) ? "ReloadSimple" : "Reload", "Reload.playbackRate", self.duration);
             //self.PlayAnimation("Gesture, Additive", "FireSideWeapon", "FireSideWeapon.playbackRate", self.duration);
             //self.PlayAnimation("Gesture, Additive", "MainToSide", "MainToSide.playbackRate", self.duration);
             FireNeedle(self, "MuzzleShotgun");
@@ -160,8 +163,9 @@ namespace HeresyAddon
 
         private static void OnEnter_Mage(FireLunarNeedle self)
         {
-            stepperMage = !stepperMage;
-            if (stepperMage)
+            var stepper = self.characterBody.GetComponent<Class1.HeresyStepperTracker>();
+            //stepper.stepperMage = !stepper.stepperMage;
+            if (stepper.Step())
             {
                 if (self.attackSpeedStat < EntityStates.Mage.Weapon.FireFireBolt.attackSpeedAltAnimationThreshold)
                 {
@@ -199,19 +203,19 @@ namespace HeresyAddon
 
         private static void OnEnter_Commando(FireLunarNeedle self)
         {
-            if (stepperCommando)
+            var stepper = self.characterBody.GetComponent<Class1.HeresyStepperTracker>();
+            if (stepper.Step())
             {
-                self.PlayAnimation("Gesture Additive, Left", "FirePistol, Left");
+                self.PlayAnimation("Gesture Additive, Left", "FirePistol, Left", self.playbackRateParam, self.duration);
                 FireNeedle(self, "MuzzleLeft");
             }
             else
             {
-                self.PlayAnimation("Gesture Additive, Right", "FirePistol, Right");
+                self.PlayAnimation("Gesture Additive, Right", "FirePistol, Right", self.playbackRateParam, self.duration);
                 FireNeedle(self, "MuzzleRight");
             }
             //self.PlayAnimation(self.animationLayerName, self.animationStateName, self.playbackRateParam, self.duration);
             //Gesture, Override FireLunarNeedle FireLunarNeedle.playbackRate 0.11
-            stepperCommando = !stepperCommando;
         }
 
         private static void PlayMuzzleEffect(FireLunarNeedle self, string targetMuzzle)

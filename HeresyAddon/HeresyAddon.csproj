@@ -6,6 +6,7 @@
 
 	<ItemGroup>
 	  <Compile Remove="FireLunarNeedle2.cs" />
+	  <Compile Remove="LunarSpecial.cs" />
 	</ItemGroup>
 	
 	<ItemGroup>

@@ -1,17 +1,13 @@
 ﻿using BepInEx;
-using R2API;
+using BepInEx.Configuration;
+using EntityStates;
+using EntityStates.Bandit2.Weapon;
+using EntityStates.GlobalSkills.LunarNeedle;
 using R2API.Utils;
 using RoR2;
-using RoR2.Projectile;
-using System.Collections.Generic;
 using System.Security;
 using System.Security.Permissions;
 using UnityEngine;
-using System.Runtime.CompilerServices;
-using EntityStates;
-using EntityStates.GlobalSkills;
-using EntityStates.GlobalSkills.LunarNeedle;
-using EntityStates.Commando.CommandoWeapon;
 using static HeresyAddon.LunarPrimary;
 using static HeresyAddon.LunarSecondary;
 
@@ -22,19 +18,46 @@ using static HeresyAddon.LunarSecondary;
 
 namespace HeresyAddon
 {
-    [BepInPlugin("com.DestroyedClone.HeresyAddOn", "Heresy AddOn", "1.0.0")]
+    [BepInPlugin("com.DestroyedClone.HeresyAnims", "HeresyAnims", "1.0.0")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.DifferentModVersionsAreOk)]
-    [R2APISubmoduleDependency(nameof(EffectAPI), nameof(PrefabAPI))]
     public class Class1 : BaseUnityPlugin
     {
+        public static ConfigEntry<bool> cfgNoWarnings;
+        internal static BepInEx.Logging.ManualLogSource _logger;
+
         public void Start()
         {
+            cfgNoWarnings = Config.Bind("", "No Warnings", false, "If true, then the animations that play with errors will play.");
+
+            if (cfgNoWarnings.Value)
+            {
+                _logger.LogMessage("Config Setting \"No Warnings\" set to true, " +
+                    "Charge animations for Bandit2, Engineer, MUL-T, and REX will heft up the size of your log.");
+            }
             On.EntityStates.GlobalSkills.LunarNeedle.FireLunarNeedle.OnEnter += FireLunarNeedle_OnEnter;
             On.EntityStates.GlobalSkills.LunarNeedle.ChargeLunarSecondary.PlayChargeAnimation += ChargeLunarSecondary_PlayChargeAnimation;
             On.EntityStates.GlobalSkills.LunarNeedle.ThrowLunarSecondary.PlayThrowAnimation += ThrowLunarSecondary_PlayThrowAnimation;
             On.EntityStates.GhostUtilitySkillState.OnEnter += GhostUtilitySkillState_OnEnter;
             On.EntityStates.EntityState.OnExit += EntityState_OnExit;
+            CharacterBody.onBodyStartGlobal += CharacterBody_onBodyStartGlobal;
+            //On.EntityStates.GlobalSkills.LunarDetonator.Detonate.OnEnter += Detonate_OnEnter;
+        }
+
+        private void CharacterBody_onBodyStartGlobal(CharacterBody obj)
+        {
+            var tracker = obj.gameObject.AddComponent<HeresyStepperTracker>();
+        }
+
+        public class HeresyStepperTracker : MonoBehaviour
+        {
+            public bool toggle = false;
+
+            public bool Step()
+            {
+                toggle = !toggle;
+                return toggle;
+            }
         }
 
         private void GhostUtilitySkillState_OnEnter(On.EntityStates.GhostUtilitySkillState.orig_OnEnter orig, GhostUtilitySkillState self)
@@ -46,6 +69,7 @@ namespace HeresyAddon
                 case "BANDIT2_BODY_NAME":
                     self.PlayAnimation("Gesture, Additive", "ThrowSmokebomb", "ThrowSmokebomb.playbackRate", EntityStates.Bandit2.ThrowSmokebomb.duration);
                     break;
+
                 default:
                     break;
             }
@@ -64,6 +88,7 @@ namespace HeresyAddon
                         if (isNotHeldOrEmpty)
                             fireLunarNeedle.GetModelAnimator().SetBool("isFiringNailgun", false);
                         break;
+
                     case "CAPTAIN_BODY_NAME":
                         if (isNotHeldOrEmpty)
                         {
@@ -71,21 +96,22 @@ namespace HeresyAddon
                             fireLunarNeedle.PlayAnimation("Gesture, Override", "FireCaptainShotgun", fireLunarNeedle.playbackRateParam, fireLunarNeedle.duration);
                         }
                         break;
+
                     case "HUNTRESS_BODY_NAME":
-                        if (isNotHeldOrEmpty)
-                            self.PlayAnimation("Body", "FireArrowSnipe", "FireArrowSnipe.playbackRate", 0.1f);
+                        //if (isNotHeldOrEmpty)
+                        //self.PlayAnimation("Body", "FireArrowSnipe", "FireArrowSnipe.playbackRate", 0.1f);
                         break;
+
                     case "BANDIT2_BODY_NAME":
                         if (isNotHeldOrEmpty)
                         {
+                            Util.PlayAttackSpeedSound(Reload.exitSoundString, base.gameObject, Reload.exitSoundPitch);
+                            //EffectManager.SimpleMuzzleFlash(Reload.reloadEffectPrefab, base.gameObject, Reload.reloadEffectMuzzleString, false);
                             self.PlayAnimation("Gesture, Additive", (self.characterBody.isSprinting && self.characterMotor && self.characterMotor.isGrounded) ? "ReloadSimple" : "Reload", "Reload.playbackRate", fireLunarNeedle.duration);
                         }
                         break;
                 }
             }
         }
-
-
-
     }
 }
