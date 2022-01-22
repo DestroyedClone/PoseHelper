@@ -1,21 +1,18 @@
-﻿using UnityEngine;
-using RoR2;
+﻿using BepInEx;
+using BepInEx.Configuration;
+using R2API;
 using R2API.Utils;
 using System;
-using EntityStates;
-using R2API;
-using RoR2.Skills;
+using System.Reflection;
 using System.Security;
 using System.Security.Permissions;
-using System.Collections;
-using System.Collections.Generic;
-using BepInEx;
-
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
 #pragma warning restore CS0618 // Type or member is obsolete
+
+[assembly: HG.Reflection.SearchableAttribute.OptIn]
 
 namespace ROR1AltSkills
 {
@@ -26,20 +23,36 @@ namespace ROR1AltSkills
     public class OriginalSkillsPlugin : BaseUnityPlugin
     {
         internal static string modkeyword = "DC_ORIGSKILLS_KEYWORD_IDENTIFIER";
+        public static ConfigFile _config;
+        internal static BepInEx.Logging.ManualLogSource _logger;
 
         public void Awake()
         {
-            SetupLanguage();
-
-            Acrid.AcridMain.Init();
-            Commando.CommandoMain.Init();
-            Huntress.HuntressMain.Init();
-            Loader.LoaderMain.Init(Config);
+            _config = Config;
+            _logger = Logger;
         }
 
-        public void SetupLanguage()
+        [RoR2.SystemInitializer(dependencies: typeof(RoR2.Language))]
+        public static void SetupLanguage()
         {
             LanguageAPI.Add(modkeyword, $"[ Original Skills Mod ]");
+        }
+
+        [RoR2.SystemInitializer(dependencies: new Type[] { typeof(RoR2.SurvivorCatalog) })]
+        public static void AssemblySetup() //credit to bubbet for base code
+        {
+            var survivorMainType = typeof(SurvivorMain);
+            foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
+            {
+                if (!type.IsAbstract)
+                {
+                    if (survivorMainType.IsAssignableFrom(type))
+                    {
+                        var objectInitializer = (SurvivorMain)Activator.CreateInstance(type);
+                        objectInitializer.Init(_config);
+                    }
+                }
+            }
         }
     }
 }
