@@ -16,20 +16,45 @@ namespace ROR1AltSkills
 {
     public abstract class SurvivorMain
     {
+        public abstract string CharacterName { get; }
 
-        public abstract string ConfigCategory { get; }
+        public virtual GameObject BodyPrefab { get; set; }
+        public virtual BodyIndex BodyIndex { get; set; }
+        public virtual SkillLocator SurvivorSkillLocator { get; set; }
+
+        public virtual string ConfigCategory { get; set; }
 
         public virtual void Init(ConfigFile config)
         {
+            SetupDefaults();
             SetupConfig(config);
             SetupAssets();
             SetupLanguage();
             SetupSkills();
+            Hooks();
         }
 
-        public abstract void SetupConfig(ConfigFile config);
+        public void SetupDefaults()
+        {
+            if (ConfigCategory.IsNullOrWhiteSpace())
+                ConfigCategory = CharacterName;
 
-        public abstract void SetupLanguage();
+            if (!BodyPrefab)
+                BodyPrefab = Resources.Load<GameObject>($"prefabs/CharacterBodies/{CharacterName}Body");
+            if (BodyIndex == BodyIndex.None)
+                BodyIndex = BodyPrefab.GetComponent<CharacterBody>().bodyIndex;
+            if (!SurvivorSkillLocator)
+                SurvivorSkillLocator = BodyPrefab.GetComponent<SkillLocator>();
+        }
+
+        public virtual void Hooks()
+        {
+
+        }
+
+        public virtual void SetupConfig(ConfigFile config) { }
+
+        public virtual void SetupLanguage() { }
 
         public void SetupAssets()
         {
