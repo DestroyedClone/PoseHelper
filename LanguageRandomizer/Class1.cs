@@ -129,10 +129,28 @@ namespace LanguageRandomizer
             return null;
         }
 
-        [ConCommand(commandName = "randlanguage_clear", flags = ConVarFlags.ExecuteOnServer, helpText = "randlanguage_clear - Clears the dictionary of generated tokens so they may be regenerated.")]
+        [ConCommand(commandName = "randlanguage_clear", flags = ConVarFlags.None, helpText = "randlanguage_clear - Clears the dictionary of generated tokens so they may be regenerated.")]
         public static void CCClearDictionary(ConCommandArgs args)
         {
             alreadyRandomizedTokenDict.Clear();
         }
+
+        /*
+        [ConCommand(commandName = "randlanguage_fix", flags = ConVarFlags.ExecuteOnServer, helpText = "randlanguage_fix - Removes entries from the dictionary of generated tokens that are not tokens.")]
+        public static void CCRemoveLocalizaedStrings(ConCommandArgs args)
+        {
+            var tempDict = new Dictionary<string, string>(alreadyRandomizedTokenDict);
+            int amt = 0;
+            foreach (var entry in alreadyRandomizedTokenDict)
+            {
+                if (entry.Key.Contains(' '))
+                {
+                    tempDict.Remove(entry.Key);
+                    amt++;
+                }
+            }
+            alreadyRandomizedTokenDict = tempDict;
+            UnityEngine.Debug.Log($"Removed {amt} non-token keys.");
+        }*/
     }
 }
