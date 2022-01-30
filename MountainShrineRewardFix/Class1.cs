@@ -16,16 +16,20 @@ using UnityEngine;
 
 namespace BossDropRewardDelay
 {
-    [BepInPlugin("com.DestroyedClone.BossDropRewardDelay", "Boss Drop Reward Delay", "1.0.0")]
+    [BepInPlugin("com.DestroyedClone.BossDropRewardDelay", "Boss Drop Reward Delay", "1.1.0")]
     public class Plugin : BaseUnityPlugin
     {
         public static ConfigEntry<float> cfgSpawnDelay;
+        public static float spawnDelay;
 
         public void Awake()
         {
             cfgSpawnDelay = Config.Bind("", "Delay Between Drops", 0.3f, "The amount of time, in seconds, between each drop.");
+            spawnDelay = cfgSpawnDelay.Value;
 
             IL.RoR2.BossGroup.DropRewards += BossGroup_DropRewards;
+
+            R2API.Utils.CommandHelper.AddToConsoleWhenReady();
         }
 
         private void BossGroup_DropRewards(MonoMod.Cil.ILContext il)
@@ -82,7 +86,17 @@ namespace BossDropRewardDelay
 
             public void Awake()
             {
-                delay = cfgSpawnDelay.Value;
+                delay = spawnDelay;
+            }
+
+            public void OnEnable()
+            {
+                InstanceTracker.Add(this);
+            }
+
+            public void OnDisable()
+            {
+                InstanceTracker.Remove(this);
             }
 
             public void FixedUpdate()
@@ -110,6 +124,40 @@ namespace BossDropRewardDelay
                 {
                     enabled = false;
                 }
+            }
+        }
+
+        [ConCommand(commandName = "bossdrop_delay", flags = ConVarFlags.SenderMustBeServer, helpText = "bossdrop_delay {seconds}.")]
+        private static void CCUpdateDelay(ConCommandArgs args)
+        {
+            if (args.Count > 0)
+            {
+                var newValue = args.GetArgFloat(0);
+                if (newValue < 0)
+                {
+                    Debug.LogWarning("[BossDropRewardDelay] Can't set delay to less than 0!");
+                }
+                else
+                {
+                    var maxValueWarning = 5f;
+                    if (newValue > maxValueWarning)
+                    {
+                        Debug.LogWarning($"[BossDropRewardDelay] Warning: reward delay set to larger than {maxValueWarning} seconds ({newValue}), rewards may take a long time to complete!");
+                    }
+                    spawnDelay = newValue;
+                    foreach (var bossDropRewardDelayComponent in InstanceTracker.GetInstancesList<DelayedBossRewards>())
+                    {
+                        if (bossDropRewardDelayComponent)
+                        {
+                            bossDropRewardDelayComponent.delay = spawnDelay;
+                            bossDropRewardDelayComponent.age = 0;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                Debug.Log($"[BossDropRewardDelay] {spawnDelay} seconds.");
             }
         }
     }
