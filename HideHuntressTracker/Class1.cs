@@ -12,36 +12,35 @@ using UnityEngine;
 
 namespace HideHuntressTracker
 {
-    [BepInPlugin("com.DestroyedClone.HideHuntressTracker", "HideHuntressTracker", "1.0.0")]
+    [BepInPlugin("com.DestroyedClone.HideHuntressTracker", "HideHuntressTracker", "1.0.1")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.DifferentModVersionsAreOk)]
     public class Class1 : BaseUnityPlugin
     {
         public void Start()
         {
-            CharacterBody.onBodyStartGlobal += CharacterBody_onBodyStartGlobal;
-        }
-
-        private void CharacterBody_onBodyStartGlobal(CharacterBody obj)
-        {
-            if (obj.baseNameToken == "HUNTRESS_BODY_NAME")
-            {
-                var com = obj.gameObject.AddComponent<HideHuntressTrackerComp>();
-                com.inventory = obj.inventory;
-                com.huntressTracker = obj.GetComponent<HuntressTracker>();
-            }
+            var prefab = RoR2Content.Survivors.Huntress.bodyPrefab;
+            var com = prefab.AddComponent<HideHuntressTrackerComp>();
+            com.characterBody = prefab.GetComponent<CharacterBody>();
+            com.inventory = prefab.GetComponent<CharacterBody>().inventory;
+            com.huntressTracker = prefab.GetComponent<HuntressTracker>();
         }
 
         public class HideHuntressTrackerComp : MonoBehaviour
         {
+            public CharacterBody characterBody;
             public Inventory inventory;
             public HuntressTracker huntressTracker;
 
             public void Start()
             {
+                if (!characterBody)
+                {
+                    characterBody = gameObject.GetComponent<CharacterBody>();
+                }
                 if (!inventory)
                 {
-                    inventory = gameObject.GetComponent<CharacterBody>().inventory;
+                    inventory = characterBody.inventory;
                 }
                 if (!huntressTracker)
                 {
@@ -53,8 +52,16 @@ namespace HideHuntressTracker
 
             private void Inventory_onInventoryChanged()
             {
-                huntressTracker.enabled = !(inventory.GetItemCount(RoR2Content.Items.LunarPrimaryReplacement) > 0
-                    && inventory.GetItemCount(RoR2Content.Items.LunarSecondaryReplacement) > 0);
+                bool hasPrimary = inventory.GetItemCount(RoR2Content.Items.LunarPrimaryReplacement) > 0;
+                bool hasSecondary = inventory.GetItemCount(RoR2Content.Items.LunarSecondaryReplacement) > 0;
+
+                if (huntressTracker)
+                {
+                    huntressTracker.enabled = !(hasPrimary && hasSecondary);
+                }
+
+                //huntressTracker.enabled = !(inventory.GetItemCount(RoR2Content.Items.LunarPrimaryReplacement) > 0
+                //&& inventory.GetItemCount(RoR2Content.Items.LunarSecondaryReplacement) > 0);
             }
         }
     }

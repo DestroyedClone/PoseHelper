@@ -6,4 +6,9 @@ This mod hides Huntress's tracking thing if she has [Visions of Heresy](https://
 
 ![preview](https://raw.githubusercontent.com/DestroyedClone/PoseHelper/master/HideHuntressTracker/hht_preview.webp)
 
+## Changelog
+
+ - `1.0.1` - Nullref fix 
+ - `1.0.0` - Release
+
 > Written with [StackEdit](https://stackedit.io/).
