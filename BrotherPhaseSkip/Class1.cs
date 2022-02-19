@@ -34,6 +34,13 @@ namespace BrotherPhaseSkip
                 On.EntityStates.Missions.BrotherEncounter.Phase2.OnEnter += (orig, self) =>
                 {
                     orig(self);
+                    if (Config.Bind("","Add Phase 2 Pillars", true, "If true, then the pillars will raise.").Value)
+                    {
+                        foreach (var pillar in self.pillarsToActive)
+                        {
+                            pillar.SetActive(true);
+                        }
+                    }
                     self.outer.SetNextState(new Phase3());
                 };
             }
