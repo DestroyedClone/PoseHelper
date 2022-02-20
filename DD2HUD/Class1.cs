@@ -21,8 +21,8 @@ using static DD2HUD.Assets;
 namespace DD2HUD
 {
     [BepInPlugin("com.DestroyedClone.DD2Lobby", "Darkest Dungeon 2 Lobby", "1.0.0")]
-    [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
-    [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
+    //[BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
+    //[NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
     public class Main : BaseUnityPlugin
     {
         public static Dictionary<BodyIndex[], string> bodyIndices_to_teamName = new Dictionary<BodyIndex[], string>();
@@ -38,6 +38,7 @@ namespace DD2HUD
             if (DEBUG_addfakenetworkusers)
             {
                 Logger.LogWarning("Debug mode is on, disable before compiling and uploading!");
+                DD2LobbySetupComponent.debug = DEBUG_addfakenetworkusers;
             }
             SetupConfig();
             CheckModCompat();
@@ -47,7 +48,7 @@ namespace DD2HUD
                 On.RoR2.UI.CharacterSelectController.OnDisable += CharacterSelectController_OnDisable; //debugging
 
 
-            R2API.Utils.CommandHelper.AddToConsoleWhenReady();
+            //R2API.Utils.CommandHelper.AddToConsoleWhenReady();
         }
 
         public void SetupConfig()
@@ -88,7 +89,7 @@ namespace DD2HUD
             }
         }
 
-        [ConCommand(commandName = "dd2lobby_debug_setNetworkBodies", flags = ConVarFlags.None, helpText = "Debugging Command. Rank 1, Rank2, Rank 3, Rank 4. Rank 1 is ignored as its your playerslot")]
+        [ConCommand(commandName = "dd2lobby_debug_setNetworkBodies", flags = ConVarFlags.None, helpText = "Dev only Command. Rank 1, Rank2, Rank 3, Rank 4. Rank 1 is ignored as its your playerslot")]
         private static void CCChangeNetworkBodies(ConCommandArgs args)
         {
             DD2LobbySetupComponent.debug_characters = new string[]
@@ -100,7 +101,7 @@ namespace DD2HUD
             };
         }
 
-        [ConCommand(commandName = "dd2lobby_debug_toggle", flags = ConVarFlags.None, helpText = "Debugging Command. true or false")]
+        [ConCommand(commandName = "dd2lobby_debug_toggle", flags = ConVarFlags.None, helpText = "Dev only Command. true or false")]
         private static void CCClearChat(ConCommandArgs args)
         {
             DD2LobbySetupComponent.debug = args.GetArgBool(0);
@@ -372,7 +373,7 @@ namespace DD2HUD
                 rightHandPanel.localScale = Vector3.one * 0.8f;
                 //rightHandPanel.position = new Vector3(20, -20, 100);
                 Transform ruleVerticalLayout = rightHandPanel.Find("RuleVerticalLayout");
-                ruleVerticalLayout.position = new Vector3(-75f, -50f, 100f); //new Vector3(0f, 23f, 100f);
+                ruleVerticalLayout.position = new Vector3(-75, 20, 100); //new Vector3(0f, 23f, 100f);
                 ruleVerticalLayout.Find("BlurPanel").gameObject.SetActive(false);
                 ruleVerticalLayout.Find("BorderImage").gameObject.SetActive(false);
 
@@ -397,7 +398,7 @@ namespace DD2HUD
                 survivorTMP.transform.localScale = Vector3.one * 2f;
 
                 Transform chatBox = characterSelectController.transform.Find("SafeArea/ChatboxPanel");
-                chatBox.localPosition = new Vector3(-950, 200, 0);
+                chatBox.localPosition = new Vector3(-950, -300, 0);
 
                 if (!compat_LobbyAppearanceImprovements)
                 {
