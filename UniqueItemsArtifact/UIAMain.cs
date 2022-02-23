@@ -24,7 +24,7 @@ using System.Runtime.CompilerServices;
 
 namespace UniqueItemsArtifact
 {
-    [BepInPlugin("com.DestroyedClone.UniqueItemArtifact", "Unique Item Artifact", "1.0.0")]
+    [BepInPlugin("com.DestroyedClone.UniqueItemArtifact", "Unique Item Artifact", "0.0.1")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.DifferentModVersionsAreOk)]
     [R2APISubmoduleDependency(new string[] {
@@ -35,6 +35,7 @@ namespace UniqueItemsArtifact
     public class UIAMain : BaseUnityPlugin
     {
         /* TODO: 
+         * Add equipment to blacklist
          * Up Purcahse Cost
          * Reduce Chest amount
          * List Seperation:
@@ -60,6 +61,13 @@ namespace UniqueItemsArtifact
         public readonly int multLegendary = 1;
         public readonly int multLunar = 1;
         public readonly int multBoss = 1;
+
+        public static List<PickupIndex> cachedTier1DropList;
+        public static List<PickupIndex> cachedTier2DropList;
+        public static List<PickupIndex> cachedTier3DropList;
+
+        public readonly float multCostCommon = 2f;
+        public readonly float multCostUncommon = 1f;
 
         public void Awake()
         {
@@ -123,17 +131,104 @@ namespace UniqueItemsArtifact
             SceneDirector.onGenerateInteractableCardSelection += RemoveInteractableCardsIfNoPickupAvailable;
 
             On.RoR2.ShopTerminalBehavior.GenerateNewPickupServer += ShopTerminalBehavior_GenerateNewPickupServer;
+
+            On.RoR2.ArenaMissionController.EndRound += ArenaMissionController_EndRound;
+            On.RoR2.ScavengerItemGranter.Start += ScavengerItemGranter_Start;
+
+            Run.onRunStartGlobal += Run_onRunStartGlobal;
+        }
+
+        private void Run_onRunStartGlobal(Run run)
+        {
+            cachedTier1DropList = new List<PickupIndex>(run.availableTier1DropList);
+            cachedTier2DropList = new List<PickupIndex>(run.availableTier2DropList);
+            cachedTier3DropList = new List<PickupIndex>(run.availableTier3DropList);
+        }
+
+        private void ScavengerItemGranter_Start(On.RoR2.ScavengerItemGranter.orig_Start orig, ScavengerItemGranter self)
+        {
+            Inventory component = base.GetComponent<Inventory>();
+            if (ItemTierAvailable(ItemTier.Tier1))
+            {
+                List<PickupIndex> list = cachedTier1DropList.Where(new Func<PickupIndex, bool>(PickupIsNonBlacklistedItem)).ToList<PickupIndex>();
+                self.GrantItems(component, list, self.tier1Types, self.tier1StackSize);
+            }
+            if (ItemTierAvailable(ItemTier.Tier2))
+            {
+                List<PickupIndex> list2 = cachedTier2DropList.Where(new Func<PickupIndex, bool>(PickupIsNonBlacklistedItem)).ToList<PickupIndex>();
+                self.GrantItems(component, list2, self.tier2Types, self.tier2StackSize);
+            }
+            if (ItemTierAvailable(ItemTier.Tier3))
+            {
+                List<PickupIndex> list3 = cachedTier3DropList.Where(new Func<PickupIndex, bool>(PickupIsNonBlacklistedItem)).ToList<PickupIndex>();
+                self.GrantItems(component, list3, self.tier3Types, self.tier3StackSize);
+            }
+            List<PickupIndex> availableEquipmentDropList = Run.instance.availableEquipmentDropList;
+            if (self.overwriteEquipment || component.currentEquipmentIndex == EquipmentIndex.None)
+            {
+                component.GiveRandomEquipment();
+            }
+        }
+
+        public static bool PickupIsNonBlacklistedItem(PickupIndex pickupIndex)
+        {
+            var pickupDef = PickupCatalog.GetPickupDef(pickupIndex);
+            var itemDef = ItemCatalog.GetItemDef(pickupDef.itemIndex);
+            return itemDef.DoesNotContainTag(ItemTag.AIBlacklist);
+        }
+
+        private void ArenaMissionController_EndRound(On.RoR2.ArenaMissionController.orig_EndRound orig, ArenaMissionController self)
+        {
+            GameObject cachedRewardPosition = self.rewardSpawnPosition;
+            self.rewardSpawnPosition = null;
+            int participatingPlayerCount = Run.instance.participatingPlayerCount;
+            if (participatingPlayerCount != 0 && self.rewardSpawnPosition)
+            {
+                List<PickupIndex> list = Run.instance.availableTier1DropList;
+                if (self.currentRound > 4)
+                {
+                    list = Run.instance.availableTier2DropList;
+                }
+                if (self.currentRound == self.totalRoundsMax)
+                {
+                    list = Run.instance.availableTier3DropList;
+                }
+                if (list.Count > 0)
+                {
+                    PickupIndex pickupIndex = self.rng.NextElementUniform<PickupIndex>(list);
+                    int num = participatingPlayerCount;
+                    float angle = 360f / (float)num;
+                    Vector3 vector = Quaternion.AngleAxis((float)UnityEngine.Random.Range(0, 360), Vector3.up) * (Vector3.up * 40f + Vector3.forward * 5f);
+                    Quaternion rotation = Quaternion.AngleAxis(angle, Vector3.up);
+                    int k = 0;
+                    while (k < num)
+                    {
+                        PickupDropletController.CreatePickupDroplet(pickupIndex, self.rewardSpawnPosition.transform.position, vector);
+                        k++;
+                        vector = rotation * vector;
+                    }
+                }
+            }
+            orig(self);
+            self.rewardSpawnPosition = cachedRewardPosition;
         }
 
         private void ShopTerminalBehavior_GenerateNewPickupServer(On.RoR2.ShopTerminalBehavior.orig_GenerateNewPickupServer orig, ShopTerminalBehavior self)
         {
-            throw new NotImplementedException();
+            bool tierAvailable = ItemTierAvailable(self.itemTier);
+
+            if (tierAvailable)
+            {
+                orig(self);
+            }
         }
 
         private void RemoveInteractableCardsIfNoPickupAvailable(SceneDirector sceneDirector, DirectorCardCategorySelection dccs)
         {
             if (Run.instance)
+            {
                 dccs.RemoveCardsThatFailFilter(new Predicate<DirectorCard>(OnGenerateInteractableCardSelection));
+            }
         }
 
         internal static bool OnGenerateInteractableCardSelection(DirectorCard card)
@@ -142,58 +237,56 @@ namespace UniqueItemsArtifact
             var spawnCard = card.spawnCard;
 
             InteractableSpawnCard interactableSpawnCard(string name) { return Resources.Load<InteractableSpawnCard>($"spawncards/interactablespawncard/{name}"); }
-            bool check(string name) { return spawnCard == interactableSpawnCard(name); }
+            bool isCard(string name) { return spawnCard == interactableSpawnCard(name); }
 
             ItemTier[] tierWhiteGreen = new ItemTier[] { ItemTier.Tier1, ItemTier.Tier2 };
             ItemTier[] tierWhiteGreenRed = new ItemTier[] { ItemTier.Tier1, ItemTier.Tier2, ItemTier.Tier3 };
+            ItemTier[] tierGreenRed = new ItemTier[] { ItemTier.Tier2, ItemTier.Tier3 };
 
             //bool conditionsToRemove = prefab.GetComponent<ShopTerminalBehavior>() || prefab.GetComponent<MultiShopController>() || prefab.GetComponent<ScrapperController>();
             bool conditionsToRemove = prefab.GetComponent<ShopTerminalBehavior>() || prefab.GetComponent<ScrapperController>();
 
-
-            if (check("isccasinochest")) // white/green/red
+            if (isCard("isccasinochest")) // white/green/red
             {
                 conditionsToRemove = !ItemTierAvailable(tierWhiteGreenRed);
             }
-            else if (check("isccategorychestdamage")) // white/green
+            else if (isCard("isccategorychestdamage")) // white/green
             {
-                bool isAvailable = ItemTierAvailable(tierWhiteGreenRed);
-                if (!isAvailable)
-                    conditionsToRemove = !(ItemTierAvailable(tierWhiteGreen) && ItemTagAvailable(tierWhiteGreen, ItemTag.Damage));
+                conditionsToRemove = !ItemTagAvailable(tierWhiteGreenRed, ItemTag.Damage);
+                //isAvailable = ItemTierAvailable(tierWhiteGreenRed);
+                //if (isAvailable)
+                //conditionsToRemove = !(ItemTierAvailable(tierWhiteGreen) && ItemTagAvailable(tierWhiteGreen, ItemTag.Damage));
             }
-            else if (check("isccategorychesthealing")) // white/green
+            else if (isCard("isccategorychesthealing")) // white/green
             {
-                conditionsToRemove = !(ItemTierAvailable(tierWhiteGreen) && ItemTagAvailable(tierWhiteGreen, ItemTag.Healing));
+                conditionsToRemove = !ItemTagAvailable(tierWhiteGreenRed, ItemTag.Healing);
             }
-            else if (check("isccategorychestutility")) // white/green
+            else if (isCard("isccategorychestutility")) // white/green
             {
-                conditionsToRemove = !(ItemTierAvailable(tierWhiteGreen) && ItemTagAvailable(tierWhiteGreen, ItemTag.Utility));
+                conditionsToRemove = !ItemTagAvailable(tierWhiteGreenRed, ItemTag.Utility);
             }
-            else if (check("iscchest1") || check("iscchest1stealthed") || check("iscscavbackpack") || check("iscshrinechance")) // white/green/red
+            else if (isCard("iscchest1") || isCard("iscchest1stealthed") || isCard("iscscavbackpack") || isCard("iscshrinechance")) // white/green/red
             {
                 conditionsToRemove = !ItemTierAvailable(tierWhiteGreenRed);
             }
-            else if (check("iscchest2") || check("isclockbox")) // green/red
+            else if (isCard("iscchest2") || isCard("isclockbox")) // green/red
             {
-                conditionsToRemove = !ItemTierAvailable(tierWhiteGreen);
+                conditionsToRemove = !ItemTierAvailable(tierGreenRed);
             }
-            else if (check("iscgoldchest")) // red
+            else if (isCard("iscgoldchest")) // red
             {
                 conditionsToRemove = !ItemTierAvailable(ItemTier.Tier3);
             }
-            else if (check("isclunarchest"))
+            else if (isCard("isclunarchest"))
             {
                 conditionsToRemove = !ItemTierAvailable(ItemTier.Lunar);
             }
-            else if (check("isctripleshop") || check("isctripleshoplarge")) // white/green
+            else if (isCard("isctripleshop") || isCard("isctripleshoplarge")) // white/green
             {
                 conditionsToRemove = !ItemTierAvailable(tierWhiteGreen);
             }
-
-            if (conditionsToRemove)
-            {
-                Debug.Log($"{spawnCard.prefab.name} has been removed.");
-            }
+            conditionsToRemove = !conditionsToRemove;
+            //Debug.Log($"{(conditionsToRemove ? "REMOVE" : "KEEP")}: {spawnCard.prefab.name}");
             return conditionsToRemove;
 		}
 
@@ -282,6 +375,15 @@ namespace UniqueItemsArtifact
             On.RoR2.BossGroup.DropRewards -= BossGroup_DropRewards; //doesnt work
 
             On.RoR2.MultiShopController.CreateTerminals -= PreventTerminalsIfNoItems;
+
+            SceneDirector.onGenerateInteractableCardSelection -= RemoveInteractableCardsIfNoPickupAvailable;
+
+            On.RoR2.ShopTerminalBehavior.GenerateNewPickupServer -= ShopTerminalBehavior_GenerateNewPickupServer;
+
+            On.RoR2.ArenaMissionController.EndRound -= ArenaMissionController_EndRound;
+            On.RoR2.ScavengerItemGranter.Start -= ScavengerItemGranter_Start;
+
+            Run.onRunStartGlobal -= Run_onRunStartGlobal;
         }
 
         private void PurchaseInteraction_Awake(On.RoR2.PurchaseInteraction.orig_Awake orig, PurchaseInteraction self)
@@ -332,10 +434,17 @@ namespace UniqueItemsArtifact
         private void ModifyDropList(ItemIndex itemIndex, bool add)
         {
             Run run = RoR2.Run.instance;
-            ItemTier itemTier = ItemCatalog.GetItemDef(itemIndex).tier;
+            ItemDef itemDef = ItemCatalog.GetItemDef(itemIndex);
+            ItemTier itemTier = itemDef.tier;
+            if (itemDef.hidden || itemTier == ItemTier.NoTier)
+            {
+                return;
+            }
+
+
             var pickupIndex = PickupCatalog.FindPickupIndex(itemIndex);
 
-            bool runHasItem = run.availableItems.Contains(itemIndex);
+            bool runHasItem = run.availableItems.array[(int)itemIndex];
             bool tier1Has = run.availableTier1DropList.Contains(pickupIndex);
             bool tier2Has = run.availableTier2DropList.Contains(pickupIndex);
             bool tier3Has = run.availableTier3DropList.Contains(pickupIndex);
@@ -347,7 +456,8 @@ namespace UniqueItemsArtifact
             {
                 if (!runHasItem)
                 {
-                    run.availableItems.array[(int)itemIndex] = true;
+                    //run.availableItems.array[(int)itemIndex] = true;
+                    run.availableItems.Add(itemIndex);
                     switch (itemTier)
                     {
                         case ItemTier.Tier1:
@@ -376,7 +486,8 @@ namespace UniqueItemsArtifact
             {
                 if (runHasItem)
                 {
-                    run.availableItems.array[(int)itemIndex] = false;
+                    //run.availableItems.array[(int)itemIndex] = false;
+                    run.availableItems.Remove(itemIndex);
                     switch (itemTier)
                     {
                         case ItemTier.Tier1:
@@ -408,7 +519,7 @@ namespace UniqueItemsArtifact
             bool tier2Available = ItemTierAvailable(ItemTier.Tier2);
             bool tier3Available = ItemTierAvailable(ItemTier.Tier3);
             bool noTierAvailable = !tier1Available && !tier2Available && !tier3Available;
-            Debug.Log($"Tier Availability: {tier1Available} {tier2Available} {tier3Available}");
+            //Debug.Log($"Tier Availability: {tier1Available} {tier2Available} {tier3Available}");
 
             void DestroyAndSpawnGold(GameObject gameObject, int count = 0)
             {
@@ -424,57 +535,78 @@ namespace UniqueItemsArtifact
                 }
             }
 
-            foreach (var shopTerminalBehavior in InstanceTracker.GetInstancesList<ShopTerminalBehavior>())
+            void HandleTerminalBehaviors()
             {
-                if (noTierAvailable)
+                foreach (var shopTerminalBehavior in InstanceTracker.GetInstancesList<ShopTerminalBehavior>())
                 {
-                    if (shopTerminalBehavior.GetComponent<PurchaseInteraction>().Networkavailable)
-                        DestroyAndSpawnGold(shopTerminalBehavior.gameObject, 3);
-                } else 
-                if (shopTerminalBehavior.pickupIndex == pickupIndex)
-                {
-                    shopTerminalBehavior.GenerateNewPickupServer();
-                    shopTerminalBehavior.UpdatePickupDisplayAndAnimations();
-                }
-            }
-
-            foreach (var chestBehavior in InstanceTracker.GetInstancesList<ChestBehavior>())
-            {
-                bool notPurchased = chestBehavior.GetComponent<PurchaseInteraction>().Networkavailable;
-                void DestroyGold()
-                {
-                    if (notPurchased)
+                    if (noTierAvailable)
                     {
-                        DestroyAndSpawnGold(chestBehavior.gameObject, 1);
-                        InstanceTracker.Remove(chestBehavior);
+                        if (shopTerminalBehavior.GetComponent<PurchaseInteraction>().Networkavailable)
+                            DestroyAndSpawnGold(shopTerminalBehavior.gameObject, 3);
+                    }
+                    else
+                    if (shopTerminalBehavior.pickupIndex == pickupIndex)
+                    {
+                        shopTerminalBehavior.GenerateNewPickupServer();
+                        shopTerminalBehavior.UpdatePickupDisplayAndAnimations();
                     }
                 }
-                if (noTierAvailable)
-                {
-                    DestroyGold();
-                }
-                else 
-                {
-                    chestBehavior.tier1Chance *= (tier1Available ? 1 : 0);
-                    chestBehavior.tier2Chance *= (tier2Available ? 1 : 0);
-                    chestBehavior.tier3Chance *= (tier3Available ? 1 : 0);
+            }
+            HandleTerminalBehaviors();
 
-                    var availableItemTiers = new List<ItemTier>();
-                    if (chestBehavior.tier1Chance != 0) availableItemTiers.Add(ItemTier.Tier1);
-                    if (chestBehavior.tier2Chance != 0) availableItemTiers.Add(ItemTier.Tier2);
-                    if (chestBehavior.tier3Chance != 0) availableItemTiers.Add(ItemTier.Tier3);
-                    bool itemTagAvailable = chestBehavior.requiredItemTag == ItemTag.Any ? true : Availability.ItemTagAvailable(availableItemTiers.ToArray(), chestBehavior.requiredItemTag);
-
-                    if (!itemTagAvailable || (chestBehavior.tier1Chance == 0 && chestBehavior.tier2Chance == 0 && chestBehavior.tier3Chance == 0))
+            void HandleChestBehaviors()
+            {
+                List<ChestBehavior> chestBehaviorsToRemove = new List<ChestBehavior>();
+                foreach (var chestBehavior in InstanceTracker.GetInstancesList<ChestBehavior>())
+                {
+                    bool notPurchased = chestBehavior.GetComponent<PurchaseInteraction>().Networkavailable;
+                    void DestroyGold()
+                    {
+                        if (notPurchased)
+                        {
+                            DestroyAndSpawnGold(chestBehavior.gameObject, 1);
+                            chestBehaviorsToRemove.Add(chestBehavior);
+                        }
+                    }
+                    if (noTierAvailable)
                     {
                         DestroyGold();
-                    } else
+                    }
+                    else
                     {
-                        if (chestBehavior.dropPickup == pickupIndex)
-                            chestBehavior.Start();
+                        chestBehavior.tier1Chance *= (tier1Available ? 1 : 0);
+                        chestBehavior.tier2Chance *= (tier2Available ? 1 : 0);
+                        chestBehavior.tier3Chance *= (tier3Available ? 1 : 0);
+
+                        var availableItemTiers = new List<ItemTier>();
+                        if (chestBehavior.tier1Chance != 0) availableItemTiers.Add(ItemTier.Tier1);
+                        if (chestBehavior.tier2Chance != 0) availableItemTiers.Add(ItemTier.Tier2);
+                        if (chestBehavior.tier3Chance != 0) availableItemTiers.Add(ItemTier.Tier3);
+                        bool itemTagAvailable = chestBehavior.requiredItemTag == ItemTag.Any ? true : Availability.ItemTagAvailable(availableItemTiers.ToArray(), chestBehavior.requiredItemTag);
+
+                        if (!itemTagAvailable || (chestBehavior.tier1Chance == 0 && chestBehavior.tier2Chance == 0 && chestBehavior.tier3Chance == 0))
+                        {
+                            DestroyGold();
+                        }
+                        else
+                        {
+                            if (chestBehavior.dropPickup == pickupIndex)
+                                chestBehavior.Start();
+                        }
+                    }
+                }
+                if (chestBehaviorsToRemove.Count > 0)
+                {
+                    foreach (var cb in chestBehaviorsToRemove)
+                    {
+                        if (cb)
+                        {
+                            InstanceTracker.Remove(cb);
+                        }
                     }
                 }
             }
+            HandleChestBehaviors();
         }
     }
 }

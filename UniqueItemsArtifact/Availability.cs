@@ -39,10 +39,10 @@ namespace UniqueItemsArtifact
 
         public static bool ItemTierAvailable(ItemTier[] itemTiers)
         {
-            bool isAvailable = false;
+            bool isAvailable = true;
             foreach (var itemTier in itemTiers)
             {
-                isAvailable = ItemTierAvailable(itemTier);
+                isAvailable &= ItemTierAvailable(itemTier);
             }
             return isAvailable;
         }
@@ -54,7 +54,7 @@ namespace UniqueItemsArtifact
                 var itemDef = ItemCatalog.GetItemDef(PickupCatalog.GetPickupDef(pickupIndex).itemIndex);
                 if (itemDef.ContainsTag(itemTag))
                 {
-                    Debug.Log($"{itemTag} found for {itemDef.tier} {itemDef.nameToken}");
+                    //Debug.Log($"{itemTag} found for {itemDef.tier} {itemDef.nameToken}");
                     return itemDef.ContainsTag(itemTag);
                 }
                 return false;

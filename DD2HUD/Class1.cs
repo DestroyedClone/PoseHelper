@@ -398,7 +398,7 @@ namespace DD2HUD
                 survivorTMP.transform.localScale = Vector3.one * 2f;
 
                 Transform chatBox = characterSelectController.transform.Find("SafeArea/ChatboxPanel");
-                chatBox.localPosition = new Vector3(-950, -300, 0);
+                chatBox.localPosition = new Vector3(-700, 305, 0);
 
                 if (!compat_LobbyAppearanceImprovements)
                 {
