@@ -5,15 +5,6 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <Compile Remove="Class1 - Copy.cs" />
-	  <Compile Remove="Class1.cs" />
-	  <Compile Remove="DDSS.cs" />
-	  <Compile Remove="PartialPaymentMod.cs" />
-	  <Compile Remove="Prevention.cs" />
-	  <Compile Remove="SurvivorsAsEnemies.cs" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<Reference Include="0Harmony">
 			<HintPath>..\PoseHelper\lib\0Harmony.dll</HintPath>
 		</Reference>

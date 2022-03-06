@@ -26,9 +26,43 @@ namespace PickupOverPlayer
     [R2APISubmoduleDependency(nameof(EffectAPI), nameof(PrefabAPI), nameof(NetworkingAPI))]
     public class Main : BaseUnityPlugin
     {
+        public static GameObject chatObject;
+
         public void Start()
         {
             On.RoR2.Chat.AddMessage_ChatMessageBase += Chat_AddMessage_ChatMessageBase;
+            On.RoR2.Chat.AddPickupMessage += Chat_AddPickupMessage;
+
+            chatObject = CreateTextPrefab("", "ChatPickupPrefab", "", 1);
+            UnityEngine.Object.Destroy(chatObject.GetComponent<EffectComponent>());
+        }
+
+        private void Chat_AddPickupMessage(On.RoR2.Chat.orig_AddPickupMessage orig, CharacterBody body, string pickupToken, Color32 pickupColor, uint pickupQuantity)
+        {
+            On.RoR2.Skills.SkillDef.CanExecute += SkillDef_CanExecute;
+
+            var message = new Chat.PlayerPickupChatMessage
+            {
+                subjectAsCharacterBody = body,
+                baseToken = "PLAYER_PICKUP",
+                pickupToken = pickupToken,
+                pickupColor = pickupColor,
+                pickupQuantity = pickupQuantity
+            };
+            var newText = message.ConstructChatString();
+            var obj = UnityEngine.Object.Instantiate(chatObject);
+            obj.transform.parent = body.transform;
+            obj.GetComponent<TextTracker>().UpdateText(newText);
+        }
+
+        private bool SkillDef_CanExecute(On.RoR2.Skills.SkillDef.orig_CanExecute orig, RoR2.Skills.SkillDef self, GenericSkill skillSlot)
+        {
+            BuffDef whiteFlag = new BuffDef();
+            if (skillSlot.characterBody && !skillSlot.characterBody.HasBuff(whiteFlag))
+            {
+                return orig(self, skillSlot);
+            }
+            return false;
         }
 
         private void Chat_AddMessage_ChatMessageBase(On.RoR2.Chat.orig_AddMessage_ChatMessageBase orig, ChatMessageBase message)
@@ -50,9 +84,25 @@ namespace PickupOverPlayer
             textPrefab.AddComponent<NetworkIdentity>();
             textPrefab.AddComponent<HoverOverHeadSafe>();
 
+            var tt = textPrefab.AddComponent<TextTracker>();
+            tt.tmp = tmp;
+            tt.ltmc = ltmc;
+
             if (textPrefab) { PrefabAPI.RegisterNetworkPrefab(textPrefab); }
             R2API.EffectAPI.AddEffect(textPrefab);
             return textPrefab;
+        }
+
+        public class TextTracker : MonoBehaviour
+        {
+            public TextMeshPro tmp;
+            public LanguageTextMeshController ltmc;
+
+            public void UpdateText(string text)
+            {
+                tmp.text = text;
+                ltmc.token = text;
+            }
         }
 
         public void FixedUpdate()

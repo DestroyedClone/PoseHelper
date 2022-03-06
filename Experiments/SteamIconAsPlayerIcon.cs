@@ -7,7 +7,7 @@ using UnityEngine;
 namespace SteamIconAsPlayerIcon
 {
     [BepInPlugin("com.DestroyedClone.SteamIconAsPlayerIcon", "Steam Icon As Player Icon", "1.0.0")]
-    public class Class1 : BaseUnityPlugin
+    public class SteamIconAsPlayerIcon : BaseUnityPlugin
     {
         public void Awake()
         {

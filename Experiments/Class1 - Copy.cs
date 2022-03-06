@@ -20,26 +20,32 @@ namespace BanditItemlet
     [BepInPlugin("com.DestroyedClone.Banditlet", "Banditlet", "1.0.0")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.DifferentModVersionsAreOk)]
-    public class Class1 : BaseUnityPlugin
+    public class Main : BaseUnityPlugin
     {
-        public static BodyIndex banditBodyIndex;
+        Dictionary<string, int> language_framerate = new Dictionary<string, int>()
+        {
+            {"es-419", 5 }
+        };
 
         public void Start()
         {
-            On.RoR2.GenericPickupController.BodyHasPickupPermission += GenericPickupController_BodyHasPickupPermission;
+            //Language.onCurrentLanguageChanged += Language_onCurrentLanguageChanged;
         }
 
-        private bool GenericPickupController_BodyHasPickupPermission(On.RoR2.GenericPickupController.orig_BodyHasPickupPermission orig, CharacterBody body)
+        private void Language_onCurrentLanguageChanged()
         {
-            return orig(body) && !(body.bodyIndex == banditBodyIndex);
+            if (Language.currentLanguage.name == "es-419")
+            {
+                Debug.Log("Mexico Simulator enabled");
+                Application.targetFrameRate = 25;
+            } else if (Language.currentLanguage.name == "pt-BR")
+            {
+                Debug.Log("Brazil Simulator enabled");
+                Application.targetFrameRate = 5;
+            } else
+            {
+                Application.targetFrameRate = -1; //uncapped
+            }
         }
-
-        [RoR2.SystemInitializer(dependencies: typeof(RoR2.BodyCatalog))]
-        private static void CacheBodyCata()
-        {
-            banditBodyIndex = BodyCatalog.FindBodyIndex("Bandit2Body");
-            Debug.LogError($"{BodyCatalog.FindBodyIndex("Bandit2Body")} {(int)BodyCatalog.FindBodyIndex("Bandit2Body")}");
-        }
-
     }
 }

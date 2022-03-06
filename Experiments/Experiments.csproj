@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="MonstersGrabItems\**" />
+    <EmbeddedResource Remove="MonstersGrabItems\**" />
+    <None Remove="MonstersGrabItems\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="BetterUIAccuracyStat.cs" />
+    <Compile Remove="Class1 - Copy.cs" />
+    <Compile Remove="Class12.cs" />
+    <Compile Remove="DDSS.cs" />
+    <Compile Remove="EmergencyCleanerPlugin.cs" />
+    <Compile Remove="ExperimentsMain.cs" />
+    <Compile Remove="HPATPlugin.cs" />
+    <Compile Remove="IndividualStateMachines.cs" />
+    <Compile Remove="Inspect.cs" />
+    <Compile Remove="LobbySkillPreviewPlugin.cs" />
+    <Compile Remove="LobbySkillPreviewPluginAlt.cs" />
+    <Compile Remove="PartialPaymentMod.cs" />
+    <Compile Remove="Prevention.cs" />
+    <Compile Remove="SpawnPrefabCMD.cs" />
+    <Compile Remove="SurvivorsAsEnemies.cs" />
+  </ItemGroup>
+
+</Project>

@@ -44,14 +44,14 @@ namespace EmergencyCleaner
         public class Cleaner : MonoBehaviour
         {
             int frameRate;
-            readonly int minFrameRate;
+            readonly int minFrameRate = 5;
             public void Update()
             {
                 frameRate = (int)(1.0 / Time.deltaTime);
             }
 
 
-            public IEnumerator Konodioda()
+            public IEnumerator FrameRateThing()
             {
                 frameRateHazard = true;
                 while (frameRate < minFrameRate)

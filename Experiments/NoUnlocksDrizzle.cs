@@ -22,7 +22,7 @@ namespace NoUnlocksDrizzle
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
     [R2APISubmoduleDependency(nameof(EffectAPI), nameof(PrefabAPI), nameof(NetworkingAPI))]
-    public class Class1 : BaseUnityPlugin
+    public class NoUnlocksDrizzle : BaseUnityPlugin
     {
 
 

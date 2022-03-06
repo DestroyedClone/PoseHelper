@@ -23,7 +23,7 @@ namespace OctoberTwenty
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
     [R2APISubmoduleDependency("SceneAssetApi")]
-    public class Class1 : BaseUnityPlugin
+    public class SpawnPrefabCMD : BaseUnityPlugin
     {
         public void Awake()
         {
