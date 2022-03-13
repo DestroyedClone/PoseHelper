@@ -1,6 +1,4 @@
 ﻿using BepInEx;
-using R2API;
-using R2API.Utils;
 using RoR2;
 using System.Security;
 using System.Security.Permissions;
@@ -13,10 +11,7 @@ using UnityEngine;
 
 namespace HealthbarImmune
 {
-    [BepInPlugin("com.DestroyedClone.HealthbarImmune", "Healthbar Immune", "1.0.0")]
-    [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
-    [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
-    [R2APISubmoduleDependency(nameof(LanguageAPI))]
+    [BepInPlugin("com.DestroyedClone.HealthbarImmune", "Healthbar Immune", "1.0.1")]
     public class HealthbarImmunePlugin : BaseUnityPlugin
     {
         public static Color ImmuneColor = Color.yellow;

@@ -3,6 +3,7 @@ using BepInEx.Configuration;
 using RoR2;
 using System.Security.Permissions;
 using UnityEngine;
+using R2API.Utils;
 
 #pragma warning disable CS0618 // Type or member is obsolete
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
@@ -10,8 +11,9 @@ using UnityEngine;
 
 namespace MoonToOutro
 {
-    [BepInPlugin("com.DestroyedClone.SkipToOutroText", "Skip To Outro Text", "1.0.0")]
+    [BepInPlugin("com.DestroyedClone.SkipToOutroText", "Skip To Outro Text", "1.0.1")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
+    [R2APISubmoduleDependency(nameof(CommandHelper))]
     public class Plugin : BaseUnityPlugin
     {
         public static ConfigEntry<bool> JustFlavorText { get; set; }

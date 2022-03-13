@@ -1,23 +1,25 @@
 ﻿using BepInEx;
-using R2API.Utils;
 using RoR2;
 using System.Security;
 using System.Security.Permissions;
 using UnityEngine;
+using System;
+
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
 #pragma warning restore CS0618 // Type or member is obsolete
+[assembly: HG.Reflection.SearchableAttribute.OptIn]
 
 namespace HideHuntressTracker
 {
-    [BepInPlugin("com.DestroyedClone.HideHuntressTracker", "HideHuntressTracker", "1.0.1")]
-    [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
-    [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.DifferentModVersionsAreOk)]
+    [BepInPlugin("com.DestroyedClone.HideHuntressTracker", "HideHuntressTracker", "1.0.2")]
     public class Class1 : BaseUnityPlugin
     {
-        public void Start()
+
+        [RoR2.SystemInitializer(dependencies: new Type[] {typeof(RoR2.BodyCatalog), typeof(SurvivorCatalog)})]
+        public static void SetupHuntress()
         {
             var prefab = RoR2Content.Survivors.Huntress.bodyPrefab;
             var com = prefab.AddComponent<HideHuntressTrackerComp>();
@@ -25,6 +27,7 @@ namespace HideHuntressTracker
             com.inventory = prefab.GetComponent<CharacterBody>().inventory;
             com.huntressTracker = prefab.GetComponent<HuntressTracker>();
         }
+
 
         public class HideHuntressTrackerComp : MonoBehaviour
         {
