@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Security.Permissions;
 using UnityEngine;
 using UnityEngine.Networking;
+using static ShareYourMoney.DoshContent;
 
 #pragma warning disable CS0618 // Type or member is obsolete
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
@@ -16,11 +17,10 @@ namespace ShareYourMoney
 {
     [BepInPlugin("com.DestroyedClone.DoshDrop", "Dosh Drop", "1.0.3")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
-    [R2APISubmoduleDependency(nameof(PrefabAPI), nameof(BuffAPI), nameof(LanguageAPI))]
+    [R2APISubmoduleDependency(nameof(PrefabAPI), nameof(LanguageAPI))]
     [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.EveryoneNeedSameModVersion)]
     public class Main : BaseUnityPlugin
     {
-        public static GameObject ShareMoneyPack;
         internal static BepInEx.Logging.ManualLogSource _logger;
 
         // CFG
@@ -35,16 +35,11 @@ namespace ShareYourMoney
         public static bool preventMoneyDrops = false; //Server Method
         public static bool england = false;
 
-        public static BuffDef pendingDoshBuff;    //Client adds the buff. If server detects buff, it removes it and triggers the money drop.
-
-        public static AssetBundle MainAssets;
-        public static GameObject moneyAsset;
-
-        public void Awake()
+        public void Start()
         {
             _logger = Logger;
-
-            SetupAssets();
+            DoshContent.LoadResources();
+            DoshContent.CreateObjects();
 
             keyToDrop = Config.Bind("", "Keybind", KeyCode.B, "Button to press to drop money").Value;
             percentToDrop = Config.Bind("", "Amount to Drop (Server-Side)", 0.5f, "Drop money equivalent to this percentage of the cost of a small chest.").Value;
@@ -53,8 +48,6 @@ namespace ShareYourMoney
             preventModUseOnStageEnd = Config.Bind("", "Prevent On Stage End", true, "If true, then money will be prevented from being dropped on ending the stage.").Value;
             refundOnStageEnd = Config.Bind("", "Refund Drops On Stage End", true, "If true, then money will get refunded to owners upon ending the stage.").Value;
             england = Config.Bind("", "English (England)", true, "Renames the English translation for Money to a more regionally appropriate term.").Value;
-
-            SetupPrefab();
 
             On.RoR2.CharacterBody.Update += CharacterBody_Update;
             if (performanceMode)
@@ -65,7 +58,6 @@ namespace ShareYourMoney
             {
                 On.RoR2.CharacterBody.FixedUpdate += CharacterBody_FixedUpdate;
             }
-            SetupMoneyBuff();
             SetupLanguage();
 
             On.RoR2.SceneExitController.SetState += SceneExitController_SetState;
@@ -76,67 +68,6 @@ namespace ShareYourMoney
 
             // Sure would be a shame if this thing fell out of bounds.
             //On.RoR2.MapZone.OnTriggerEnter += MapZone_OnTriggerEnter;
-        }
-
-        private void SetupAssets()
-        {
-            using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("ShareYourMoney.bigbluecash"))
-            {
-                MainAssets = AssetBundle.LoadFromStream(stream);
-            }
-            moneyAsset = MainAssets.LoadAsset<GameObject>("Assets/bigbluecash/BBC.prefab");
-        }
-
-        private static void SetupPrefab()
-        {
-            //prevent rolling somehow?
-            ShareMoneyPack = PrefabAPI.InstantiateClone(Resources.Load<GameObject>("Prefabs/NetworkedObjects/BonusMoneyPack"), "ShareMoneyPack", true);
-            var moneyPickup = ShareMoneyPack.transform.Find("PackTrigger").GetComponent<MoneyPickup>();
-            var modMoneyPickup = moneyPickup.gameObject.AddComponent<ModifiedMoneyPickup>();
-            modMoneyPickup.baseObject = moneyPickup.baseObject;
-            modMoneyPickup.pickupEffectPrefab = moneyPickup.pickupEffectPrefab;
-            modMoneyPickup.teamFilter = moneyPickup.teamFilter;
-            Destroy(moneyPickup);
-            Destroy(ShareMoneyPack.GetComponent<VelocityRandomOnStart>());
-            ShareMoneyPack.transform.Find("GravityTrigger").gameObject.SetActive(false);
-
-            //var moneyCopy = Instantiate(moneyAsset);
-            ShareMoneyPack.GetComponentInChildren<MeshFilter>().sharedMesh = moneyAsset.GetComponentInChildren<MeshFilter>().sharedMesh;
-            var meshRenderer = ShareMoneyPack.GetComponentInChildren<MeshRenderer>();
-            //meshRenderer.material = moneyAsset.GetComponentInChildren<MeshRenderer>().material;
-            meshRenderer.SetMaterials(new List<Material>() { moneyAsset.GetComponentInChildren<MeshRenderer>().material });
-            meshRenderer.transform.localScale = Vector3.one * 9;
-            Destroy(ShareMoneyPack.transform.Find("Display/Mesh/Particle System").gameObject);
-
-            //var genericDisplay = ShareMoneyPack.AddComponent<GenericDisplayNameProvider>();
-            //genericDisplay.displayToken = "Dosh";
-
-            var purchaseInteraction = ShareMoneyPack.AddComponent<PurchaseInteraction>();
-            purchaseInteraction.contextToken = "Pickup dosh?"; //shouldnt be visible
-            purchaseInteraction.costType = CostTypeIndex.Money;
-            purchaseInteraction.displayNameToken = "DC_DOSH_PICKUP";
-            purchaseInteraction.setUnavailableOnTeleporterActivated = false;
-            purchaseInteraction.automaticallyScaleCostWithDifficulty = false;
-            purchaseInteraction.lockGameObject = null;
-
-            purchaseInteraction.gameObject.AddComponent<MoneyPickupMarker>();
-
-            var pingInfoProvider = ShareMoneyPack.AddComponent<PingInfoProvider>();
-            pingInfoProvider.pingIconOverride = Resources.Load<Sprite>("textures/miscicons/texrulebonusstartingmoney");
-
-            modMoneyPickup.purchaseInteraction = purchaseInteraction;
-        }
-
-        //Too lazy to set up a Networkbehaviour so here's a hacky workaround.
-        private void SetupMoneyBuff()
-        {
-            pendingDoshBuff = ScriptableObject.CreateInstance<BuffDef>();
-            pendingDoshBuff.buffColor = new Color(1f, 215f / 255f, 0f);
-            pendingDoshBuff.canStack = true;
-            pendingDoshBuff.isDebuff = false;
-            pendingDoshBuff.name = "PendingDoshDrop";
-            pendingDoshBuff.iconSprite = Resources.Load<Sprite>("Textures/BuffIcons/texBuffCloakIcon");
-            BuffAPI.Add(new CustomBuff(pendingDoshBuff));
         }
 
         private void SetupLanguage()
@@ -175,10 +106,10 @@ namespace ShareYourMoney
             if (NetworkServer.active)
             {
                 if (preventMoneyDrops) return;
-                int doshCount = Mathf.Min(self.GetBuffCount(pendingDoshBuff.buffIndex), 8);    //Can queue up to 8
+                int doshCount = Mathf.Min(self.GetBuffCount(DoshContent.pendingDoshBuff.buffIndex), 8);    //Can queue up to 8
                 if (doshCount > 0)
                 {
-                    self.ClearTimedBuffs(pendingDoshBuff.buffIndex);
+                    self.ClearTimedBuffs(DoshContent.pendingDoshBuff.buffIndex);
                     if (self.master)
                     {
                         for (int i = 0; i < doshCount; i++)
@@ -240,7 +171,7 @@ namespace ShareYourMoney
                 }
                 else
                 {
-                    self.AddTimedBuffAuthority(pendingDoshBuff.buffIndex, 1000000f);
+                    self.AddTimedBuffAuthority(DoshContent.pendingDoshBuff.buffIndex, 1000000f);
                 }
             }
         }
@@ -251,10 +182,10 @@ namespace ShareYourMoney
             if (NetworkServer.active)
             {
                 if (preventMoneyDrops) return;
-                int doshCount = self.GetBuffCount(pendingDoshBuff.buffIndex);
+                int doshCount = self.GetBuffCount(DoshContent.pendingDoshBuff);
                 if (doshCount > 0)
                 {
-                    self.ClearTimedBuffs(pendingDoshBuff.buffIndex);
+                    self.ClearTimedBuffs(DoshContent.pendingDoshBuff);
                     if (self.master)
                     {
                         ReleaseMoney(self.master, doshCount);
@@ -321,104 +252,6 @@ namespace ShareYourMoney
                 NetworkServer.Spawn(pickup);
                 master.money = (uint)(Mathf.Max(0f, master.money - goldReward));
             }
-        }
-
-        private class MoneyPickupMarker : MonoBehaviour
-        { }
-
-        private class ModifiedMoneyPickup : MonoBehaviour
-        {
-            public static readonly List<ModifiedMoneyPickup> instancesList = new List<ModifiedMoneyPickup>();
-
-            public PurchaseInteraction purchaseInteraction;
-
-            private void OnEnable()
-            {
-                instancesList.Add(this);
-            }
-
-            private void OnDisable()
-            {
-                instancesList.Remove(this);
-            }
-
-            private void Start()
-            {
-                if (NetworkServer.active)
-                    purchaseInteraction.Networkcost = goldReward;
-            }
-
-            public void Refund()
-            {
-                allowPickup = false;
-                if (owner.master)
-                {
-                    owner.master.GiveMoney((uint)goldReward);
-                    Destroy(this.baseObject);
-                }
-            }
-
-            private void FixedUpdate()
-            {
-                // prevents early re-pickup by owner
-                age += Time.fixedDeltaTime;
-                if (age > durationBeforeOwnerPickup)
-                {
-                    ownerCanPickup = true;
-                }
-            }
-
-            // Token: 0x060013E7 RID: 5095 RVA: 0x00052B84 File Offset: 0x00050D84
-            private void OnTriggerStay(Collider other)
-            {
-                if (NetworkServer.active && this.alive)
-                {
-                    if (!allowPickup) return;
-
-                    var characterBody = other.GetComponent<CharacterBody>();
-                    if (characterBody && characterBody.isPlayerControlled && characterBody.master)
-                    {
-                        if (ownerCanPickup && characterBody == owner || characterBody != owner)
-                        {
-                            this.alive = false;
-                            Vector3 position = base.transform.position;
-                            characterBody.master.GiveMoney((uint)goldReward);
-                            if (this.pickupEffectPrefab)
-                            {
-                                EffectManager.SimpleEffect(this.pickupEffectPrefab, position, Quaternion.identity, true);
-                            }
-                            UnityEngine.Object.Destroy(this.baseObject);
-                        }
-                    }
-                }
-            }
-
-            // Token: 0x040011AF RID: 4527
-            [Tooltip("The base object to destroy when this pickup is consumed.")]
-            public GameObject baseObject;
-
-            // Token: 0x040011B0 RID: 4528
-            [Tooltip("The team filter object which determines who can pick up this pack.")]
-            public TeamFilter teamFilter;
-
-            // Token: 0x040011B1 RID: 4529
-            public GameObject pickupEffectPrefab;
-
-            // Token: 0x040011B4 RID: 4532
-            private bool alive = true;
-
-            // Token: 0x040011B5 RID: 4533
-            public int goldReward;
-
-            private float age = 0;
-
-            private float durationBeforeOwnerPickup = 3f;
-
-            public CharacterBody owner;
-
-            private bool ownerCanPickup = false;
-
-            private bool allowPickup = true;
         }
     }
 }
