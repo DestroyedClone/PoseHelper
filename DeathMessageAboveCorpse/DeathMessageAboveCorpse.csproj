@@ -34,5 +34,8 @@
 		<Reference Include="R2API">
 			<HintPath>..\References\lib\R2API.dll</HintPath>
 		</Reference>
+		<Reference Include="Zio">
+		  <HintPath>..\References\lib\Zio.dll</HintPath>
+		</Reference>
 	</ItemGroup>
 </Project>

@@ -1,4 +1,5 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
+
 
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
@@ -7,6 +8,13 @@
 		<Nullable>disable</Nullable>
 		<NullableContextOptions>disable</NullableContextOptions>
 	</PropertyGroup>
+
+
+	<ItemGroup>
+	  <Compile Remove="LQPIMain.cs" />
+	  <Compile Remove="Methods.cs" />
+	  <Compile Remove="PathSets.cs" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="BepInEx.Analyzers" Version="1.0.*">
@@ -28,14 +36,15 @@
 
 
 	<ItemGroup>
-		<Reference Include="KinematicCharacterController">
-			<HintPath>..\References\lib\KinematicCharacterController.dll</HintPath>
-		</Reference>
 		<Reference Include="MMHOOK_RoR2">
 			<HintPath>..\References\lib\MMHOOK_RoR2.dll</HintPath>
 		</Reference>
 		<Reference Include="R2API">
 			<HintPath>..\References\lib\R2API.dll</HintPath>
 		</Reference>
+		<Reference Include="Unity.ResourceManager">
+		  <HintPath>..\References\lib\Unity.ResourceManager.dll</HintPath>
+		</Reference>
 	</ItemGroup>
+
 </Project>

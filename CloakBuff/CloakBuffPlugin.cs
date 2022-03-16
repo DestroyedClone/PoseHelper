@@ -11,6 +11,8 @@ using System.Linq;
 using System.Security;
 using System.Security.Permissions;
 using UnityEngine;
+using R2API.Networking;
+using R2API.Networking.Interfaces;
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -23,6 +25,7 @@ namespace CloakBuff
     [BepInPlugin("com.DestroyedClone.CloakBuff", "CloakBuff", "1.1.0")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.EveryoneNeedSameModVersion)]
+    [R2API.Utils.R2APISubmoduleDependency(nameof(NetworkingAPI))]
     public class CloakBuffPlugin : BaseUnityPlugin
     {
         public static ConfigEntry<bool> HideDoppelgangerEffect { get; set; }
@@ -32,6 +35,7 @@ namespace CloakBuff
         public static ConfigEntry<bool> EnableStunEffect { get; set; }
         public static ConfigEntry<bool> EnableShockEffect { get; set; }
         public static ConfigEntry<bool> HideBossIndicator { get; set; }
+        public static ConfigEntry<bool> HidePingOnCloaked { get; set; }
         public static ConfigEntry<int> MissileIncludesFilterType { get; set; }
 
         // 0 = No hook, 1 = All, 2 = Whitelist
@@ -77,6 +81,7 @@ namespace CloakBuff
 
         public GameObject DoppelgangerEffect = Resources.Load<GameObject>("prefabs/temporaryvisualeffects/DoppelgangerEffect");
         public static float evisMaxRange = EntityStates.Merc.Evis.maxRadius;
+        public static GameObject pingerIndicatorPrefab = Resources.Load<GameObject>("Prefabs/PingIndicator");
 
         public static GameObject StunStateVfx;
         public static GameObject ShockStateVfx;
@@ -84,6 +89,7 @@ namespace CloakBuff
         public void Awake()
         {
             SetupConfig();
+            NetworkingAPI.RegisterMessageType<Networking.SendToClientsToDeleteIndicator>();
             if (HideDoppelgangerEffect.Value)
                 ModifyDoppelGangerEffect();
             if (EnableHealthbar.Value)
@@ -93,7 +99,11 @@ namespace CloakBuff
             if (EnableDamageNumbers.Value)
                 IL.RoR2.HealthComponent.HandleDamageDealt += HideDamageNumbers;
             if (HideBossIndicator.Value)
-                On.RoR2.PositionIndicator.Start += PositionIndicator_HideIndicator;
+                On.RoR2.PositionIndicator.Start += BossIndicatorHiddenWhileCloaked;
+            if (HidePingOnCloaked.Value)
+            {
+                ModifyPingerPrefab();
+            }
             //IL.RoR2.Util.HandleCharacterPhysicsCastResults += Util_HandleCharacterPhysicsCastResults1;
 
             // Character Specific
@@ -121,6 +131,10 @@ namespace CloakBuff
             if (IdiotsAllowedNearOutlets.Value > OutletForkEnum.None)
                 On.RoR2.SurvivorCatalog.Init += AddShockOrStunToSurvivors;
 
+            // AI
+            if (EnemyAIChange.Value)
+                On.RoR2.CharacterBody.RemoveBuff_BuffIndex += AlertEnemiesUponUncloak;
+
             // Items
             // DML + ATG
             if (MissileIncludesFilterType.Value != 0)
@@ -142,19 +156,67 @@ namespace CloakBuff
                 On.RoR2.Projectile.ProjectileDirectionalTargetFinder.SearchForTarget += ProjectileDirectionalTargetFinder_SearchForTarget;
             if (RoyalCap.Value)
                 On.RoR2.EquipmentSlot.ConfigureTargetFinderForEnemies += EquipmentSlot_ConfigureTargetFinderForEnemies;
+
+            On.RoR2.CharacterBody.AddTimedBuff_BuffDef_float_int += CharacterBody_AddTimedBuff_BuffDef_float_int;
+
         }
 
-        private void PositionIndicator_HideIndicator(On.RoR2.PositionIndicator.orig_Start orig, PositionIndicator self)
+        private void ModifyPingerPrefab()
         {
-            orig(self);
-            if (self.name.StartsWith("BossPositionIndicator"))
+            var component = pingerIndicatorPrefab.AddComponent<KillPingerIfCloaked>();
+            component.pingIndicator = pingerIndicatorPrefab.GetComponent<RoR2.UI.PingIndicator>();
+        }
+
+        public class KillPingerIfCloaked : MonoBehaviour
+        {
+            public RoR2.UI.PingIndicator pingIndicator;
+            public bool shouldDestroy = false;
+
+            public void OnEnable()
             {
-                var comp = self.gameObject.GetComponent<HideVfxIfCloaked>();
-                if (!comp)
-                    comp = self.gameObject.AddComponent<HideVfxIfCloaked>();
-                comp.obj1 = self.gameObject.transform.Find("OutsideFrameArrow/Sprite").gameObject;
-                comp.obj2 = self.gameObject.transform.Find("InsideFrameMarker/Sprite").gameObject;
+                InstanceTracker.Add(this);
             }
+
+            public void OnDestroy()
+            {
+                InstanceTracker.Remove(this);
+            }
+
+            public void FixedUpdate()
+            {
+                if (shouldDestroy)
+                {
+                    return;
+                }
+                if (UnityEngine.Networking.NetworkServer.active)
+                {
+                    if (pingIndicator)
+                    {
+                        if (pingIndicator.pingTarget
+                            && pingIndicator.pingTarget.GetComponent<CharacterBody>()
+                            && pingIndicator.pingTarget.GetComponent<CharacterBody>().hasCloakBuff)
+                        {
+                            var index = InstanceTracker.GetInstancesList<KillPingerIfCloaked>().IndexOf(this);
+                            new Networking.SendToClientsToDeleteIndicator(index).Send(NetworkDestination.Clients);
+                            shouldDestroy = true;
+                        }
+                    }
+                }
+            }
+
+            public void LateUpdate()
+            {
+                if (shouldDestroy)
+                {
+                    pingIndicator.fixedTimer = 0f;
+                }
+            }
+        }
+
+        private void CharacterBody_AddTimedBuff_BuffDef_float_int(On.RoR2.CharacterBody.orig_AddTimedBuff_BuffDef_float_int orig, CharacterBody self, BuffDef buffDef, float duration, int maxStacks)
+        {
+            orig(self, buffDef, duration, maxStacks);
+
         }
 
         public void SetupConfig()
@@ -166,25 +228,26 @@ namespace CloakBuff
             EnableStunEffect = Config.Bind("Visual", "Disable Stun Overhead Effect", true, "Enable to hide the overhead stun effect from appearing on cloaked targets.");
             EnableShockEffect = Config.Bind("Visual", "Disable Shock Overhead Effect", true, "Enable to hide the overhead shock effects from appearing on cloaked targets.");
             HideBossIndicator = Config.Bind("Visual", "Disable Boss Indicator", true, "Enable to hide the boss indicator from appearing on cloaked targets.");
+            HidePingOnCloaked = Config.Bind("Visual", "Hide Ping on Cloaked", true, "Enable to make the ping hidden once whatever you've pinged is cloaked.");
 
             MissileIncludesDMLATG = Config.Bind("Items", "Disposable Missile Launcher and AtG Missile Mk. 1", true, "Enable to make missiles from these items to ignore cloaked targets.");
             LightningOrbIncludesBFG = Config.Bind("Items", "Preon Accumulator", false, "Currently Broken. Enable to make Preon Accumulator's traveling tendrils ignore cloaked targets.");
-            LightningOrbIncludesUkulele = Config.Bind("Items", "Ukulele", true, "Enable to make Ukulele's electricity to no longer arc to cloaked targets.");
+            LightningOrbIncludesUkulele = Config.Bind("Items", "Ukulele", false, "Enable to make Ukulele's electricity to no longer arc to cloaked targets.");
             LightningOrbIncludesRazorwire = Config.Bind("Items", "Razorwire", false, "Currently Broken. Enable to make Razorwire unable to go to cloaked targets.");
-            LightningOrbIncludesTesla = Config.Bind("Items", "Unstable Tesla Coil", true, "Enable to make Tesla electricity to no longer arc to cloaked targets.");
-            DevilOrbIncludesNovaOnHeal = Config.Bind("Items", "Nkuhanas Opinion", true, "Enable to make the attack no longer seek out cloaked targets.");
-            DevilOrbIncludesSprintWisp = Config.Bind("Items", "Little Disciple", true, "Enable to make the attack no longer seek out cloaked targets.");
-            ProjectileDirectionalTargetFinderDagger = Config.Bind("Items", "Ceremonial Dagger", true, "Enable to make the spawned daggers no longer seek out cloaked targets.");
-            MiredUrn = Config.Bind("Items", "Mired Urn", true, "Finnicky. Prioritizes noncloaked targets, but will choose a cloaked target if they are the only choice in range.");
+            LightningOrbIncludesTesla = Config.Bind("Items", "Unstable Tesla Coil", false, "Enable to make Tesla electricity to no longer arc to cloaked targets.");
+            DevilOrbIncludesNovaOnHeal = Config.Bind("Items", "Nkuhanas Opinion", false, "Enable to make the attack no longer seek out cloaked targets.");
+            DevilOrbIncludesSprintWisp = Config.Bind("Items", "Little Disciple", false, "Enable to make the attack no longer seek out cloaked targets.");
+            ProjectileDirectionalTargetFinderDagger = Config.Bind("Items", "Ceremonial Dagger", false, "Enable to make the spawned daggers no longer seek out cloaked targets.");
+            MiredUrn = Config.Bind("Items", "Mired Urn", false, "Finnicky. Prioritizes noncloaked targets, but will choose a cloaked target if they are the only choice in range.");
             RoyalCap = Config.Bind("Items", "Royal Capacitator", true, "Enable to prevent the aiming reticle from appearing on cloaked targets.");
 
             LightningOrbIncludesCrocoDisease = Config.Bind("Survivors", "Acrid Epidemic", false, "Currently Broken. Affects Acrid's special Epidemic's spreading");
-            MissileIncludesHarpoons = Config.Bind("Survivors", "Engineer Harpoons+Targeting", true, "Affects the Engineer's Utility Thermal Harpoons. Also prevents the user from painting cloaked enemies as targets.");
-            EngiChargeMine = Config.Bind("Survivors", "Engineer Pressure Mines", true, "Finnicky. Affects the Engineer's Secondary Pressure Mines. Prevents exploding when cloaked enemies are in proximity.");
+            MissileIncludesHarpoons = Config.Bind("Survivors", "Engineer Harpoons+Targeting", false, "Affects the Engineer's Utility Thermal Harpoons. Also prevents the user from painting cloaked enemies as targets.");
+            EngiChargeMine = Config.Bind("Survivors", "Engineer Pressure Mines", false, "Finnicky. Affects the Engineer's Secondary Pressure Mines. Prevents exploding when cloaked enemies are in proximity.");
             EngiSpiderMine = Config.Bind("Survivors", "Engineer Spider Mines", true, "Affects the Engineer's Secondary Spider Mines. Prevents exploding when cloaked enemies are in proximity.");
             EngiSpiderMineCanExplodeOnImpaled = Config.Bind("Survivors", "Engineer Spider Mines Single Target", true, "Affects the Engineer's Secondary Spider Mines, requires the previous option to be enabled." +
                 "\nIf enabled, then it will explode when armed if it is stuck on a cloaked target.");
-            HuntressCantAim = Config.Bind("Survivors", "Huntress Aiming", true, "This adjustment will make Huntress unable to target cloaked enemies with her primary and secondary abilities");
+            HuntressCantAim = Config.Bind("Survivors", "Huntress Aiming", false, "This adjustment will make Huntress unable to target cloaked enemies with her primary and secondary abilities");
             LightningOrbIncludesGlaive = Config.Bind("Survivors", "Huntress Glaive", true, "Affects the Huntress' Secondary Laser Glaive from bouncing to cloaked targets.");
             MercCantFind = Config.Bind("Survivors", "Mercernary Eviscerate", false, "Finnicky. Fails if an invalid enemy is within the same range of a valid enemy. The adjustment will prevent Mercernary's Eviscerate from targeting cloaked enemies");
 
@@ -194,7 +257,7 @@ namespace CloakBuff
                 "\nUmbraOnly = Umbras can get shocked and stunned." +
                 "\nSurvivorsAndUmbras = Both Survivors and Umbras can get shocked and stunned.");
 
-            EnemyAIChange = Config.Bind("AI", "")
+            EnemyAIChange = Config.Bind("AI", "Faster Reaction Times", true, "If true, enemies will immediately react upon anyone decloaking.");
 
             MissileIncludesFilterType = Config.Bind("zFiltering", "MissileController", 2, "Its safe to ignore the options in this category." +
                 "\n 0 = Disabled," +
@@ -342,6 +405,18 @@ namespace CloakBuff
                 }
                 comp2.obj1 = ShockStateVfx.transform.Find("Stun").gameObject;
                 comp2.obj2 = ShockStateVfx.transform.Find("SphereChainEffect").gameObject;
+            }
+        }
+        private void BossIndicatorHiddenWhileCloaked(On.RoR2.PositionIndicator.orig_Start orig, PositionIndicator self)
+        {
+            orig(self);
+            if (self.name.StartsWith("BossPositionIndicator"))
+            {
+                var comp = self.gameObject.GetComponent<HideVfxIfCloaked>();
+                if (!comp)
+                    comp = self.gameObject.AddComponent<HideVfxIfCloaked>();
+                comp.obj1 = self.gameObject.transform.Find("OutsideFrameArrow/Sprite").gameObject;
+                comp.obj2 = self.gameObject.transform.Find("InsideFrameMarker/Sprite").gameObject;
             }
         }
 
@@ -665,6 +740,20 @@ namespace CloakBuff
         }
 
         #endregion Extra Modifications
+
+        #region AI Modifications
+        private void AlertEnemiesUponUncloak(On.RoR2.CharacterBody.orig_RemoveBuff_BuffIndex orig, CharacterBody self, BuffIndex buffType)
+        {
+            orig(self, buffType);
+            if (buffType == RoR2Content.Buffs.Cloak.buffIndex || buffType == RoR2Content.Buffs.AffixHauntedRecipient.buffIndex)
+            {
+                foreach (var baseAI in InstanceTracker.GetInstancesList<RoR2.CharacterAI.BaseAI>())
+                {
+                    baseAI.targetRefreshTimer = 0;
+                }
+            }
+        }
+        #endregion
 
         // Plugin
         private HurtBox FilterMethod(IEnumerable<HurtBox> listOfTargets)

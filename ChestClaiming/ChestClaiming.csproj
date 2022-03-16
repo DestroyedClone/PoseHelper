@@ -1,12 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <Compile Remove="ChatEditPlugin.cs" />
-  </ItemGroup>
+	<ItemGroup>
+		<Compile Remove="Enfucker.cs" />
+		<Compile Remove="Template.cs" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<Reference Include="0Harmony">
@@ -26,9 +27,6 @@
 		</Reference>
 		<Reference Include="BepInEx.Preloader">
 			<HintPath>..\PoseHelper\lib\BepInEx.Preloader.dll</HintPath>
-		</Reference>
-		<Reference Include="BetterUI">
-			<HintPath>..\PoseHelper\lib\BetterUI.dll</HintPath>
 		</Reference>
 		<Reference Include="HGCSharpUtils">
 			<HintPath>..\PoseHelper\lib\HGCSharpUtils.dll</HintPath>
