@@ -11,7 +11,7 @@ using System.Security.Permissions;
 
 namespace ChatExtras
 {
-    [BepInPlugin("com.DestroyedClone.Greentext", "Greentext", "1.0.0")]
+    [BepInPlugin("com.DestroyedClone.Greentext", "Greentext", "1.0.1")]
     public class GreentextMain : BaseUnityPlugin
     {
         public void Awake()

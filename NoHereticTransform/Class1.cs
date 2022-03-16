@@ -1,13 +1,10 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
-using R2API.Utils;
 using RoR2;
 
 namespace NoHereticTransform
 {
-    [BepInPlugin("com.DestroyedClone.NoHereticTransform", "No Heretic Transform", "1.0.1")]
-    [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
-    [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
+    [BepInPlugin("com.DestroyedClone.NoHereticTransform", "No Heretic Transform", "1.0.2")]
     public class Plugin : BaseUnityPlugin
     {
         public static ConfigEntry<bool> cfgRequireBeads;

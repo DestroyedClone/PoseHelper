@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Security;
 using System.Security.Permissions;
 using UnityEngine;
+using System.Runtime.CompilerServices;
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -15,11 +16,11 @@ using UnityEngine;
 
 namespace CptBustedDiabloAddOn
 {
-    [BepInPlugin("com.DestroyedClone.CaptainBustedDiabloStrikeAddOn", "Captain Busted Diablo Strike AddOn", "1.0.0")]
+    [BepInPlugin("com.DestroyedClone.DiabloStrikeVisualFix", "DiabloStrikeVisualFix", "1.0.0")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
-    [BepInDependency("com.farofus.CaptainBustedDiabloStrike")]
-    [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
-    [R2APISubmoduleDependency(nameof(EffectAPI), nameof(PrefabAPI))]
+    //[BepInDependency(AncientScepter.AncientScepterMain.ModGuid, BepInDependency.DependencyFlags.SoftDependency)]
+    [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.DifferentModVersionsAreOk)]
+    [R2APISubmoduleDependency(nameof(PrefabAPI))]
     public class Class1 : BaseUnityPlugin
     {
         public static bool scepterIsLoaded = false;
@@ -32,6 +33,56 @@ namespace CptBustedDiabloAddOn
             if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("com.DestroyedClone.AncientScepter"))
             {
                 scepterIsLoaded = true;
+            }
+            On.RoR2.UI.MainMenu.MainMenuController.Start += MainMenuController_Start;
+        }
+
+        private void MainMenuController_Start(On.RoR2.UI.MainMenu.MainMenuController.orig_Start orig, RoR2.UI.MainMenu.MainMenuController self)
+        {
+            orig(self);
+            On.RoR2.UI.MainMenu.MainMenuController.Start -= MainMenuController_Start;
+
+            if (scepterIsLoaded)
+            {
+                //ModifyScepter();
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+        public static void ModifyScepter()
+        {
+            GameObject scepterProjectile = AncientScepter.CaptainAirstrikeAlt2.airstrikePrefab;
+            if (scepterProjectile)
+            {
+                if (!scepterProjectile.GetComponent<AirstrikeVisualModifierProjectile>())
+                {
+                    scepterProjectile.AddComponent<AirstrikeVisualModifierProjectile>();
+                }
+            }
+
+
+            GameObject scepterProjectileGhost = AncientScepter.CaptainAirstrikeAlt2.airstrikePrefab.GetComponent<ProjectileController>().ghostPrefab;
+            if (scepterProjectileGhost)
+            {
+                var comghost = scepterProjectileGhost.GetComponent<AirstrikeVisualModifierGhost>();
+                if (!comghost)
+                {
+                    comghost = scepterProjectileGhost.AddComponent<AirstrikeVisualModifierGhost>();
+                }
+
+                var areaIndicatorCenter = scepterProjectileGhost.transform.Find("AreaIndicatorCenter");
+                List<ObjectTransformCurve> objectTransformCurves = new List<ObjectTransformCurve>();
+                foreach (Transform child in areaIndicatorCenter)
+                {
+                    if (child.name == "LaserRotationalOffset" || child.name == "LaserRotationOffsetExtra")
+                    {
+                        var verticalOffset = child.Find("LaserVerticalOffset");
+                        var laser = verticalOffset.Find("Laser");
+                        objectTransformCurves.Add(laser.GetComponent<ObjectTransformCurve>());
+                    }
+                }
+
+                comghost.laserScaleCurves = objectTransformCurves.ToArray();
             }
         }
 
@@ -58,6 +109,8 @@ namespace CptBustedDiabloAddOn
             var com = airstrikeProjectilePrefab.AddComponent<AirstrikeVisualModifierProjectile>();
             com.projectileImpactExplosion = airstrikeProjectilePrefab.GetComponent<ProjectileImpactExplosion>();
             com.projectileController = com.GetComponent<ProjectileController>();
+
+            airstrikeProjectilePrefab.GetComponent<ProjectileController>().allowPrediction = true;
         }
 
         public class AirstrikeVisualModifierGhost : MonoBehaviour
@@ -86,6 +139,8 @@ namespace CptBustedDiabloAddOn
             public void Start()
             {
                 airstrikeVisualModifierGhost = projectileController.ghost.GetComponent<AirstrikeVisualModifierGhost>();
+                if (!airstrikeVisualModifierGhost)
+                    Chat.AddMessage("wtf");
                 airstrikeVisualModifierGhost.UpdateVisuals(projectileImpactExplosion.lifetime);
             }
         }

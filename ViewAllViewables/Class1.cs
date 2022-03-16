@@ -14,8 +14,9 @@ using UnityEngine;
 
 namespace ViewAllViewables
 {
-    [BepInPlugin("com.DestroyedClone.ViewAllViewables", "View All Viewables", "1.1.0")]
+    [BepInPlugin("com.DestroyedClone.ViewAllViewables", "View All Viewables", "1.1.1")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
+    [R2APISubmoduleDependency(nameof(CommandHelper))]
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
     public class Plugin : BaseUnityPlugin
     {

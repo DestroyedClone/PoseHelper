@@ -24,7 +24,7 @@ namespace DeathMessageAboveCorpse
     [BepInPlugin("com.DestroyedClone.DeathMessageAboveCorpse", "Death Message Above Corpse", "1.0.1")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
-    [R2APISubmoduleDependency(nameof(EffectAPI), nameof(PrefabAPI), nameof(NetworkingAPI))]
+    [R2APISubmoduleDependency(nameof(PrefabAPI), nameof(NetworkingAPI))]
     public class DeathMessageAboveCorpsePlugin : BaseUnityPlugin
     {
         public static string[] deathMessagesResolved = new string[] { };
@@ -43,7 +43,7 @@ namespace DeathMessageAboveCorpse
         // 3 second delay after the corpse is on the ground before showing either client or server message
         //
 
-        public void Awake()
+        public void Start()
         {
             SetupConfig();
             ReadConfig();
@@ -251,6 +251,7 @@ namespace DeathMessageAboveCorpse
 
             public void Start()
             {
+                if (!Run.instance) return;
                 //Chat.AddMessage(""+quoteIndex);
                 if (quoteIndex > deathMessagesResolved.Length - 1)
                 {
