@@ -6,13 +6,13 @@ using R2API.Networking.Interfaces;
 using R2API.Utils;
 using RoR2;
 using RoR2.UI;
+using System.Collections.Generic;
+using System.Linq;
 using System.Security;
 using System.Security.Permissions;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
-using System.Collections.Generic;
-using static DeathMessageAboveCorpse.Quotes;
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -21,10 +21,10 @@ using static DeathMessageAboveCorpse.Quotes;
 
 namespace DeathMessageAboveCorpse
 {
-    [BepInPlugin("com.DestroyedClone.DeathMessageAboveCorpse", "Death Message Above Corpse", "1.0.1")]
+    [BepInPlugin("com.DestroyedClone.DeathMessageAboveCorpse", "Death Message Above Corpse", "1.0.2")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
-    [R2APISubmoduleDependency(nameof(PrefabAPI), nameof(NetworkingAPI))]
+    [R2APISubmoduleDependency(nameof(PrefabAPI), nameof(NetworkingAPI), nameof(LanguageAPI))]
     public class DeathMessageAboveCorpsePlugin : BaseUnityPlugin
     {
         public static string[] deathMessagesResolved = new string[] { };
@@ -36,15 +36,29 @@ namespace DeathMessageAboveCorpse
         public static ConfigEntry<bool> cfgShowQuoteOnScreenSingleplayer;
         public static float fontSize = 10f;
 
+        private static string[] standardDeathQuoteTokens = (from i in Enumerable.Range(0, 38)
+                                                                     select "CORPSEMESSAGE_" + TextSerialization.ToStringInvariant(i)).ToArray<string>();
+
+        private static string[] starstormDeathQuoteTokens = (from i in Enumerable.Range(0, 81)
+                                                                      select "CORPSEMESSAGE_STARSTORM_" + TextSerialization.ToStringInvariant(i)).ToArray<string>();
+
         public static GameObject defaultTextObject;
         public static GameObject defaultTrackerObject;
+
+        public static PluginInfo pluginInfo;
 
         // Text displays larger for the client in the middle of the screen (https://youtu.be/vQRPpSx5WLA?t=1336)
         // 3 second delay after the corpse is on the ground before showing either client or server message
         //
 
+        public void Awake()
+        {
+            pluginInfo = Info;
+        }
+
         public void Start()
         {
+            LoadTokens();
             SetupConfig();
             ReadConfig();
             On.RoR2.CharacterBody.OnDeathStart += CharacterBody_OnDeathStart;
@@ -53,6 +67,11 @@ namespace DeathMessageAboveCorpse
             NetworkingAPI.RegisterMessageType<Networking.DeathQuoteMessageToClients>();
             defaultTextObject = CreateDefaultTextObject();
             defaultTrackerObject = CreateTrackerObject();
+        }
+
+        public void LoadTokens()
+        {
+            //LanguageAPI.Add()
         }
 
         private void CharacterBody_OnDeathStart(On.RoR2.CharacterBody.orig_OnDeathStart orig, CharacterBody self)
@@ -105,8 +124,8 @@ namespace DeathMessageAboveCorpse
         public void ReadConfig()
         {
             List<string> list = new List<string>(deathMessagesResolved);
-            list.AddRange(deathMessages);
-            if (cfgUseSSMessages.Value) list.AddRange(deathMessagesStarstorm);
+            list.AddRange(standardDeathQuoteTokens);
+            if (cfgUseSSMessages.Value) list.AddRange(starstormDeathQuoteTokens);
             deathMessagesResolved = list.ToArray();
         }
 
@@ -179,7 +198,7 @@ namespace DeathMessageAboveCorpse
 
             private readonly float lenience = 0.15f;
 
-            bool isSinglePlayer = false;
+            private bool isSinglePlayer = false;
 
             private void Start()
             {
@@ -220,7 +239,8 @@ namespace DeathMessageAboveCorpse
                     if (!isSinglePlayer)
                     {
                         new Networking.DeathQuoteMessageToServer(positionToSend).Send(NetworkDestination.Server);
-                    } else
+                    }
+                    else
                     {
                         PerformSingleplayerAction(positionToSend);
                     }
@@ -289,9 +309,9 @@ namespace DeathMessageAboveCorpse
                 var SteamBuildLabel = hudSimple.transform.Find("MainContainer/SteamBuildLabel");
                 RectTransform trans = (RectTransform)Instantiate(SteamBuildLabel);
                 trans.SetParent(SteamBuildLabel);
-                Object.Destroy(trans.GetComponent<SteamBuildIdLabel>());
+                UnityEngine.Object.Destroy(trans.GetComponent<SteamBuildIdLabel>());
                 var comp = trans.GetComponent<HGTextMeshProUGUI>();
-                comp.text = $"{languageTextMeshController.token}";
+                comp.text = Language.GetString(languageTextMeshController.token);
                 comp.color = new Color32(255, 255, 255, 255);
                 comp.fontSize = 1f;
                 comp.alignment = TextAlignmentOptions.Center;
