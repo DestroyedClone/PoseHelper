@@ -16,7 +16,7 @@ using System.Collections.Generic;
 
 namespace GoldChestForAll
 {
-    [BepInPlugin("com.DestroyedClone.GoldChestForAll", "GoldChestForAll", "1.0.0")]
+    [BepInPlugin("com.DestroyedClone.GoldChestForAll", "GoldChestForAll", "1.0.1")]
     public class GCFAPlugin : BaseUnityPlugin
     {
         public static ConfigEntry<float> cfgCostMultiplier { get; set; }
