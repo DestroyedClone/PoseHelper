@@ -1,6 +1,5 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
-using R2API.Utils;
 using RoR2;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,9 +13,7 @@ using System.Security.Permissions;
 
 namespace LanguageRandomizer
 {
-    [BepInPlugin("com.DestroyedClone.LanguageRandomizer", "Language Randomizer", "1.0.0")]
-    [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
-    [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
+    [BepInPlugin("com.DestroyedClone.LanguageRandomizer", "Language Randomizer", "1.0.1")]
     public class RandomizerPlugin : BaseUnityPlugin
     {
         public static ConfigEntry<bool> cfgEnablePersistance;
