@@ -1,6 +1,6 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
-using R2API.Utils;
+using RoR2;
 using System.Security;
 using System.Security.Permissions;
 using UnityEngine;
@@ -13,13 +13,11 @@ using UnityEngine.UI;
 
 namespace ChatboxEdit
 {
-    [BepInPlugin("com.DestroyedClone.ChatboxEdit", "ChatboxEdit", "1.0.0")]
-    [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
-    [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
+    [BepInPlugin("com.DestroyedClone.ChatboxEdit", "ChatboxEdit", "1.0.1")]
     public class ChatboxEditPlugin : BaseUnityPlugin
     {
-        public static GameObject Prefab = Resources.Load<GameObject>("prefabs/ChatBox, In Run");
-        public static GameObject PrefabLobby = Resources.Load<GameObject>("prefabs/ChatBox");
+        public static GameObject Prefab = LegacyResourcesAPI.Load<GameObject>("prefabs/ChatBox, In Run");
+        public static GameObject PrefabLobby = LegacyResourcesAPI.Load<GameObject>("prefabs/ChatBox");
 
         public static ConfigEntry<bool> ScrollableChat;
         public static ConfigEntry<float> ScrollableChatSensitivity;

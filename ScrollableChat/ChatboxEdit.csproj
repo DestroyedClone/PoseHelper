@@ -11,6 +11,7 @@
 	<ItemGroup>
 	  <Compile Remove="ChatBoxPickup.cs" />
 	  <Compile Remove="ChatPickup.cs" />
+	  <Compile Remove="ExperimentalMainClass.cs" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -35,9 +36,6 @@
 	<ItemGroup>
 		<Reference Include="MMHOOK_RoR2">
 			<HintPath>..\References\lib\MMHOOK_RoR2.dll</HintPath>
-		</Reference>
-		<Reference Include="R2API">
-			<HintPath>..\References\lib\R2API.dll</HintPath>
 		</Reference>
 	</ItemGroup>
 
