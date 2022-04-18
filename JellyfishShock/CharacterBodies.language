@@ -1,0 +1,8 @@
+﻿{
+	strings:
+	{
+		"JELLYFISHSHOCK_JELLYFISH_BODY_LORE": "Field Notes:  An airborne creature, capable of flight using a combination of gases in its clear hull. Like the Jellyfish on earth, they also use pulsation to aid in locomotion; however, rather than a series of tentacles they have two 'branches' made of many tentacles wrapped around themselves.\n\nAlso like the Jellyfish, they have quite the sting, capable of penetrating my weather shielding. The same gases used for flight are used to create a very powerful electrostatic charge.\n\nWhen they are not busy hunting me, the Jellyfish have been seen sunbathing and absorbing the strange fumes from the ground.",
+		"JELLYFISHSHOCK_PRIMARY_DISCHARGE_NAME": "Discharge",
+		"JELLYFISHSHOCK_PRIMARY_DESCRIPTION": "Shocks nearby enemies for <style=cIsDamage>{0}% damage</style>."
+	}
+}

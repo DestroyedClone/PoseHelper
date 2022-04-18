@@ -115,7 +115,11 @@ namespace JellyfishShock
                 position = base.transform.position,
                 radius = JellyShockSkill.novaRadius,
                 procCoefficient = 1f,
-                attackerFiltering = AttackerFiltering.NeverHit
+                attackerFiltering = AttackerFiltering.NeverHitSelf,
+                crit = JellyfishShockPlugin.JellyfishDischargeCanCrit.Value && Util.CheckRoll(outer.commonComponents.characterBody.crit, outer.commonComponents.characterBody.master.luck),
+                damageColorIndex = DamageColorIndex.Item,
+                damageType = JellyfishShockPlugin.JellyfishDischargeCanShock.Value ? DamageType.Shock5s : DamageType.Generic,
+                procChainMask = default
             }.Fire();
         }
 
