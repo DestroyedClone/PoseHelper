@@ -16,7 +16,7 @@ using System.Collections.Generic;
 
 namespace GoldChestForAll
 {
-    [BepInPlugin("com.DestroyedClone.GoldChestForAll", "GoldChestForAll", "1.0.1")]
+    [BepInPlugin("com.DestroyedClone.GoldChestForAll", "GoldChestForAll", "1.0.11")]
     public class GCFAPlugin : BaseUnityPlugin
     {
         public static ConfigEntry<float> cfgCostMultiplier { get; set; }
@@ -51,7 +51,7 @@ namespace GoldChestForAll
 
         private void MultiplyChestCost(On.RoR2.PurchaseInteraction.orig_Awake orig, PurchaseInteraction self)
         {
-            if (IsValidScene(self.transform))
+            if (NetworkServer.active && IsValidScene(self.transform))
             {
                 var chest = self.GetComponent<ChestBehavior>();
 
@@ -67,7 +67,7 @@ namespace GoldChestForAll
         //override because i dunno IL
         private void DuplicateDrops(On.RoR2.ChestBehavior.orig_ItemDrop orig, ChestBehavior self)
         {
-            if (self.tier3Chance != 1)
+            if (self.tier3Chance != 1 || self.dropPickup == PickupIndex.none || self.dropPickup == PickupIndex.none || !IsValidScene(self.transform))
             {
                 orig(self);
                 return;
@@ -75,14 +75,6 @@ namespace GoldChestForAll
             if (!NetworkServer.active)
             {
                 Debug.LogWarning("[Server] function 'System.Void RoR2.ChestBehavior::ItemDrop()' called on client");
-                return;
-            }
-            if (self.dropPickup == PickupIndex.none)
-            {
-                return;
-            }
-            if (!IsValidScene(self.transform))
-            {
                 return;
             }
 
