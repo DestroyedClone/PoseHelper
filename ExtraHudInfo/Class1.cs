@@ -24,7 +24,7 @@ namespace ExtraHudInfo
     [BepInPlugin("com.DestroyedClone.ExtraHudInfo", "Extra Hud Info", "1.0.0")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
-    [R2APISubmoduleDependency(nameof(EffectAPI), nameof(PrefabAPI), nameof(NetworkingAPI))]
+    [R2APISubmoduleDependency(nameof(PrefabAPI), nameof(NetworkingAPI))]
     public class Main : BaseUnityPlugin
     {
         public void Start()
@@ -183,13 +183,12 @@ namespace ExtraHudInfo
                     if (characterBody)
                     {
                         lastExperience = (int)characterBody.experience;
-                        //Application.targetFrameRate = 30;
-                        //QualitySettings.vSyncCount 
-                    } else if (TeamManager.instance)
+                    } 
+                    /*if (TeamManager.instance)
                     {
                         var teamIndex = TeamIndex.Player;
                         lastExperience = (int)TeamManager.instance.GetTeamCurrentLevelExperience(teamIndex);
-                    }
+                    }*/
                 }
             }
 
@@ -231,6 +230,7 @@ namespace ExtraHudInfo
             public void ShowExpChange()
             {
                 var value = expChanges[0];
+                //Chat.AddMessage("Exp Change: " + value);
 
                 var instance = UnityEngine.Object.Instantiate(valueTextLunar, (RectTransform)expBar.transform.parent);
                 //instance.position = expBar.transform.position;
