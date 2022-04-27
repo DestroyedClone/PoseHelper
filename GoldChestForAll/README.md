@@ -9,3 +9,5 @@ Configuration:
  - Option to only affect the guaranteed chests of Abyssal Depths and Sundered Grove
 
 Patched for SOTV
+
+v1.0.11 - Adjusted check for GoldChestForAll preventing chests from dropping items when the specific chest config is enabled
