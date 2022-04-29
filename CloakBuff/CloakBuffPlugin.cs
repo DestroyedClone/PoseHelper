@@ -79,9 +79,9 @@ namespace CloakBuff
         public static ConfigEntry<bool> EngiSpiderMineCanExplodeOnImpaled { get; set; }
         public static ConfigEntry<bool> EnemyAIChange { get; set; }
 
-        public GameObject DoppelgangerEffect = Resources.Load<GameObject>("prefabs/temporaryvisualeffects/DoppelgangerEffect");
+        public GameObject DoppelgangerEffect = LegacyResourcesAPI.Load<GameObject>("prefabs/temporaryvisualeffects/DoppelgangerEffect");
         public static float evisMaxRange = EntityStates.Merc.Evis.maxRadius;
-        public static GameObject pingerIndicatorPrefab = Resources.Load<GameObject>("Prefabs/PingIndicator");
+        public static GameObject pingerIndicatorPrefab = LegacyResourcesAPI.Load<GameObject>("Prefabs/PingIndicator");
 
         public static GameObject StunStateVfx;
         public static GameObject ShockStateVfx;
