@@ -40,7 +40,7 @@ namespace ShareYourMoney
 
         public IEnumerator LoadStaticContentAsync(LoadStaticContentAsyncArgs args)
         {
-            CreateBuffs();
+            //CreateBuffs();
             //CreateObjects();
             contentPack.buffDefs.Add(buffDefs.ToArray());
             contentPack.networkedObjectPrefabs.Add(networkedObjectPrefabs.ToArray());
@@ -59,7 +59,7 @@ namespace ShareYourMoney
             yield break;
         }
 
-        private void FixScriptableObjectName(BuffDef buff)
+        private static void FixScriptableObjectName(BuffDef buff)
         {
             (buff as ScriptableObject).name = buff.name;
         }
@@ -107,7 +107,7 @@ namespace ShareYourMoney
             DoshContent.ShareMoneyPack = ShareMoneyPack;
         }
 
-        public void CreateBuffs()
+        public static void CreateBuffs()
         {
             BuffDef PendingDoshBuff = ScriptableObject.CreateInstance<BuffDef>();
             PendingDoshBuff.buffColor = new Color(1f, 215f / 255f, 0f);
