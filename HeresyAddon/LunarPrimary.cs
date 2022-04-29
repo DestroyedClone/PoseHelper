@@ -72,6 +72,16 @@ namespace HeresyAddon
             self.characterBody.AddSpreadBloom(FireLunarNeedle.spreadBloomValue);
         }
 
+        private static void OnEnter_VoidSurvivor(FireLunarNeedle self)
+        {
+
+        }
+
+        private static void OnEnter_Railgunner(FireLunarNeedle self)
+        {
+
+        }
+
         private static void OnEnter_Tool(FireLunarNeedle self)
         {
             self.PlayAnimation("Gesture, Additive", "FireNailgun");
