@@ -10,7 +10,7 @@ using System.Security.Permissions;
 
 namespace BrotherPhaseSkip
 {
-    [BepInPlugin("com.DestroyedClone.MithrixPhaseSkip", "Mithrix Phase Skip", "1.0.0")]
+    [BepInPlugin("com.DestroyedClone.MithrixPhaseSkip", "Mithrix Phase Skip", "1.0.1")]
     public class Class1 : BaseUnityPlugin
     {
         public void Start()
