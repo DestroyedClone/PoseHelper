@@ -1,0 +1,8 @@
+﻿{
+	"en": {
+		"VOIDSURVIVOR_PRIMARY_CORRUPTED_DESCRIPTION": "Fire a short-range beam for <style=cIsDamage>2000% damage</style>.",
+		"VOIDSURVIVOR_SECONDARY_CORRUPTED_DESCRIPTION": "Fire an arcing plasma bomb for <style=cIsDamage>1100% damage</style>.",
+		"VOIDSURVIVOR_UTILITY_CORRUPTED_DESCRIPTION": "<style=cIsUtility>Disappear</style> into the Void, <style=cIsUtility>cleansing all debuffs</style> while moving in at a fast <style=cIsUtility>forward arc</style>.",
+		"VOIDSURVIVOR_SPECIAL_CORRUPTED_DESCRIPTION": "Crush <style=cIsHealth>25% maximum health</style> to gain <style=cIsVoid>25% Corruption</style>."
+	}
+}

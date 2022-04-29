@@ -1,6 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<Description>Mod for Risk of Rain 2</Description>
@@ -9,18 +8,8 @@
 		<NullableContextOptions>disable</NullableContextOptions>
 	</PropertyGroup>
 
-
-	<ItemGroup>
-	  <Compile Remove="Modules\**" />
-	  <EmbeddedResource Remove="Modules\**" />
-	  <None Remove="Modules\**" />
-	</ItemGroup>
-
-
 	<ItemGroup>
 	  <Compile Remove="Class1.cs" />
-	  <Compile Remove="TestMain.cs" />
-	  <Compile Remove="UnusedContent.cs" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -50,8 +39,7 @@
 			<HintPath>..\References\lib\R2API.dll</HintPath>
 		</Reference>
 		<Reference Include="Unity.ResourceManager">
-			<HintPath>..\References\lib\Unity.ResourceManager.dll</HintPath>
+		  <HintPath>..\References\lib\Unity.ResourceManager.dll</HintPath>
 		</Reference>
 	</ItemGroup>
-
 </Project>
