@@ -46,7 +46,7 @@ namespace SurvivorTaunts
             if (arg0.name == "intro")
             {
                 introAnimatorController = GameObject.Find("Set 4 - Cargo/CargoPosition/mdlCommandoDualies").GetComponent<Animator>().runtimeAnimatorController;
-                if (IntroCutsceneController.shouldSkip) RoR2.Console.instance.SubmitCmd(null, "set_scene title");
+                //if (IntroCutsceneController.shouldSkip) RoR2.Console.instance.SubmitCmd(null, "set_scene title");
                 UnityEngine.SceneManagement.SceneManager.sceneLoaded -= SceneManager_sceneLoaded;
             }
         }
