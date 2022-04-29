@@ -21,21 +21,20 @@ using static BetterUI.StatsDisplay;
 
 namespace AccuracyTest
 {
-    [BepInPlugin("com.DestroyedClone.AccuracyTest", "Accuracy Test", "1.0.0")]
+    [BepInPlugin("com.DestroyedClone.BetterUIAccuracyStat", "Better UI Accuracy Stat", "1.0.0")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
     [BepInDependency("com.xoxfaby.BetterUI", BepInDependency.DependencyFlags.HardDependency)]
     [R2APISubmoduleDependency(nameof(EffectAPI), nameof(PrefabAPI), nameof(NetworkingAPI))]
     public class Main : BaseUnityPlugin
     {
-
         public void Start()
         {
             On.RoR2.GlobalEventManager.OnHitAll += GlobalEventManager_OnHitAll;
             On.RoR2.GlobalEventManager.OnHitEnemy += GlobalEventManager_OnHitEnemy;
             CharacterBody.onBodyStartGlobal += CharacterBody_onBodyStartGlobal;
             BetterUI.StatsDisplay.AddStatsDisplay("$accuracy", (BetterUI.StatsDisplay.DisplayCallback)GetAccuracy);
-            BetterUI.StatsDisplay.AddStatsDisplay("$accuracybind", (BetterUI.StatsDisplay.DisplayCallback)GetAccuracyBind);
+           // BetterUI.StatsDisplay.AddStatsDisplay("$accuracyexpanded", (BetterUI.StatsDisplay.DisplayCallback)GetAccuracyBind);
         }
 
         private static string GetAccuracy(CharacterBody body)
@@ -48,7 +47,7 @@ namespace AccuracyTest
             }
             return value;
         }
-
+        /*
         private static string GetAccuracyBind(CharacterBody body)
         {
             string value = null;
@@ -59,11 +58,12 @@ namespace AccuracyTest
                     $"\nMisses: {accuracyTracker.hitAllCount - accuracyTracker.hitEnemyCount}";
             }
             return value;
-        }
+        }*/
 
         private void CharacterBody_onBodyStartGlobal(CharacterBody obj)
         {
-            obj.gameObject.AddComponent<AccuracyTracker>();
+            if (obj.isPlayerControlled)
+                obj.gameObject.AddComponent<AccuracyTracker>();
         }
 
         private void GlobalEventManager_OnHitEnemy(On.RoR2.GlobalEventManager.orig_OnHitEnemy orig, GlobalEventManager self, DamageInfo damageInfo, GameObject victim)
