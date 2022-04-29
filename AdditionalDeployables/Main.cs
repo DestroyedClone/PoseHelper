@@ -8,6 +8,7 @@ using System.Security.Permissions;
 using UnityEngine;
 using UnityEngine.Networking;
 //using static AdditionalDeployables.ServerTrackers;
+using UnityEngine.AddressableAssets;
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -24,8 +25,9 @@ namespace ProjectileLimiter
     {
         //public static GameObject scanner = Resources.Load<GameObject>("Prefabs/NetworkedObjects/ChestScanner");
         //public static GameObject gateway = Resources.Load<GameObject>("Prefabs/NetworkedObjects/Zipline");
-        public static GameObject saw = Resources.Load<GameObject>("Prefabs/Projectiles/Sawmerang");
+        public static GameObject saw;
         //public static GameObject blackhole = Resources.Load<GameObject>("Prefabs/Projectiles/GravSphere");
+        public static GameObject meteorite;
 
         public static float cfgScannerCooldown;
 
@@ -38,13 +40,17 @@ namespace ProjectileLimiter
         public static float cfgBlackholeCooldown;
         //public static int cfgBlackholeMax = 20;
 
+        public static float cfgMeteoriteCooldown;
+        public static float cfgMeteoriteMax;
+
         internal static BepInEx.Logging.ManualLogSource _logger;
 
         public enum PerPlayerDeployableType
         {
             None,
             Saw,
-            Blackhole
+            Blackhole,
+            Meteorite
         }
 
         public void Awake()
@@ -56,7 +62,8 @@ namespace ProjectileLimiter
 
             CharacterBody.onBodyStartGlobal += CharacterBody_onBodyStartGlobal;
 
-            R2API.Utils.CommandHelper.AddToConsoleWhenReady();
+            meteorite = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Meteor/MeteorStorm.prefab").WaitForCompletion();
+            saw = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Saw/Sawmerang.prefab").WaitForCompletion(); 
         }
 
         private void CharacterBody_onBodyStartGlobal(CharacterBody obj)
@@ -79,6 +86,9 @@ namespace ProjectileLimiter
 
             cfgBlackholeCooldown = Config.Bind("Primordial Cube", "Subcooldown", 5f, "").Value;
             //cfgBlackholeMax = Config.Bind("", "Max per Stage", 20, "").Value;
+
+            cfgMeteoriteCooldown = Config.Bind("Glowing Meteorite", "Subcooldown", 2.5f, "").Value;
+            cfgMeteoriteMax = Config.Bind("Glowing Meteorite", "Max per Player", 10, "").Value;
         }
 
         public static void ModifyPrefabs()
@@ -104,6 +114,12 @@ namespace ProjectileLimiter
             //    var deployable = blackhole.AddComponent<CustomDeployablePerPlayer>();
             //    deployable.deployableType = PerPlayerDeployableType.Blackhole;
             //}
+            if (meteorite)
+            {
+                var deployable = meteorite.AddComponent<CustomDeployablePerPlayer>();
+                deployable.deployableType = PerPlayerDeployableType.Meteorite;
+                deployable.meteorStormController = meteorite.GetComponent<MeteorStormController>();
+            }
         }
 
         // This goes on the projectile
@@ -113,6 +129,7 @@ namespace ProjectileLimiter
             public ProjectileDeployableTracker deployableTracker;
             public List<GameObject> list = null;
             public RoR2.Projectile.ProjectileController projectileController;
+            public MeteorStormController meteorStormController;
 
             public void Start()
             {
@@ -129,12 +146,23 @@ namespace ProjectileLimiter
                         deployableTracker = owner.GetComponent<ProjectileDeployableTracker>();
                     }
                 }
+                else if (meteorStormController)
+                {
+                    var owner = meteorStormController.owner;
+                    if (owner)
+                    {
+                        deployableTracker = owner.GetComponent<ProjectileDeployableTracker>();
+                    }
+                }
                 if (deployableTracker)
                 {
                     switch (deployableType)
                     {
                         case PerPlayerDeployableType.Saw:
                             deployableTracker.sawList.Add(gameObject);
+                            break;
+                        case PerPlayerDeployableType.Meteorite:
+                            deployableTracker.meteoriteList.Add(gameObject);
                             break;
                     }
                 }
@@ -149,6 +177,9 @@ namespace ProjectileLimiter
                         case PerPlayerDeployableType.Saw:
                             deployableTracker.sawList.Remove(gameObject);
                             break;
+                        case PerPlayerDeployableType.Meteorite:
+                            deployableTracker.meteoriteList.Remove(gameObject);
+                            break;
                     }
                 }
             }
@@ -158,6 +189,7 @@ namespace ProjectileLimiter
         public class ProjectileDeployableTracker : MonoBehaviour
         {
             public List<GameObject> sawList = new List<GameObject>();
+            public List<GameObject> meteoriteList = new List<GameObject>();
 
             public void Start()
             {
@@ -169,6 +201,8 @@ namespace ProjectileLimiter
                 {
                     case PerPlayerDeployableType.Saw:
                         return sawList.Count < cfgSawMax;
+                    case PerPlayerDeployableType.Meteorite:
+                        return meteoriteList.Count < cfgMeteoriteMax;
                 }
                 return false;
             }
