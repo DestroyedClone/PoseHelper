@@ -126,6 +126,7 @@ namespace BetterEquipmentDroneUse
         private void GiveComponent(On.RoR2.EquipmentSlot.orig_OnStartServer orig, EquipmentSlot self)
         {
             orig(self);
+            if (!NetworkServer.active) return;
             if (!self || !self.characterBody || !self.characterBody.master) return;
             if (self.characterBody.bodyIndex == EquipmentDroneBodyIndex)
             {
@@ -324,6 +325,7 @@ namespace BetterEquipmentDroneUse
                     // 
                     case DroneMode.GoldGat:
                         baseAI.master.money = uint.MaxValue;
+                        freeUse = true;
                         break;
                     /* Priority Listing:
                      * Heal allied players in order of most hurt.
