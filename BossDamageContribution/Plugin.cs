@@ -53,6 +53,7 @@ namespace BossDamageTracker
 
             BossGroup.onBossGroupStartServer += BossGroup_onBossGroupStartServer;
             BossGroup.onBossGroupDefeatedServer += BossGroup_onBossGroupDefeatedServer;
+            
             On.RoR2.HealthComponent.TakeDamage += HealthComponent_TakeDamage;
             Stage.onServerStageBegin += ResetStoredBossGroups;
         }
@@ -242,6 +243,14 @@ namespace BossDamageTracker
                 {
                     baseToken = results
                 });
+            }
+        }
+
+        internal class ServerListener : MonoBehaviour, IOnTakeDamageServerReceiver
+        {
+            public void OnTakeDamageServer(DamageReport damageReport)
+            {
+
             }
         }
     }
