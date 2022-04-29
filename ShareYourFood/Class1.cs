@@ -5,6 +5,7 @@ using RoR2;
 using System.Security.Permissions;
 using UnityEngine;
 using UnityEngine.Networking;
+using static ShareYourFood.SharedFoodContent;
 
 #pragma warning disable CS0618 // Type or member is obsolete
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
@@ -14,12 +15,10 @@ namespace ShareYourFood
 {
     [BepInPlugin("com.DestroyedClone.ShareYourFood", "Share Your Food", "1.0.0")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
-    [R2APISubmoduleDependency(nameof(PrefabAPI), nameof(BuffAPI))]
+    [R2APISubmoduleDependency(nameof(PrefabAPI))]
     [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.EveryoneNeedSameModVersion)]
     public class Main : BaseUnityPlugin
     {
-        public static GameObject fruitPickup;
-
         public static KeyCode keyToDrop;
         public static float healPercentage;
         public static float destroyOnTimerLength;
@@ -27,8 +26,6 @@ namespace ShareYourFood
         public static bool changeDescription;
         public static int maxAmount;
         //todo max amount per player?
-
-        public static BuffDef modifierKeyBuff;
 
         //TILER2 shit
         //When a game runs with TILER2, the first selected language is null so we have to wait once
@@ -48,9 +45,6 @@ namespace ShareYourFood
 
             if (changeDescription)
                 Language.onCurrentLanguageChanged += Language_onCurrentLanguageChanged;
-
-            CreatePrefab();
-            SetupModifierKeyBuff();
 
             On.RoR2.EquipmentSlot.FireFruit += EquipmentSlot_FireFruit;
             On.RoR2.CharacterBody.Update += CharacterBody_Update;
@@ -132,61 +126,6 @@ namespace ShareYourFood
                     self.AddTimedBuffAuthority(modifierKeyBuff.buffIndex, 0.5f);
                 }
             }
-        }
-
-        private void SetupModifierKeyBuff()
-        {
-            modifierKeyBuff = ScriptableObject.CreateInstance<BuffDef>();
-            modifierKeyBuff.buffColor = new Color(1f, 215f / 255f, 0f);
-            modifierKeyBuff.canStack = false;
-            modifierKeyBuff.isDebuff = false;
-            modifierKeyBuff.name = "Activate your Foreign Fruit to throw!";
-            modifierKeyBuff.iconSprite = RoR2Content.Equipment.Fruit.pickupIconSprite;
-            BuffAPI.Add(new CustomBuff(modifierKeyBuff));
-        }
-
-        private static void CreatePrefab()
-        {
-            fruitPickup = PrefabAPI.InstantiateClone(Resources.Load<GameObject>("Prefabs/NetworkedObjects/HealPack"), "FruitPack", true);
-            fruitPickup.transform.eulerAngles = Vector3.zero;
-
-            if (destroyOnTimerLength <= 0)
-            {
-                Object.Destroy(fruitPickup.GetComponent<DestroyOnTimer>());
-                Destroy(fruitPickup.GetComponent<BeginRapidlyActivatingAndDeactivating>());
-            }
-            else
-            {
-                fruitPickup.GetComponent<DestroyOnTimer>().duration = destroyOnTimerLength;
-                fruitPickup.GetComponent<BeginRapidlyActivatingAndDeactivating>().delayBeforeBeginningBlinking = destroyOnTimerLength * 0.85f;
-            }
-            Destroy(fruitPickup.GetComponent<VelocityRandomOnStart>());
-            Destroy(fruitPickup.transform.Find("GravitationController").gameObject);
-
-            var healthPickup = fruitPickup.transform.Find("PickupTrigger").GetComponent<HealthPickup>();
-            var foodPickup = fruitPickup.transform.Find("PickupTrigger").gameObject.AddComponent<FoodPickup>();
-            foodPickup.baseObject = healthPickup.baseObject;
-            foodPickup.teamFilter = healthPickup.teamFilter;
-            Destroy(healthPickup);
-
-            fruitPickup.GetComponent<Rigidbody>().freezeRotation = true;
-
-            //fruitPickup.AddComponent<ConstantForce>();
-
-            var fruitModel = Instantiate(Resources.Load<GameObject>("prefabs/pickupmodels/PickupFruit"), fruitPickup.transform.Find("HealthOrbEffect"));
-
-            var jar = Resources.Load<GameObject>("prefabs/pickupmodels/PickupWilloWisp");
-
-            var jarLid = Object.Instantiate(jar.transform.Find("mdlGlassJar/GlassJarLid"));
-            jarLid.parent = fruitModel.transform;
-            jarLid.localScale = new Vector3(1f, 1f, 0.3f);
-            jarLid.localPosition = new Vector3(0f, -0.9f, 0f);
-
-            var marble = Resources.Load<GameObject>("prefabs/pickupmodels/PickupMask");
-
-            jarLid.GetComponent<MeshRenderer>().material = marble.GetComponentInChildren<MeshRenderer>().material;
-
-            foodPickup.modelObject = fruitModel;
         }
 
         //method is only called by server
