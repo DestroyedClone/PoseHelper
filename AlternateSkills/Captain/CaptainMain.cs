@@ -10,6 +10,8 @@ using System;
 using EntityStates;
 using R2API;
 using RoR2.Skills;
+using RoR2.Projectile;
+using static R2API.RecalculateStatsAPI ;
 
 namespace AlternateSkills.Captain
 {
@@ -18,13 +20,50 @@ namespace AlternateSkills.Captain
         public static GameObject myCharacter = Resources.Load<GameObject>("prefabs/characterbodies/CaptainBody");
         public static BodyIndex bodyIndex = myCharacter.GetComponent<CharacterBody>().bodyIndex;
 
-        public static SkillDef callNuke;
+        public static GameObject accelerantThrownProjectile;
+        public static GameObject accelerantSplashProjectile;
+
+        public static CustomBuff accelerantBuff;
 
         public static void Init()
         {
-
+            SetupProjectiles();
+            SetupBuffs();
             SetupSkills();
+            GetStatCoefficients += CaptainMain_GetStatCoefficients;
+
             //On.RoR2.EntityStateCatalog.Init += EntityStateCatalog_Init;
+        }
+
+        private static void CaptainMain_GetStatCoefficients(CharacterBody sender, StatHookEventArgs args)
+        {
+            if (sender.HasBuff(accelerantBuff.BuffDef))
+            {
+                args.moveSpeedMultAdd += 9f;
+            }
+        }
+
+        public static void SetupBuffs()
+        {
+            accelerantBuff = new CustomBuff("Accelerant",
+                RoR2Content.Buffs.CloakSpeed.iconSprite,
+                Color.blue,
+                false,
+                false);
+            BuffAPI.Add(accelerantBuff);
+        }
+
+        private static void SetupProjectiles()
+        {
+            accelerantSplashProjectile = PrefabAPI.InstantiateClone(Resources.Load<GameObject>("prefabs/projectiles/SporeGrenadeProjectileDotZone"), "ThrownAccelerantDotZone");
+            accelerantSplashProjectile.GetComponentInChildren<BuffWard>().buffDef = accelerantBuff.BuffDef;
+
+            accelerantThrownProjectile = PrefabAPI.InstantiateClone(Resources.Load<GameObject>("prefabs/projectiles/SporeGrenadeProjectile"), "ThrownAccelerant");
+            var pie = accelerantThrownProjectile.GetComponent<ProjectileImpactExplosion>();
+            pie.childrenProjectilePrefab = accelerantSplashProjectile;
+
+            ProjectileAPI.Add(accelerantSplashProjectile);
+            ProjectileAPI.Add(accelerantThrownProjectile);
         }
 
         private static void EntityStateCatalog_Init(On.RoR2.EntityStateCatalog.orig_Init orig)
@@ -34,11 +73,11 @@ namespace AlternateSkills.Captain
 
         private static void SetupSkills()
         {
-            LanguageAPI.Add("CAPTAINSCEPTER_NAME", "");
-            LanguageAPI.Add("CAPTAINSCEPTER_DESCRIPTION", ".");
+            LanguageAPI.Add("CAPTAIN_PRIMARY_LUCKVOLVER_NAME", "Lucky Slug");
+            LanguageAPI.Add("CAPTAIN_PRIMARY_LUCKVOLVER_DESC", "Fire off a slug for <style=cIsDamage>140% damage</style> with a <style=cIsUtility>50% increased chance</style> to proc items.");
 
             var mySkillDef = ScriptableObject.CreateInstance<SkillDef>();
-            mySkillDef.activationState = new SerializableEntityStateType(typeof(Captain.SetupNukeAlt));
+            //mySkillDef.activationState = new SerializableEntityStateType(typeof(Captain.SetupNukeAlt));
             mySkillDef.activationStateMachineName = "Weapon";
             mySkillDef.baseMaxStock = 1;
             mySkillDef.baseRechargeInterval = 20f;
@@ -73,33 +112,6 @@ namespace AlternateSkills.Captain
                 unlockableDef = null,
                 viewableNode = new ViewablesCatalog.Node(mySkillDef.skillNameToken, false, null)
             };
-
-
-
-            callNuke = ScriptableObject.CreateInstance<SkillDef>();
-            callNuke.activationState = new SerializableEntityStateType(typeof(Captain.CallNukeAltEnter));
-            callNuke.activationStateMachineName = "Weapon";
-            callNuke.baseMaxStock = 1;
-            callNuke.baseRechargeInterval = 0f;
-            callNuke.beginSkillCooldownOnSkillEnd = true;
-            callNuke.canceledFromSprinting = true;
-            callNuke.fullRestockOnAssign = true;
-            callNuke.interruptPriority = InterruptPriority.Any;
-            callNuke.isCombatSkill = true;
-            callNuke.mustKeyPress = true;
-            callNuke.rechargeStock = 1;
-            callNuke.requiredStock = 1;
-            callNuke.stockToConsume = 1;
-            callNuke.icon = Resources.Load<Sprite>("textures/bufficons/texBuffLunarShellIcon");
-            callNuke.skillDescriptionToken = "CAPTAINSCEPTER_DESCRIPTION";
-            callNuke.skillName = "CAPTAINSCEPTER_NAME";
-            callNuke.skillNameToken = callNuke.skillName;
-
-            callNuke.cancelSprintingOnActivation = false;
-            callNuke.dontAllowPastMaxStocks = false;
-            callNuke.forceSprintDuringState = false;
-            callNuke.keywordTokens = new string[] { };
-            callNuke.resetCooldownTimerOnUse = false;
         }
     }
 }
