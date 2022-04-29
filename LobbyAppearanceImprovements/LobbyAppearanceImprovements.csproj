@@ -12,6 +12,10 @@
     <Compile Remove="Testing.cs" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="BepInEx.Core" Version="5.4.19" />
+  </ItemGroup>
+
 	<ItemGroup>
 		<Reference Include="0Harmony">
 			<HintPath>..\PoseHelper\lib\0Harmony.dll</HintPath>
