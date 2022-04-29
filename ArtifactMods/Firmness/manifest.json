@@ -1,0 +1,10 @@
+{
+  "name": "ArtifactOfFirmness",
+  "version_number": "1.0.0",
+  "website_url": "https://github.com/DestroyedClone/PoseHelper/tree/master/ArtifactNoFlinch",
+  "description": "Adds artifact that prevents enemies, most noticeably with beetles, from getting hitstunned.",
+  "dependencies": [
+    "bbepis-BepInExPack-5.4.9",
+    "tristanmcpherson-R2API-3.0.50"
+  ]
+}
