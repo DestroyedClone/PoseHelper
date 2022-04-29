@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Security;
 using System.Security.Permissions;
 using UnityEngine;
+using R2API.Utils;
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -16,7 +17,9 @@ using UnityEngine;
 
 namespace BossDropRewardDelay
 {
-    [BepInPlugin("com.DestroyedClone.BossDropRewardDelay", "Boss Drop Reward Delay", "1.1.0")]
+    [BepInPlugin("com.DestroyedClone.BossDropRewardDelay", "Boss Drop Reward Delay", "1.1.1")]
+    [BepInDependency(R2API.R2API.PluginGUID)]
+    [R2APISubmoduleDependency(nameof(CommandHelper))]
     public class Plugin : BaseUnityPlugin
     {
         public static ConfigEntry<float> cfgSpawnDelay;
@@ -36,25 +39,26 @@ namespace BossDropRewardDelay
         {
             ILCursor c = new ILCursor(il);
             c.GotoNext(
-                 x => x.MatchStloc(5),
-                 x => x.MatchLdcI4(0),
-                x => x.MatchStloc(6)
-            );
+               x => x.MatchStloc(3),
+               x => x.MatchLdloc(6),    //Might not need _s
+               x => x.MatchLdloc(2)
+           );
             c.Index += 2;
             c.Emit(OpCodes.Ldarg_0);    //self
-            c.Emit(OpCodes.Ldloc_2);    //PickupIndex
-            c.Emit(OpCodes.Ldloc, 4);    //vector
-            c.Emit(OpCodes.Ldloc, 5);    //rotation
-            c.Emit(OpCodes.Ldloc, 3);    //scaledRewardCount
+            c.Emit(OpCodes.Ldloc, 1);    //PickupIndex
+            c.Emit(OpCodes.Ldloc, 3);    //vector
+            c.Emit(OpCodes.Ldloc, 4);    //rotation
+            c.Emit(OpCodes.Ldloc, 6);    //scaledRewardCount
             c.EmitDelegate<Func<int, BossGroup, PickupIndex, Vector3, Quaternion, int, int>>((val, self, pickupIndex, vector, rotation, scaledRewardCount) =>
             {
-                if (self && !self.GetComponent<DelayedBossRewards>())
+                if (self && !self.GetComponent<DelayedBossRewardsSOTV>())
                 {
-                    var component = self.gameObject.AddComponent<DelayedBossRewards>();
+                    var component = self.gameObject.AddComponent<DelayedBossRewardsSOTV>();
                     component.rng = self.rng;
-                    component.num = scaledRewardCount;
+                    component.scaledRewardCount = scaledRewardCount;
                     component.pickupIndex = pickupIndex;
                     component.bossDrops = self.bossDrops;
+                    component.bossDropTables = self.bossDropTables;
                     component.bossDropChance = self.bossDropChance;
                     component.dropPosition = self.dropPosition;
                     component.vector = vector;
@@ -64,22 +68,19 @@ namespace BossDropRewardDelay
             });
         }
 
-        public class DelayedBossRewards : MonoBehaviour
+        public class DelayedBossRewardsSOTV : MonoBehaviour
         {
-            // Carry-overs
-            public Xoroshiro128Plus rng;
+            private int i = 0;
 
+            public Xoroshiro128Plus rng;
+            public int scaledRewardCount = 0;
+            public PickupIndex pickupIndex;
             public List<PickupIndex> bossDrops;
+            public List<PickupDropTable> bossDropTables;
             public float bossDropChance;
             public Transform dropPosition;
-
-            private int i = 0;
-            public PickupIndex pickupIndex;
-            public int num = 1;
-            public Quaternion rotation;
             public Vector3 vector;
-
-            public List<PickupIndex> rewards = new List<PickupIndex>();
+            public Quaternion rotation;
 
             public float age = 0;
             public float delay = 0.3f;
@@ -107,20 +108,25 @@ namespace BossDropRewardDelay
                 {
                     return;
                 }
-                // Drop Count Check
-                if (i < num)
+                if (i < scaledRewardCount)
                 {
                     PickupIndex pickupIndex2 = pickupIndex;
-                    if (bossDrops.Count > 0 && rng.nextNormalizedFloat <= bossDropChance)
+                    if ((bossDrops.Count > 0 || bossDropTables.Count > 0) && rng.nextNormalizedFloat <= bossDropChance)
                     {
-                        pickupIndex2 = rng.NextElementUniform<PickupIndex>(bossDrops);
+                        if (bossDropTables.Count > 0)
+                        {
+                            pickupIndex2 = rng.NextElementUniform<PickupDropTable>(bossDropTables).GenerateDrop(rng);
+                        }
+                        else
+                        {
+                            pickupIndex2 = rng.NextElementUniform<PickupIndex>(bossDrops);
+                        }
                     }
                     PickupDropletController.CreatePickupDroplet(pickupIndex2, dropPosition.position, vector);
                     i++;
                     vector = rotation * vector;
                     age = 0;
-                }
-                else
+                } else
                 {
                     enabled = false;
                 }
@@ -145,7 +151,7 @@ namespace BossDropRewardDelay
                         Debug.LogWarning($"[BossDropRewardDelay] Warning: reward delay set to larger than {maxValueWarning} seconds ({newValue}), rewards may take a long time to complete!");
                     }
                     spawnDelay = newValue;
-                    foreach (var bossDropRewardDelayComponent in InstanceTracker.GetInstancesList<DelayedBossRewards>())
+                    foreach (var bossDropRewardDelayComponent in InstanceTracker.GetInstancesList<DelayedBossRewardsSOTV>())
                     {
                         if (bossDropRewardDelayComponent)
                         {
