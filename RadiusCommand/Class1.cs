@@ -50,6 +50,12 @@ namespace RadiusCommand
             //On.RoR2.PickupPickerController.SubmitChoice += PickupPickerController_SubmitChoice;
             CharacterBody.onBodyStartGlobal += CharacterBody_onBodyStartGlobal;
             On.RoR2.PickupPickerController.SubmitChoice += PickupPickerController_SubmitChoice1;
+            On.RoR2.PickupPickerController.FixedUpdate += PickupPickerController_FixedUpdate;
+        }
+
+        private void PickupPickerController_FixedUpdate(On.RoR2.PickupPickerController.orig_FixedUpdate orig, PickupPickerController self)
+        {
+            return;
         }
 
         private void CharacterBody_onBodyStartGlobal(CharacterBody obj)
