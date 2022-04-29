@@ -18,7 +18,7 @@ namespace UmbraSurvivorPods
     [BepInPlugin("com.DestroyedClone.UmbraSurvivorPods", "Umbra Survivor Pods", "1.0.0")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
-    [R2APISubmoduleDependency(nameof(EffectAPI), nameof(PrefabAPI))]
+    [R2APISubmoduleDependency(nameof(PrefabAPI))]
     public class Class1 : BaseUnityPlugin
     {
         public static ConfigEntry<float> cfgDestroyTimer;
