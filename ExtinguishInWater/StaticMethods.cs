@@ -52,9 +52,9 @@ namespace ExtinguishInWater
         {
             if (!AllowedToExtinguish(characterBody)) return;
 
-            if (characterBody.HasBuff(BuffIndex.OnFire))
+            if (characterBody.HasBuff(RoR2Content.Buffs.OnFire))
             {
-                characterBody.ClearTimedBuffs(BuffIndex.OnFire);
+                characterBody.ClearTimedBuffs(RoR2Content.Buffs.OnFire);
 
                 if (DotController.dotControllerLocator.TryGetValue(characterBody.gameObject.GetInstanceID(), out DotController dotController))
                 {
