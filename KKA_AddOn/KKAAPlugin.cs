@@ -38,7 +38,7 @@ namespace KKA_AddOn
             }}
         };
 
-        public static bool shouldGiveExperience = true;
+        public static Language[] languages = null;
 
         public struct Diorama
         {
@@ -60,15 +60,73 @@ namespace KKA_AddOn
             R2API.Utils.CommandHelper.AddToConsoleWhenReady();
 
             //CharacterBody.onBodyStartGlobal += CharacterBody_onBodyStartGlobal;
-            On.RoR2.ExperienceManager.AwardExperience += DenyExperience;
-
+            On.RoR2.Language.Init += Language_Init;
+            Run.onRunStartGlobal += Run_onRunStartGlobal;
         }
 
-        private void DenyExperience(On.RoR2.ExperienceManager.orig_AwardExperience orig, ExperienceManager self, Vector3 origin, CharacterBody body, ulong amount)
+        private void Run_onRunStartGlobal(Run obj)
         {
-            if (shouldGiveExperience)
-                orig(self, origin, body, amount);
-            return;
+            Run.onRunStartGlobal -= Run_onRunStartGlobal;
+        }
+
+        private string Language_GetString_string_string(On.RoR2.Language.orig_GetString_string_string orig, string token, string language)
+        {
+            Language currentLanguage = GetRandomLanguage();
+            return (currentLanguage?.GetLocalizedStringByToken(token)) ?? token;
+        }
+
+        private string Language_GetString_string(On.RoR2.Language.orig_GetString_string orig, string token)
+        {
+            Language currentLanguage = GetRandomLanguage();
+            return (currentLanguage?.GetLocalizedStringByToken(token)) ?? token;
+        }
+
+        private void Language_Init(On.RoR2.Language.orig_Init orig)
+        {
+            orig();
+
+            List<Language> vs = new List<Language>();
+            foreach (var entry in Language.GetAllLanguages())
+            {
+                entry.LoadStrings();
+                vs.Add(entry);
+            }
+            languages = vs.ToArray();
+
+            Logger.LogMessage("Language Count: "+languages.Length);
+
+            //On.RoR2.Language.GetStringFormatted += Language_GetStringFormatted;
+            //On.RoR2.Language.GetString_string += Language_GetString_string;
+            //On.RoR2.Language.GetString_string_string += Language_GetString_string_string;
+            On.RoR2.Language.GetLocalizedStringByToken += Language_GetLocalizedStringByToken;
+        }
+
+        private string Language_GetLocalizedStringByToken(On.RoR2.Language.orig_GetLocalizedStringByToken orig, Language self, string token)
+        {
+            self = GetRandomLanguage();
+            return orig(self, token);
+        }
+
+        private Language GetRandomLanguage()
+        {
+            if (languages != null)
+            {
+                var lang = languages[Random.Range(0, languages.Length - 1)];
+                Logger.LogMessage($"requested language: {lang.selfName}");
+                return lang;
+            }
+            else if (Language.GetAllLanguages() != null)
+            {
+                Logger.LogWarning("cum");
+                return null;
+            }
+            return null;
+        }
+
+        private string Language_GetStringFormatted(On.RoR2.Language.orig_GetStringFormatted orig, string token, object[] args)
+        {
+            Language currentLanguage = GetRandomLanguage();
+            return (currentLanguage?.GetLocalizedFormattedStringByToken(token, args)) ?? string.Format(token, args);
         }
 
         private void CharacterBody_onBodyStartGlobal(CharacterBody obj)
@@ -80,13 +138,6 @@ namespace KKA_AddOn
             }
         }
 
-
-        [ConCommand(commandName = "lock_exp", flags = ConVarFlags.ExecuteOnServer, helpText = "lock_exp {true|false} - Prevents experience being awarded.")]
-        public static void CMD_LockExp(ConCommandArgs args)
-        {
-            shouldGiveExperience = !shouldGiveExperience;
-            Debug.Log($"Experience has been {(shouldGiveExperience ? "un" : "")}locked.");
-        }
 
         [ConCommand(commandName = "spawnprefab", flags = ConVarFlags.ExecuteOnServer, helpText = "spawnprefab at your location {x} {y} {z}")]
         public static void ChangeLight(ConCommandArgs args)
