@@ -36,11 +36,12 @@ namespace BossDropRewardDelay
         {
             ILCursor c = new ILCursor(il);
             c.GotoNext(
-                 x => x.MatchStloc(5),
-                 x => x.MatchLdcI4(0),
-                x => x.MatchStloc(6)
+                x => x.MatchLdcI4(0),
+                x => x.MatchStloc(6),
+                x => x.MatchLdcI4(0),
+                x => x.MatchStloc(8)
             );
-            c.Index += 2;
+            c.Index += 3;
             c.Emit(OpCodes.Ldarg_0);    //self
             c.Emit(OpCodes.Ldloc_2);    //PickupIndex
             c.Emit(OpCodes.Ldloc, 4);    //vector
