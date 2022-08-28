@@ -1,4 +1,4 @@
-using BepInEx;
+﻿using BepInEx;
 using BepInEx.Configuration;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
@@ -11,6 +11,7 @@ using UnityEngine;
 using RiskOfOptions;
 using RiskOfOptions.Options;
 using RiskOfOptions.OptionConfigs;
+using R2API.Utils;
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -22,6 +23,7 @@ namespace BossDropRewardDelay
     [BepInPlugin(Guid, FormattedModName, Version)]
     [BepInDependency("com.rune580.riskofoptions")]
     [BepInDependency("com.bepis.r2api")]
+    [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
     public class Plugin : BaseUnityPlugin
     {
         public const string ModName = "BossDropRewardDelay",
@@ -68,7 +70,7 @@ namespace BossDropRewardDelay
                 {
                     var component = self.gameObject.AddComponent<DelayedBossRewards>();
                     component.rng = self.rng;
-                    component.num = scaledRewardCount;
+                    component.num = scaledRewardCount * 100;
                     component.pickupIndex = pickupIndex;
                     component.bossDrops = self.bossDrops;
                     component.bossDropChance = self.bossDropChance;
