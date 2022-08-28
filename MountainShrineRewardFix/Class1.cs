@@ -42,6 +42,7 @@ namespace BossDropRewardDelay
             {
                 min = 0.2f,
                 max = 4,
+                formatString = "{0:0.0}s",
             }), Guid, FormattedModName);
         }
 
