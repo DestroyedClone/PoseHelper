@@ -57,9 +57,9 @@ namespace BossDropRewardDelay
             c.Index += 3;
             c.Emit(OpCodes.Ldarg_0);    //self
             c.Emit(OpCodes.Ldloc_2);    //PickupIndex
-            c.Emit(OpCodes.Ldloc, 4);    //vector
-            c.Emit(OpCodes.Ldloc, 5);    //rotation
-            c.Emit(OpCodes.Ldloc, 3);    //scaledRewardCount
+            c.Emit(OpCodes.Ldloc, 3);    //vector
+            c.Emit(OpCodes.Ldloc, 4);    //rotation
+            c.Emit(OpCodes.Ldloc, 2);    //scaledRewardCount
             c.EmitDelegate<Func<int, BossGroup, PickupIndex, Vector3, Quaternion, int, int>>((val, self, pickupIndex, vector, rotation, scaledRewardCount) =>
             {
                 if (self && !self.GetComponent<DelayedBossRewards>())
