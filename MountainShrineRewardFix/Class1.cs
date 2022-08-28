@@ -1,4 +1,4 @@
-﻿using BepInEx;
+using BepInEx;
 using BepInEx.Configuration;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
@@ -16,9 +16,15 @@ using UnityEngine;
 
 namespace BossDropRewardDelay
 {
-    [BepInPlugin("com.DestroyedClone.BossDropRewardDelay", "Boss Drop Reward Delay", "1.1.0")]
+    [BepInPlugin(Guid, FormattedModName, Version)]
     public class Plugin : BaseUnityPlugin
     {
+        public const string ModName = "BossDropRewardDelay",
+        FormattedModName = "Boss Drop Reward Delay",
+        Author = "DestroyedClone",
+        Guid = "com." + Author + "." + ModName,
+        Version = "1.2.0";
+
         public static ConfigEntry<float> cfgSpawnDelay;
         public static float spawnDelay;
 
