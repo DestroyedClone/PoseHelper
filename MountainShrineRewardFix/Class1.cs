@@ -24,7 +24,7 @@ namespace BossDropRewardDelay
 
         public void Awake()
         {
-            cfgSpawnDelay = Config.Bind("", "Delay Between Drops", 0.3f, "The amount of time, in seconds, between each drop.");
+            cfgSpawnDelay = Config.Bind("General", "Delay Between Drops", 0.3f, "The amount of time, in seconds, between each drop.");
             spawnDelay = cfgSpawnDelay.Value;
 
             IL.RoR2.BossGroup.DropRewards += BossGroup_DropRewards;
