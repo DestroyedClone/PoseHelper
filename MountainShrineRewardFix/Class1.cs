@@ -70,7 +70,7 @@ namespace BossDropRewardDelay
                 {
                     var component = self.gameObject.AddComponent<DelayedBossRewards>();
                     component.rng = self.rng;
-                    component.num = scaledRewardCount * 100;
+                    component.num = scaledRewardCount;
                     component.pickupIndex = pickupIndex;
                     component.bossDrops = self.bossDrops;
                     component.bossDropChance = self.bossDropChance;
