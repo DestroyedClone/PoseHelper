@@ -94,8 +94,6 @@ namespace BossDropRewardDelay
             public Quaternion rotation;
             public Vector3 vector;
 
-            public List<PickupIndex> rewards = new List<PickupIndex>();
-
             public float age = 0;
 
             public void OnEnable()
