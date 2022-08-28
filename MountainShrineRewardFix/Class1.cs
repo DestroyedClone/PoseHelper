@@ -117,22 +117,21 @@ namespace BossDropRewardDelay
                     return;
                 }
                 // Drop Count Check
-                if (i < num)
-                {
-                    PickupIndex pickupIndex2 = pickupIndex;
-                    if (bossDrops.Count > 0 && rng.nextNormalizedFloat <= bossDropChance)
-                    {
-                        pickupIndex2 = rng.NextElementUniform<PickupIndex>(bossDrops);
-                    }
-                    PickupDropletController.CreatePickupDroplet(pickupIndex2, dropPosition.position, vector);
-                    i++;
-                    vector = rotation * vector;
-                    age = 0;
-                }
-                else
+                if (i >= num)
                 {
                     enabled = false;
+                    return;
                 }
+
+                PickupIndex pickupIndex2 = pickupIndex;
+                if (bossDrops.Count > 0 && rng.nextNormalizedFloat <= bossDropChance)
+                {
+                    pickupIndex2 = rng.NextElementUniform<PickupIndex>(bossDrops);
+                }
+                PickupDropletController.CreatePickupDroplet(pickupIndex2, dropPosition.position, vector);
+                i++;
+                vector = rotation * vector;
+                age = 0;
             }
         }
     }
