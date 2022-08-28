@@ -21,6 +21,7 @@ namespace BossDropRewardDelay
 {
     [BepInPlugin(Guid, FormattedModName, Version)]
     [BepInDependency("com.rune580.riskofoptions")]
+    [BepInDependency("com.bepis.r2api")]
     public class Plugin : BaseUnityPlugin
     {
         public const string ModName = "BossDropRewardDelay",

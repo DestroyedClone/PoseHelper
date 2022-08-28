@@ -31,6 +31,9 @@
 		<Reference Include="MMHOOK_RoR2">
 			<HintPath>..\References\lib\MMHOOK_RoR2.dll</HintPath>
 		</Reference>
+		<Reference Include="R2API">
+			<HintPath>..\References\lib\R2API.dll</HintPath>
+		</Reference>
 		<Reference Include="RiskOfOptions">
 			<HintPath>..\References\lib\RiskOfOptions.dll</HintPath>
 		</Reference>
