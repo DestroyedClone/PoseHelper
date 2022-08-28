@@ -1,4 +1,4 @@
-using BepInEx;
+﻿using BepInEx;
 using BepInEx.Configuration;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
@@ -8,6 +8,9 @@ using System.Collections.Generic;
 using System.Security;
 using System.Security.Permissions;
 using UnityEngine;
+using RiskOfOptions;
+using RiskOfOptions.Options;
+using RiskOfOptions.OptionConfigs;
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -17,6 +20,7 @@ using UnityEngine;
 namespace BossDropRewardDelay
 {
     [BepInPlugin(Guid, FormattedModName, Version)]
+    [BepInDependency("com.rune580.riskofoptions")]
     public class Plugin : BaseUnityPlugin
     {
         public const string ModName = "BossDropRewardDelay",
@@ -26,16 +30,19 @@ namespace BossDropRewardDelay
         Version = "1.2.0";
 
         public static ConfigEntry<float> cfgSpawnDelay;
-        public static float spawnDelay;
+        public static float SpawnDelay => cfgSpawnDelay.Value;
 
         public void Awake()
         {
             cfgSpawnDelay = Config.Bind("General", "Delay Between Drops", 0.3f, "The amount of time, in seconds, between each drop.");
-            spawnDelay = cfgSpawnDelay.Value;
 
             IL.RoR2.BossGroup.DropRewards += BossGroup_DropRewards;
 
-            R2API.Utils.CommandHelper.AddToConsoleWhenReady();
+            ModSettingsManager.AddOption(new SliderOption(cfgSpawnDelay, new SliderConfig()
+            {
+                min = 0.2f,
+                max = 4,
+            }), Guid, FormattedModName);
         }
 
         private void BossGroup_DropRewards(MonoMod.Cil.ILContext il)
@@ -89,12 +96,6 @@ namespace BossDropRewardDelay
             public List<PickupIndex> rewards = new List<PickupIndex>();
 
             public float age = 0;
-            public float delay = 0.3f;
-
-            public void Awake()
-            {
-                delay = spawnDelay;
-            }
 
             public void OnEnable()
             {
@@ -110,7 +111,9 @@ namespace BossDropRewardDelay
             {
                 // Stopwatch Check
                 age += Time.fixedDeltaTime;
-                if (age < delay)
+
+                // allows config to be changed while the items are still dropping
+                if (age < Plugin.SpawnDelay)
                 {
                     return;
                 }
@@ -131,40 +134,6 @@ namespace BossDropRewardDelay
                 {
                     enabled = false;
                 }
-            }
-        }
-
-        [ConCommand(commandName = "bossdrop_delay", flags = ConVarFlags.SenderMustBeServer, helpText = "bossdrop_delay {seconds}.")]
-        private static void CCUpdateDelay(ConCommandArgs args)
-        {
-            if (args.Count > 0)
-            {
-                var newValue = args.GetArgFloat(0);
-                if (newValue < 0)
-                {
-                    Debug.LogWarning("[BossDropRewardDelay] Can't set delay to less than 0!");
-                }
-                else
-                {
-                    var maxValueWarning = 5f;
-                    if (newValue > maxValueWarning)
-                    {
-                        Debug.LogWarning($"[BossDropRewardDelay] Warning: reward delay set to larger than {maxValueWarning} seconds ({newValue}), rewards may take a long time to complete!");
-                    }
-                    spawnDelay = newValue;
-                    foreach (var bossDropRewardDelayComponent in InstanceTracker.GetInstancesList<DelayedBossRewards>())
-                    {
-                        if (bossDropRewardDelayComponent)
-                        {
-                            bossDropRewardDelayComponent.delay = spawnDelay;
-                            bossDropRewardDelayComponent.age = 0;
-                        }
-                    }
-                }
-            }
-            else
-            {
-                Debug.Log($"[BossDropRewardDelay] {spawnDelay} seconds.");
             }
         }
     }
