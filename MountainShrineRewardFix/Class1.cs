@@ -1,4 +1,4 @@
-﻿using BepInEx;
+using BepInEx;
 using BepInEx.Configuration;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
@@ -112,7 +112,7 @@ namespace BossDropRewardDelay
                 age += Time.fixedDeltaTime;
 
                 // allows config to be changed while the items are still dropping
-                if (age < Plugin.SpawnDelay)
+                if (i != 0 && age < Plugin.SpawnDelay)
                 {
                     return;
                 }
