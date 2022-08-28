@@ -56,7 +56,7 @@ namespace BossDropRewardDelay
             );
             c.Index += 3;
             c.Emit(OpCodes.Ldarg_0);    //self
-            c.Emit(OpCodes.Ldloc_2);    //PickupIndex
+            c.Emit(OpCodes.Ldloc_1);    //PickupIndex
             c.Emit(OpCodes.Ldloc, 3);    //vector
             c.Emit(OpCodes.Ldloc, 4);    //rotation
             c.Emit(OpCodes.Ldloc, 2);    //scaledRewardCount
