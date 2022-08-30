@@ -8,6 +8,10 @@ using System.Collections.Generic;
 using System.Security;
 using System.Security.Permissions;
 using UnityEngine;
+using RiskOfOptions;
+using RiskOfOptions.Options;
+using RiskOfOptions.OptionConfigs;
+using R2API.Utils;
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -16,36 +20,50 @@ using UnityEngine;
 
 namespace BossDropRewardDelay
 {
-    [BepInPlugin("com.DestroyedClone.BossDropRewardDelay", "Boss Drop Reward Delay", "1.1.0")]
+    [BepInPlugin(Guid, FormattedModName, Version)]
+    [BepInDependency("com.rune580.riskofoptions")]
+    [BepInDependency("com.bepis.r2api")]
+    [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
     public class Plugin : BaseUnityPlugin
     {
+        public const string ModName = "BossDropRewardDelay",
+        FormattedModName = "Boss Drop Reward Delay",
+        Author = "DestroyedClone",
+        Guid = "com." + Author + "." + ModName,
+        Version = "1.2.0";
+
         public static ConfigEntry<float> cfgSpawnDelay;
-        public static float spawnDelay;
+        public static float SpawnDelay => cfgSpawnDelay.Value;
 
         public void Awake()
         {
-            cfgSpawnDelay = Config.Bind("", "Delay Between Drops", 0.3f, "The amount of time, in seconds, between each drop.");
-            spawnDelay = cfgSpawnDelay.Value;
+            cfgSpawnDelay = Config.Bind("General", "Delay Between Drops", 0.3f, "The amount of time, in seconds, between each drop.");
 
             IL.RoR2.BossGroup.DropRewards += BossGroup_DropRewards;
 
-            R2API.Utils.CommandHelper.AddToConsoleWhenReady();
+            ModSettingsManager.AddOption(new SliderOption(cfgSpawnDelay, new SliderConfig()
+            {
+                min = 0.2f,
+                max = 4,
+                formatString = "{0:0.0}s",
+            }), Guid, FormattedModName);
         }
 
         private void BossGroup_DropRewards(MonoMod.Cil.ILContext il)
         {
             ILCursor c = new ILCursor(il);
             c.GotoNext(
-                 x => x.MatchStloc(5),
-                 x => x.MatchLdcI4(0),
-                x => x.MatchStloc(6)
+                x => x.MatchLdcI4(0),
+                x => x.MatchStloc(6),
+                x => x.MatchLdcI4(0),
+                x => x.MatchStloc(8)
             );
-            c.Index += 2;
+            c.Index += 3;
             c.Emit(OpCodes.Ldarg_0);    //self
-            c.Emit(OpCodes.Ldloc_2);    //PickupIndex
-            c.Emit(OpCodes.Ldloc, 4);    //vector
-            c.Emit(OpCodes.Ldloc, 5);    //rotation
-            c.Emit(OpCodes.Ldloc, 3);    //scaledRewardCount
+            c.Emit(OpCodes.Ldloc_1);    //PickupIndex
+            c.Emit(OpCodes.Ldloc, 3);    //vector
+            c.Emit(OpCodes.Ldloc, 4);    //rotation
+            c.Emit(OpCodes.Ldloc, 2);    //scaledRewardCount
             c.EmitDelegate<Func<int, BossGroup, PickupIndex, Vector3, Quaternion, int, int>>((val, self, pickupIndex, vector, rotation, scaledRewardCount) =>
             {
                 if (self && !self.GetComponent<DelayedBossRewards>())
@@ -79,15 +97,7 @@ namespace BossDropRewardDelay
             public Quaternion rotation;
             public Vector3 vector;
 
-            public List<PickupIndex> rewards = new List<PickupIndex>();
-
             public float age = 0;
-            public float delay = 0.3f;
-
-            public void Awake()
-            {
-                delay = spawnDelay;
-            }
 
             public void OnEnable()
             {
@@ -103,61 +113,28 @@ namespace BossDropRewardDelay
             {
                 // Stopwatch Check
                 age += Time.fixedDeltaTime;
-                if (age < delay)
+
+                // allows config to be changed while the items are still dropping
+                if (i != 0 && age < Plugin.SpawnDelay)
                 {
                     return;
                 }
                 // Drop Count Check
-                if (i < num)
-                {
-                    PickupIndex pickupIndex2 = pickupIndex;
-                    if (bossDrops.Count > 0 && rng.nextNormalizedFloat <= bossDropChance)
-                    {
-                        pickupIndex2 = rng.NextElementUniform<PickupIndex>(bossDrops);
-                    }
-                    PickupDropletController.CreatePickupDroplet(pickupIndex2, dropPosition.position, vector);
-                    i++;
-                    vector = rotation * vector;
-                    age = 0;
-                }
-                else
+                if (i >= num)
                 {
                     enabled = false;
+                    return;
                 }
-            }
-        }
 
-        [ConCommand(commandName = "bossdrop_delay", flags = ConVarFlags.SenderMustBeServer, helpText = "bossdrop_delay {seconds}.")]
-        private static void CCUpdateDelay(ConCommandArgs args)
-        {
-            if (args.Count > 0)
-            {
-                var newValue = args.GetArgFloat(0);
-                if (newValue < 0)
+                PickupIndex pickupIndex2 = pickupIndex;
+                if (bossDrops.Count > 0 && rng.nextNormalizedFloat <= bossDropChance)
                 {
-                    Debug.LogWarning("[BossDropRewardDelay] Can't set delay to less than 0!");
+                    pickupIndex2 = rng.NextElementUniform<PickupIndex>(bossDrops);
                 }
-                else
-                {
-                    var maxValueWarning = 5f;
-                    if (newValue > maxValueWarning)
-                    {
-                        Debug.LogWarning($"[BossDropRewardDelay] Warning: reward delay set to larger than {maxValueWarning} seconds ({newValue}), rewards may take a long time to complete!");
-                    }
-                    spawnDelay = newValue;
-                    foreach (var bossDropRewardDelayComponent in InstanceTracker.GetInstancesList<DelayedBossRewards>())
-                    {
-                        if (bossDropRewardDelayComponent)
-                        {
-                            bossDropRewardDelayComponent.delay = spawnDelay;
-                            bossDropRewardDelayComponent.age = 0;
-                        }
-                    }
-                }
-            }
-            else
-            {
-                Debug.Log($"[BossDropRewardDelay] {spawnDelay} seconds.");
+                PickupDropletController.CreatePickupDroplet(pickupIndex2, dropPosition.position, vector);
+                i++;
+                vector = rotation * vector;
+                age = 0;
             }
         }
     }
