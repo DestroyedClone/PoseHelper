@@ -1,4 +1,4 @@
-﻿using BepInEx;
+using BepInEx;
 using BepInEx.Configuration;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
@@ -43,7 +43,7 @@ namespace BossDropRewardDelay
 
             ModSettingsManager.AddOption(new SliderOption(cfgSpawnDelay, new SliderConfig()
             {
-                min = 0.2f,
+                min = 0.01f,
                 max = 4,
                 formatString = "{0:0.0}s",
             }), Guid, FormattedModName);
