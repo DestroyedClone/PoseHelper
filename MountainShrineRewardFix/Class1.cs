@@ -43,9 +43,9 @@ namespace BossDropRewardDelay
 
             ModSettingsManager.AddOption(new SliderOption(cfgSpawnDelay, new SliderConfig()
             {
-                min = 0.2f,
+                min = 0.01f,
                 max = 4,
-                formatString = "{0:0.0}s",
+                formatString = "{0:0.00}s",
             }), Guid, FormattedModName);
         }
 
