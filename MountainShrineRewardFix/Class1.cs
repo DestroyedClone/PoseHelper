@@ -88,6 +88,7 @@ namespace BossDropRewardDelay
             public Xoroshiro128Plus rng;
 
             public List<PickupIndex> bossDrops;
+            public List<PickupDropTable> bossDropTables;
             public float bossDropChance;
             public Transform dropPosition;
 
@@ -126,12 +127,26 @@ namespace BossDropRewardDelay
                     return;
                 }
 
-                PickupIndex pickupIndex2 = pickupIndex;
-                if (bossDrops.Count > 0 && rng.nextNormalizedFloat <= bossDropChance)
+                bool useBossTables = bossDropTables?.Count > 0;
+                PickupIndex currentIndex = pickupIndex;
+
+                if (bossDrops != null && (bossDrops.Count > 0 || useBossTables) && rng.nextNormalizedFloat <= bossDropChance)
                 {
-                    pickupIndex2 = rng.NextElementUniform<PickupIndex>(bossDrops);
+                    if (useBossTables)
+                    {
+                        PickupDropTable pickupDropTable = rng.NextElementUniform(bossDropTables);
+                        if (pickupDropTable != null)
+                        {
+                            currentIndex = pickupDropTable.GenerateDrop(rng);
+                        }
+                    }
+                    else
+                    {
+                        currentIndex = rng.NextElementUniform(bossDrops);
+                    }
                 }
-                PickupDropletController.CreatePickupDroplet(pickupIndex2, dropPosition.position, vector);
+
+                PickupDropletController.CreatePickupDroplet(currentIndex, dropPosition.position, vector);
                 i++;
                 vector = rotation * vector;
                 age = 0;
