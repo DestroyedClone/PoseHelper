@@ -1,7 +1,9 @@
 ﻿using BepInEx;
 using R2API;
 using RoR2;
+using RoR2.Projectile;
 using RoR2.VoidRaidCrab;
+using EntityStates;
 using System.Security;
 using System.Security.Permissions;
 using System.Text;
@@ -9,12 +11,13 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using System.Collections.Generic;
 using UnityEngine.Networking;
+using RoR2.Skills;
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
 #pragma warning restore CS0618 // Type or member is obsolete
-
+////dotnet build --configuration Release
 namespace VoidRaidCrabRestoration
 {
     [BepInPlugin("com.DestroyedClone.VoidlingRestored", "Voidling Restored", "1.0.0")]
@@ -38,7 +41,7 @@ namespace VoidRaidCrabRestoration
         {
             cscVoidRaidCrab = Load<CharacterSpawnCard>("RoR2/DLC1/VoidRaidCrab/cscVoidRaidCrab.asset");
             cscVoidRaidCrabJoint = Load<CharacterSpawnCard>("RoR2/DLC1/VoidRaidCrab/cscVoidRaidCrabJoint.asset");
-
+            /*
             static SceneDef CreateSceneDef(string assetReference)
             {
                 i++;
@@ -69,15 +72,55 @@ namespace VoidRaidCrabRestoration
             slice2 = CreateSceneDef("RoR2/Junk/slice2/slice2.unity");
             space = CreateSceneDef("RoR2/Junk/space/space.unity");
             stage1 = CreateSceneDef("RoR2/Junk/stage1/stage1.unity");
-
-            On.RoR2.PhasedInventorySetter.FixedUpdate += PhasedInventorySetter_FixedUpdate;
+            */
+            //On.RoR2.PhasedInventorySetter.FixedUpdate += PhasedInventorySetter_FixedUpdate;
             CreateBossEncounter();
             R2API.Utils.CommandHelper.AddToConsoleWhenReady();
 
-            On.RoR2.GivePickupsOnStart.Start += GivePickupsOnStart_Start;
-            On.RoR2.EquipmentSlot.FireFireBallDash += EquipmentSlot_FireFireBallDash;
+            //On.RoR2.GivePickupsOnStart.Start += GivePickupsOnStart_Start;
+            //On.RoR2.EquipmentSlot.FireFireBallDash += EquipmentSlot_FireFireBallDash;
             Run.onRunStartGlobal += Run_onRunStartGlobal;
-            On.RoR2.BackstabManager.Init += BackstabManager_Init;
+            //On.RoR2.BackstabManager.Init += BackstabManager_Init;
+            //RoR2.CharacterBody.onBodyStartGlobal += GiveCutStarterItems;
+            //On.EntityStates.Mage.Weapon.FireRoller.OnEnter += AttuneToItemCount;
+        }
+
+        private void AttuneToItemCount(On.EntityStates.Mage.Weapon.FireRoller.orig_OnEnter orig, EntityStates.Mage.Weapon.FireRoller self)
+        {
+            orig(self);
+        }
+
+        private void GiveCutStarterItems(RoR2.CharacterBody characterBody)
+        {
+            var survivorIndex = SurvivorCatalog.GetSurvivorIndexFromBodyIndex(characterBody.bodyIndex);
+            if (survivorIndex == RoR2.RoR2Content.Survivors.Loader.survivorIndex)
+            {
+                if (!characterBody.GetComponent<LoaderStaticChargeComponent>())
+                {
+                    var staticCharge = characterBody.gameObject.AddComponent<LoaderStaticChargeComponent>();
+                    staticCharge.characterBody = characterBody;
+                }
+            }
+            else if (survivorIndex == RoR2Content.Survivors.Mage.survivorIndex)
+            {
+                if (characterBody.inventory)
+                {
+                    characterBody.inventory.GiveItem(JunkContent.Items.MageAttunement);
+                }
+                if (!characterBody.GetComponent<MageCalibrationController>())
+                {
+                    var controller = characterBody.gameObject.AddComponent<MageCalibrationController>();
+                    controller.characterBody = characterBody;
+                }
+            }
+            else if (survivorIndex == RoR2Content.Survivors.Treebot.survivorIndex)
+            {
+                if (!characterBody.GetComponent<TreebotSunBuffGranter>())
+                {
+                    var sunbuff = characterBody.gameObject.AddComponent<TreebotSunBuffGranter>();
+                    sunbuff.characterBody = characterBody;
+                }
+            }
         }
 
         private void BackstabManager_Init(On.RoR2.BackstabManager.orig_Init orig)
@@ -192,6 +235,158 @@ namespace VoidRaidCrabRestoration
             }
         }
 
+        [ConCommand(commandName = "spawnproj", flags = ConVarFlags.None, helpText = "spawnproj [object] [x,y,z|user pos] [owner|self] [rotation|aimLook]")]
+        public static void CCSpawnProjectile(ConCommandArgs args)
+        {
+            GameObject loadedAsset = null;
+            Vector3 spawnedPos = args.senderBody.corePosition;
+            GameObject projOwner = args.senderBody.gameObject;
+            Quaternion rotation = Quaternion.Euler(args.senderBody.inputBank.aimDirection);
+
+            if (args.Count > 0)
+            {
+                loadedAsset = Addressables.LoadAssetAsync<GameObject>(args.GetArgString(0)).WaitForCompletion();
+            }
+            if (args.Count > 1)
+            {
+                spawnedPos = new Vector3(args.GetArgFloat(1), args.GetArgFloat(2), args.GetArgFloat(3));
+            }
+            if (args.Count > 3)
+            {
+                var bodyName = args.GetArgString(4);
+                if (bodyName.ToLower() == "none")
+                {
+                    projOwner = null;
+                } else
+                {
+                    bool foundBody = false;
+                    foreach (var body in CharacterBody.readOnlyInstancesList)
+                    {
+                        if (body.name == bodyName)
+                        {
+                            projOwner = body.gameObject;
+                            break;
+                        }
+                    }
+                    if (!foundBody)
+                    {
+                        Debug.Log($"Couldn't find body with name \"{bodyName}\"");
+                    }
+                }
+            }
+            if (args.Count > 4)
+            {
+                rotation = Quaternion.Euler(args.GetArgFloat(5), args.GetArgFloat(6), args.GetArgFloat(7));
+            }
+            if (loadedAsset)
+            {
+                //var obj = UnityEngine.Object.Instantiate(loadedAsset, position, Quaternion.identity);
+                FireProjectileInfo fireProjectileInfo = new FireProjectileInfo()
+                {
+                    projectilePrefab = loadedAsset,
+                    position = spawnedPos,
+                    owner = projOwner,
+                    rotation = rotation
+                };
+                ProjectileManager.instance.FireProjectile(fireProjectileInfo);
+            }
+            else
+            {
+                Debug.LogWarning($"Failed to load \"{args.GetArgString(0)}\"");
+            }
+        }
+
+        [ConCommand(commandName = "setstate", flags = ConVarFlags.None, helpText = "setstate path [EntityStateMachine Name|Body]")]
+        public static void CCSetState(ConCommandArgs args)
+        {
+            var esmName = "Body";
+            if (args.Count > 1)
+            {
+                esmName = args.GetArgString(1);
+            }
+            EntityState sest = null;
+            if (args.Count > 0)
+            {
+                sest = Addressables.LoadAssetAsync<EntityState>(args.GetArgString(0)).WaitForCompletion();
+            }
+            foreach (var esm in args.senderBody.GetComponents<EntityStateMachine>())
+            {
+                if (esm.customName == esmName)
+                {
+                    esm.SetState(sest);
+                    return;
+                }
+            }
+        }
+
+        [ConCommand(commandName = "setskilldef", flags = ConVarFlags.None, helpText = "setskilldef path [Slot|0]")]
+        public static void CCSetSkillDef(ConCommandArgs args)
+        {
+            SkillDef sest = null;
+            if (args.Count > 0)
+            {
+                sest = Addressables.LoadAssetAsync<SkillDef>(args.GetArgString(0)).WaitForCompletion();
+            }
+            int slot = 0;
+            if (args.Count > 1)
+            {
+                slot = args.GetArgInt(1);
+            }
+            var skillLoc = args.senderBody.GetComponent<SkillLocator>();
+            GenericSkill gs = null;
+            if (skillLoc)
+            {
+                switch (slot)
+                {
+                    case 0:
+                        gs = skillLoc.primary;
+                        break;
+                    case 1:
+                        gs = skillLoc.secondary;
+                        break;
+                    case 2:
+                        gs = skillLoc.utility;
+                        break;
+                    case 3:
+                        gs = skillLoc.special;
+                        break;
+                }
+            }
+            gs.SetBaseSkill(sest);
+        }
+
+        [ConCommand(commandName = "setskill", flags = ConVarFlags.None, helpText = "setskill path [Slot|0]")]
+        public static void CCSetSkill(ConCommandArgs args)
+        {
+            SerializableEntityStateType sest = Addressables.LoadAssetAsync<SerializableEntityStateType>(args.GetArgString(0)).WaitForCompletion();;
+            int slot = 0;
+            if (args.Count > 1)
+            {
+                slot = args.GetArgInt(1);
+            }
+            var skillLoc = args.senderBody.GetComponent<SkillLocator>();
+            GenericSkill gs = null;
+            if (skillLoc)
+            {
+                switch (slot)
+                {
+                    case 0:
+                        gs = skillLoc.primary;
+                        break;
+                    case 1:
+                        gs = skillLoc.secondary;
+                        break;
+                    case 2:
+                        gs = skillLoc.utility;
+                        break;
+                    case 3:
+                        gs = skillLoc.special;
+                        break;
+                }
+            }
+            gs.skillDef.activationState = sest;
+        }
+
         public class SpawnObjController : MonoBehaviour
         {
             public Transform field_transform;
@@ -204,6 +399,33 @@ namespace VoidRaidCrabRestoration
             {
                 instance = this;
             }
+        }
+        
+        [ConCommand(commandName = "list_buffs", flags = ConVarFlags.None, helpText = "list_buffs")]
+        public static void CCListBuffs(ConCommandArgs args)
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (var buffDef in BuffCatalog.buffDefs)
+            {
+                sb.AppendLine($"{buffDef.buffIndex} {buffDef.name} {buffDef.isDebuff}");
+            }
+            Debug.Log(sb.ToString());
+        }
+
+        [ConCommand(commandName = "give_buff", flags = ConVarFlags.None, helpText = "give_buff buffIndex duration stacks")]
+        public static void CCGiveBuff(ConCommandArgs args)
+        {
+            var buffDef = BuffCatalog.GetBuffDef((BuffIndex)args.GetArgInt(0));
+            var duration = args.GetArgInt(1);
+            var maxStacks = args.GetArgInt(2);
+            args.senderBody.AddTimedBuff(buffDef, duration);
+        }
+
+        [ConCommand(commandName = "clear_buff", flags = ConVarFlags.None, helpText = "clear_buff buffIndex")]
+        public static void CCClearBuff(ConCommandArgs args)
+        {
+            var buffDef = BuffCatalog.GetBuffDef((BuffIndex)args.GetArgInt(0));
+            args.senderBody.ClearTimedBuffs(buffDef);
         }
 
 
@@ -316,8 +538,11 @@ namespace VoidRaidCrabRestoration
                 goJoint.GetComponent<MinionOwnership>().SetOwner(charMaster);
                 var jointMaster = goJoint.GetComponent<CharacterMaster>();
                 var jointBody = jointMaster.GetBody();
-                jointBody.gameObject.transform.parent = originTransform;
-                jointBody.gameObject.transform.localPosition = Vector3.zero;
+                jointBody.transform.parent = originTransform;
+                jointBody.transform.localPosition = Vector3.zero;
+
+                jointMaster.transform.parent = originTransform;
+                jointMaster.transform.localPosition = Vector3.zero;
 
                 var jointChildLocator = jointBody.GetComponent<ChildLocator>();
                 jointBody.GetComponent<ChildLocatorMirrorController>().targetLocator = jointChildLocator;
@@ -336,13 +561,16 @@ namespace VoidRaidCrabRestoration
             var foundBossGroups = UnityEngine.Object.FindObjectsOfType<BossGroup>();
             foreach (var bossGroup in foundBossGroups)
             {
-                if (bossGroup.transform.name == "RestoredBossGroup")
+                if (bossGroup.transform.name == "RestoredBossGroup"
+                || bossGroup.bossMemoryCount > 0)
                 {
-                    bossGroup.AddBossMemory(charMaster);
-                    //var firstMemory = bossGroup.bossMemories[0];
-                    //bossGroup.bossMemories = new BossGroup.BossMemory[] { };
-                    //bossGroup.RememberBoss(charMaster);
                     //bossGroup.AddBossMemory(charMaster);
+                    var firstMemory = bossGroup.bossMemories[0];
+                    firstMemory.cachedMaster.gameObject.SetActive(false);
+                    firstMemory.cachedBody.gameObject.SetActive(false);
+                    bossGroup.bossMemories = new BossGroup.BossMemory[] { };
+                    bossGroup.RememberBoss(charMaster);
+                    bossGroup.AddBossMemory(charMaster);
                 }
             }
         }
