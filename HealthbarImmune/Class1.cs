@@ -1,6 +1,4 @@
 ﻿using BepInEx;
-using R2API;
-using R2API.Utils;
 using RoR2;
 using System.Security;
 using System.Security.Permissions;
@@ -13,10 +11,7 @@ using UnityEngine;
 
 namespace HealthbarImmune
 {
-    [BepInPlugin("com.DestroyedClone.HealthbarImmune", "Healthbar Immune", "1.0.0")]
-    [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
-    [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
-    [R2APISubmoduleDependency(nameof(LanguageAPI))]
+    [BepInPlugin("com.DestroyedClone.HealthbarImmune", "Healthbar Immune", "1.0.1")]
     public class HealthbarImmunePlugin : BaseUnityPlugin
     {
         public static Color ImmuneColor = Color.yellow;
@@ -45,17 +40,16 @@ namespace HealthbarImmune
             if (!slash) return;
             var component = slash.GetComponent<RoR2.UI.HGTextMeshProUGUI>();
             if (!component) return;
-
             // the self.source check can be skipped because the original method returns if source is missing. probably
             if (component.text == currentLanguageToken)
             {
-                if ((bool)self._source?.godMode
-                        || (bool)self._source?.body?.HasBuff(RoR2Content.Buffs.HiddenInvincibility)
-                        || (bool)self._source?.body?.HasBuff(RoR2Content.Buffs.Immune))
+                if ((bool)self.source?.godMode
+                        || (bool)self.source?.body?.HasBuff(RoR2Content.Buffs.HiddenInvincibility)
+                        || (bool)self.source?.body?.HasBuff(RoR2Content.Buffs.Immune))
                 {
                     if (self.currentHealthText) self.currentHealthText.text = "";
                     if (self.fullHealthText) self.fullHealthText.text = "";
-                    self.barInfoCollection.healthBarInfo.color = ImmuneColor;
+                    self.barInfoCollection.trailingOverHealthbarInfo.color = ImmuneColor;
                     return;
                 }
                 else //If you're no longer godmode and you still have immune text
@@ -91,7 +85,7 @@ namespace HealthbarImmune
             }
             if (changeColor)
             {
-                self.barInfoCollection.healthBarInfo.color = ImmuneColor;
+                self.barInfoCollection.trailingOverHealthbarInfo.color = ImmuneColor;
                 self.transform.Find("Slash").GetComponent<RoR2.UI.HGTextMeshProUGUI>().text = currentLanguageToken;
                 if (self.currentHealthText) self.currentHealthText.text = "";
                 if (self.fullHealthText) self.fullHealthText.text = "";

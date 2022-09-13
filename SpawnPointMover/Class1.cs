@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace SpawnPointMover
 {
-    [BepInPlugin("com.DestroyedClone.SpawnPointMover", "SpawnPointMover", "1.0.0")]
+    [BepInPlugin("com.DestroyedClone.SpawnPointMover", "SpawnPointMover", "1.0.1")]
     public class Main : BaseUnityPlugin
     {
         public static Vector3 newPosition;

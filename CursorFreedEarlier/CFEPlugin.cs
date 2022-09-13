@@ -17,6 +17,7 @@ namespace CursorFreedEarlier
     public class CFEPlugin : BaseUnityPlugin
     {
         public static bool hasClosedStartingCursor = false;
+        public static bool hasAddedOne = false;
 
         public void Awake()
         {
@@ -67,9 +68,11 @@ namespace CursorFreedEarlier
                     hasClosedStartingCursor = false;
                     //Debug.Log("Cursor Opened");
                     pes.cursorOpenerCount += 1;
+                    hasAddedOne = true;
                     break;
 
                 case "title":
+                    if (!hasAddedOne) break;
                     hasClosedStartingCursor = true;
                     //Debug.Log("Cursor Closed");
                     pes.cursorOpenerCount -= 1;
