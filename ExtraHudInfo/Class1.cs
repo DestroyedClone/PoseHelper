@@ -134,9 +134,16 @@ namespace ExtraHudInfo
                 if (userProfile == null) userProfile = localUser.userProfile;
                 if (!characterMaster)
                 {
-                    characterMaster = localUser.cachedMaster;
+                    characterMaster = hud.targetMaster;
                     if (characterMaster)
+                    {
+                        //master -> player character master -> network user
                         lastMoneyAmount = characterMaster.money;
+                        if (characterMaster.playerCharacterMasterController)
+                        {
+                            
+                        }
+                    }
                     lastCoinAmount = userProfile.coins;
                 }
                 if (!moneyRoot || !coinRoot)
