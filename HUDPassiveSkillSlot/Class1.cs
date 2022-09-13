@@ -57,6 +57,8 @@ namespace HUDPassiveSkillSlot
                 passiveSkillIcon.name = "PassiveSkillRoot";
                 var oldSkillIcon = passiveSkillIcon.GetComponent<SkillIcon>();
 
+                //This whole section is just to copy an existing UI element, delete whatever's
+                //unnecessary, and then adjust what we want.
                 //var iconDistance = Vector3.Distance(self.skillIcons[0].transform.position, self.skillIcons[1].transform.position);
                 var iconDistance = 64.08698f;
                 passiveSkillIcon.transform.position += new Vector3(+564, +151, +49);
