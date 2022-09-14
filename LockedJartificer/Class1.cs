@@ -18,19 +18,19 @@ namespace LockedJartificer
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
     public class Class1 : BaseUnityPlugin
     {
-        public static GameObject displayPrefab = Resources.Load<GameObject>("prefabs/networkedobjects/LockedMage");
+        public static GameObject displayPrefab;
         public static GameObject mageDisplayPrefab;
-        public static GameObject wispJarDisplay = Resources.Load<GameObject>("prefabs/pickupmodels/PickupWilloWisp");
-        public static GameObject glassArtifact = Resources.Load<GameObject>("prefabs/pickupmodels/artifacts/PickupGlass");
+        public static GameObject wispJarDisplay;
+        public static GameObject glassArtifact;
         public static ConfigEntry<bool> DisableUnlockableFilter { get; set; }
         public static ConfigEntry<bool> ModifyDisplay { get; set; }
 
-        public void Awake()
+        public void Start()
         {
-            DisableUnlockableFilter = Config.Bind("Default", "Disable Unlockable Filter", true, "Disables the unlockable filter of the lockedmage so that she shows up even if you have her unlocked.");
-            ModifyDisplay = Config.Bind("", "Modify Character Select", true, "If true, the character select for Artificer will be modified.");
+            displayPrefab = LegacyResourcesAPI.Load<GameObject>("prefabs/networkedobjects/LockedMage");
+            wispJarDisplay = LegacyResourcesAPI.Load<GameObject>("prefabs/pickupmodels/PickupWilloWisp");
+            glassArtifact = LegacyResourcesAPI.Load<GameObject>("prefabs/pickupmodels/artifacts/PickupGlass");
             ModifyPrefab();
-
 
             if (ModifyDisplay.Value)
             {
@@ -43,6 +43,12 @@ namespace LockedJartificer
                 //mageThing.transform.Find("ModelBase/mdlMage").localScale = Vector3.zero;
                 RoR2Content.Survivors.Mage.displayPrefab = mageThing;
             }
+        }
+
+        public void Awake()
+        {
+            DisableUnlockableFilter = Config.Bind("Default", "Disable Unlockable Filter", true, "Disables the unlockable filter of the lockedmage so that she shows up even if you have her unlocked.");
+            ModifyDisplay = Config.Bind("", "Modify Character Select", true, "If true, the character select for Artificer will be modified.");
         }
 
 

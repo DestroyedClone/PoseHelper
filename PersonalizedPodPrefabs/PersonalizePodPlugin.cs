@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Security;
 using System.Security.Permissions;
 using UnityEngine;
+using BepInEx.Configuration;
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -44,9 +45,14 @@ namespace PersonalizedPodPrefabs
 
         // enfucker
 
+        public static bool addEffects = false;
+
         public void Start()
         {
             instance = this;
+
+            addEffects = Config.Bind("", "Add Function Effects", false, "If true, then pods will have novelty effects added.").Value;
+
             _logger = Logger;
             genericPodPrefab = RoR2Content.Survivors.Commando.bodyPrefab.GetComponent<CharacterBody>().preferredPodPrefab;
             roboCratePodPrefab = RoR2Content.Survivors.Toolbot.bodyPrefab.GetComponent<CharacterBody>().preferredPodPrefab;
@@ -61,7 +67,9 @@ namespace PersonalizedPodPrefabs
             batteryQuestPrefab = PrefabAPI.InstantiateClone(battery, "QuestVolatileBatteryWorldPickupPPP", true);
             //Destroy(batteryQuestPrefab.GetComponent<AwakeEvent>());
             //Destroy(batteryQuestPrefab.GetComponent<NetworkParent>());
-            batteryQuestPrefab.GetComponent<GenericPickupController>().enabled = true;            batteryQuestPrefab.AddComponent<MakeAvailable>().genericPickupController = batteryQuestPrefab.GetComponent<GenericPickupController>();        }
+            batteryQuestPrefab.GetComponent<GenericPickupController>().enabled = true;
+            batteryQuestPrefab.AddComponent<MakeAvailable>().genericPickupController = batteryQuestPrefab.GetComponent<GenericPickupController>();
+        }
 
         private class MakeAvailable : MonoBehaviour
         {

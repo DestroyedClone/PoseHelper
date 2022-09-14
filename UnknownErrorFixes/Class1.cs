@@ -1,5 +1,7 @@
 ﻿using BepInEx;
 using System.Security.Permissions;
+using MonoMod;
+using MonoMod.Cil;
 
 #pragma warning disable CS0618 // Type or member is obsolete
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
@@ -7,13 +9,19 @@ using System.Security.Permissions;
 
 namespace UnknownErrorFixes
 {
-    [BepInPlugin("com.DestroyedClone.UnknownErrorFixes", "UnknownErrorFixes", "1.0.1")]
+    [BepInPlugin("com.DestroyedClone.UnknownErrorFixes", "UnknownErrorFixes", "1.0.11")]
     public class Main : BaseUnityPlugin
     {
         public void Start()
         {
             On.RoR2.Projectile.ProjectileSteerTowardTarget.FixedUpdate += ProjectileSteerTowardTarget_FixedUpdate;
             On.RoR2.AntiGravityForce.FixedUpdate += AntiGravityForce_FixedUpdate;
+            IL.DynamicBone.ApplyParticlesToTransforms += DynamicBone_ApplyParticlesToTransforms;
+        }
+
+        private void DynamicBone_ApplyParticlesToTransforms(MonoMod.Cil.ILContext il)
+        {
+            ILCursor c = new ILCursor(il);
         }
 
         private void AntiGravityForce_FixedUpdate(On.RoR2.AntiGravityForce.orig_FixedUpdate orig, RoR2.AntiGravityForce self)

@@ -36,10 +36,14 @@ Also included is an experimental localization for configs for Spanish, Japanese,
 
 ## Changelog
 
-* 1.1.0 - Fixes + Config
+* 1.0.2 - Updated for R2API and SOTV
+	* ➕Added two new config settings: Can Crit (true), and Shocks (false).
+	* 🛠Switched to ContentPack loading.
+	* ✖Removed experimental localized config, might look into making a library once I figure it out to be cleaner in code.
+* 1.0.1 - Fixes + Config
 	* 🛠 Fixed TILER2 error by adding a default language to the configuration setup method.
 	* 🔧Config options added for: Hitstun immunity, Stun immunity, knockback immunity, and collision toggle.
-	* Added localization for new configs
+	* ➕Added localization for new configs
 	* ⚔️Adjusted Level Damage default to be 20% of Base Damage, scaling like other monsters.
 * 1.0.0 - Release
 

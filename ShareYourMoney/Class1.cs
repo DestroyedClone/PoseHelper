@@ -1,6 +1,7 @@
 ﻿using BepInEx;
 using R2API;
 using R2API.Utils;
+using R2API.Networking;
 using RoR2;
 using System.Collections.Generic;
 using System.Reflection;
@@ -8,6 +9,10 @@ using System.Security.Permissions;
 using UnityEngine;
 using UnityEngine.Networking;
 using static ShareYourMoney.DoshContent;
+using R2API.Networking.Interfaces;
+using RoR2;
+using UnityEngine;
+using UnityEngine.Networking;
 
 #pragma warning disable CS0618 // Type or member is obsolete
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
@@ -15,9 +20,9 @@ using static ShareYourMoney.DoshContent;
 
 namespace ShareYourMoney
 {
-    [BepInPlugin("com.DestroyedClone.DoshDrop", "Dosh Drop", "1.0.3")]
+    [BepInPlugin("com.DestroyedClone.DoshDrop", "Dosh Drop", "1.0.4")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
-    [R2APISubmoduleDependency(nameof(PrefabAPI), nameof(LanguageAPI))]
+    [R2APISubmoduleDependency(nameof(PrefabAPI), nameof(LanguageAPI), nameof(NetworkingAPI))]
     [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.EveryoneNeedSameModVersion)]
     public class Main : BaseUnityPlugin
     {
@@ -40,6 +45,8 @@ namespace ShareYourMoney
             _logger = Logger;
             DoshContent.LoadResources();
             DoshContent.CreateObjects();
+            DoshContent.CreateBuffs();
+            NetworkingAPI.RegisterMessageType<Networking.DoshDropMessageToServer>();
 
             keyToDrop = Config.Bind("", "Keybind", KeyCode.B, "Button to press to drop money").Value;
             percentToDrop = Config.Bind("", "Amount to Drop (Server-Side)", 0.5f, "Drop money equivalent to this percentage of the cost of a small chest.").Value;
@@ -49,14 +56,14 @@ namespace ShareYourMoney
             refundOnStageEnd = Config.Bind("", "Refund Drops On Stage End", true, "If true, then money will get refunded to owners upon ending the stage.").Value;
             england = Config.Bind("", "English (England)", true, "Renames the English translation for Money to a more regionally appropriate term.").Value;
 
-            On.RoR2.CharacterBody.Update += CharacterBody_Update;
+            On.RoR2.CharacterBody.Update += CheckInputs;
             if (performanceMode)
             {
-                On.RoR2.CharacterBody.FixedUpdate += CharacterBody_FixedUpdate_PerformanceMode;
+               // On.RoR2.CharacterBody.FixedUpdate += CharacterBody_FixedUpdate_PerformanceMode;
             }
             else
             {
-                On.RoR2.CharacterBody.FixedUpdate += CharacterBody_FixedUpdate;
+                //On.RoR2.CharacterBody.FixedUpdate += CharacterBody_FixedUpdate;
             }
             SetupLanguage();
 
@@ -157,12 +164,13 @@ namespace ShareYourMoney
             }
         }
 
-        private void CharacterBody_Update(On.RoR2.CharacterBody.orig_Update orig, CharacterBody self)
+        private void CheckInputs(On.RoR2.CharacterBody.orig_Update orig, CharacterBody self)
         {
             orig(self);
-            if (self.hasAuthority && self.isPlayerControlled && self.master
+
+            if (self.isPlayerControlled && self.isPlayerControlled && self.master
                 && !LocalUserManager.readOnlyLocalUsersList[0].isUIFocused
-                && Input.GetKeyDown(keyToDrop))
+                && Input.GetKeyDown(keyToDrop) && self.hasEffectiveAuthority)
             {
                 if (NetworkServer.active)
                 {
@@ -171,7 +179,8 @@ namespace ShareYourMoney
                 }
                 else
                 {
-                    self.AddTimedBuffAuthority(DoshContent.pendingDoshBuff.buffIndex, 1000000f);
+                    RoR2.Console.instance.SubmitCmd(NetworkUser.readOnlyLocalPlayersList[0], "doshdrop 0", true);
+                    //new Networking.DoshDropMessageToServer(self.gameObject.GetComponent<NetworkIdentity>().netId, 0).Send(NetworkDestination.Server);
                 }
             }
         }
@@ -185,10 +194,11 @@ namespace ShareYourMoney
                 int doshCount = self.GetBuffCount(DoshContent.pendingDoshBuff);
                 if (doshCount > 0)
                 {
+                    Chat.SendBroadcastChat(new Chat.SimpleChatMessage() { baseToken = $"{self.GetDisplayName()} dosh count: {doshCount}" });
                     self.ClearTimedBuffs(DoshContent.pendingDoshBuff);
                     if (self.master)
                     {
-                        ReleaseMoney(self.master, doshCount);
+                        //ReleaseMoney(self.master, doshCount);
                     }
                 }
             }
@@ -196,19 +206,20 @@ namespace ShareYourMoney
 
         // needs to be able to be sent by clients so they can drop custom money amounts
         // dunno if this just does that tho
-        /*[ConCommand(commandName = "dropmoney", flags = ConVarFlags.ExecuteOnServer, helpText = "dropmoney {amount}.")]
+        [ConCommand(commandName = "doshdrop", flags = ConVarFlags.ExecuteOnServer, helpText = "doshdrop {positive amount}.")]
         private static void CMDDropMoney(ConCommandArgs args)
         {
-            var amountOverride = args.Count > 0 ? args.GetArgInt(0) : -1;
-
-            ReleaseMoney(args.senderMaster.playerCharacterMasterController, amountOverride);
-        }*/
+            ReleaseMoney(args.senderMaster, (uint)Mathf.Abs(args.GetArgInt(0)));
+        }
 
         // Server Method
-        public static void ReleaseMoney(CharacterMaster master, int doshesDropped = 1)
+        public static void ReleaseMoney(CharacterMaster master, uint goldReward = 0)
         {
             if (!NetworkServer.active) return;
-            uint goldReward = (uint)Mathf.CeilToInt(Run.instance.GetDifficultyScaledCost(baseChestCost) * percentToDrop * doshesDropped);
+            if (goldReward == 0)
+            {
+                goldReward = (uint)Mathf.CeilToInt(Run.instance.GetDifficultyScaledCost(baseChestCost) * percentToDrop * 1);
+            }
             if (master && master.GetBody())
             {
                 // 15 - 25 = -10, so resulting money is 10 to drop

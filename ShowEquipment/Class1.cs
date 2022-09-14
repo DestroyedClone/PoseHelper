@@ -135,10 +135,12 @@ namespace ShowEquipment
                 var component = display.gameObject.AddComponent<AllyCardEquipment>();
                 component.image = display.GetComponent<Image>();
                 component.allyCardController = self;
-                /*
+                
                 component.tooltipProvider = display.gameObject.AddComponent<TooltipProvider>();
                 component.tooltipProvider.titleColor = new Color32(255, 128, 0, 255);
-                component.tooltipProvider.bodyColor = new Color32(127, 127, 127, 255);*/
+                component.tooltipProvider.bodyColor = new Color32(127, 127, 127, 255);
+
+                var gcr = component.gameObject.AddComponent<GraphicRaycaster>();
             }
         }
 

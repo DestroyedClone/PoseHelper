@@ -22,6 +22,8 @@ namespace MonsterTeamSwap
         public static ConfigEntry<string> cfgPlayer;
         public static ConfigEntry<string> cfgMonster;
         public static ConfigEntry<string> cfgLunar;
+        public static ConfigEntry<string> cfgVoid;
+
         //public static ConfigEntry<string> cfgOutput;
 
         public static Dictionary<BodyIndex, TeamIndex> bodyIndex_to_teamIndex = new Dictionary<BodyIndex, TeamIndex>();
@@ -39,12 +41,14 @@ namespace MonsterTeamSwap
 
         public void SetupConfig()
         {
+            string catName = "Team Index Overrides";
             string description = "Add the names of Bodies you want to force switch the teams of.";
-            cfgNone = Config.Bind("Team Index Overrides", "None", "", description + " This is the name of a Team Index, not an exclusion list.");
-            cfgNeutral = Config.Bind("Team Index Overrides", "Neutral", "", description);
-            cfgPlayer = Config.Bind("Team Index Overrides", "Player", "", description + " Careful, without friendly fire you won't be able to damage them.");
-            cfgMonster = Config.Bind("Team Index Overrides", "Monster", "", description);
-            cfgLunar = Config.Bind("Team Index Overrides", "Lunar", "ImpBody,ImpBossBody", description);
+            cfgNone = Config.Bind(catName, "None", "", description + " This is the name of a Team Index, not an exclusion list.");
+            cfgNeutral = Config.Bind(catName, "Neutral", "ImpBody,ImpBossBody", description);
+            cfgPlayer = Config.Bind(catName, "Player", "", description + " Careful, without friendly fire you won't be able to damage them.");
+            cfgMonster = Config.Bind(catName, "Monster", "", description);
+            cfgLunar = Config.Bind(catName, "Lunar", "LunarGolemBody,LunarWispBody,LunarExploderBody", description);
+            cfgVoid = Config.Bind(catName, "Void", "NullifierBody,VoidJailerBody,VoidDevastatorBody,VoidBarnacleBody", description);
         }
 
         private GameObject OverrideTeamSpawn(On.RoR2.DirectorCore.orig_TrySpawnObject orig, DirectorCore self, DirectorSpawnRequest directorSpawnRequest)

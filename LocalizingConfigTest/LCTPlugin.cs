@@ -1,17 +1,17 @@
 ﻿using BepInEx;
 using RoR2;
-using Zio;
-using Zio.FileSystems;
 using System.Collections.Generic;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using R2API;
+using R2API.Utils;
 
 namespace LocalizingConfigTest
 {
     [BepInPlugin("com.DestroyedClone.LocalizeConfig", "Localize Config", "1.0.0")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
+    [R2APISubmoduleDependency(nameof(LanguageAPI))]
     public class LCTPlugin : BaseUnityPlugin
     {
         public static string cfgCurrentLanguage;
@@ -21,7 +21,6 @@ namespace LocalizingConfigTest
         public static string cfgCurrentLang;
 
         public static PluginInfo pluginInfo;
-        public static FileSystem fileSystem { get; private set; }
 
         internal static BepInEx.Logging.ManualLogSource _logger;
 
@@ -30,7 +29,6 @@ namespace LocalizingConfigTest
             _logger = Logger;
             pluginInfo = Info;
 
-            FunnyLanguage();
             On.RoR2.UI.MainMenu.MainMenuController.Start += MainMenuController_Start;
             Language.onCurrentLanguageChanged += Language_onCurrentLanguageChanged;
         }
@@ -78,19 +76,6 @@ namespace LocalizingConfigTest
                 }
             }
             //cfgCurrentLanguage = Config.Bind(GetToken("CFG_CategoryLanguage"), GetToken("CFG_LanguageString", Language.currentLanguageName), "").Value;
-        }
-
-        private void FunnyLanguage()
-        {
-            PhysicalFileSystem physicalFileSystem = new PhysicalFileSystem();
-            fileSystem = new SubFileSystem(physicalFileSystem, physicalFileSystem.ConvertPathFromInternal(assemblyDir), true);
-            if (fileSystem.DirectoryExists("/Language/")) //Uh, it exists and we make sure to not shit up R2Api
-            {
-                Language.collectLanguageRootFolders += delegate (List<DirectoryEntry> list)
-                {
-                    list.Add(fileSystem.GetDirectoryEntry("/Language/"));
-                };
-            }
         }
 
         internal static string assemblyDir

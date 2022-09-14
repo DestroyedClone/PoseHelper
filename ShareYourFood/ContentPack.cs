@@ -1,4 +1,4 @@
-﻿using R2API;
+using R2API;
 using RoR2;
 using RoR2.ContentManagement;
 using System.Collections;
@@ -6,20 +6,17 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Networking;
-using UnityEngine.AddressableAssets;
+using static ShareYourFood.Main;
 
-namespace ShareYourMoney
+namespace ShareYourFood
 {
-    public class DoshContent : IContentPackProvider
+    public class SharedFoodContent : IContentPackProvider
     {
         internal static ContentPack contentPack = new ContentPack();
 
-        public static GameObject ShareMoneyPack;
+        public static GameObject fruitPickup;
 
-        public static AssetBundle MainAssets;
-        public static GameObject moneyAsset;
-
-        public static BuffDef pendingDoshBuff;    //Client adds the buff. If server detects buff, it removes it and triggers the money drop.
+        public static BuffDef modifierKeyBuff;
 
         //public static UnlockableDef masteryUnlock;
 
@@ -28,20 +25,16 @@ namespace ShareYourMoney
         public static List<BuffDef> buffDefs = new List<BuffDef>();
         public static List<GameObject> networkedObjectPrefabs = new List<GameObject>();
 
-        public string identifier => "DoshDrop.content";
+        public string identifier => "ShareYourFood.content";
 
         public static void LoadResources()
         {
-            using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("ShareYourMoney.bigbluecash"))
-            {
-                MainAssets = AssetBundle.LoadFromStream(stream);
-            }
         }
 
         public IEnumerator LoadStaticContentAsync(LoadStaticContentAsyncArgs args)
         {
-            //CreateBuffs();
-            //CreateObjects();
+            CreateBuffs();
+            CreateObjects();
             contentPack.buffDefs.Add(buffDefs.ToArray());
             contentPack.networkedObjectPrefabs.Add(networkedObjectPrefabs.ToArray());
             yield break;
@@ -59,65 +52,68 @@ namespace ShareYourMoney
             yield break;
         }
 
-        private static void FixScriptableObjectName(BuffDef buff)
+        private void FixScriptableObjectName(BuffDef buff)
         {
             (buff as ScriptableObject).name = buff.name;
         }
 
-        public static void CreateObjects()
+        public void CreateObjects()
         {//prevent rolling somehow?
-            moneyAsset = DoshContent.MainAssets.LoadAsset<GameObject>("Assets/bigbluecash/BBC.prefab");
-            var ShareMoneyPack = PrefabAPI.InstantiateClone(Addressables.LoadAssetAsync<GameObject>("RoR2/Base/BonusGoldPackOnKill/BonusMoneyPack.prefab").WaitForCompletion(), "ShareMoneyPack", true);
-            var moneyPickup = ShareMoneyPack.transform.Find("PackTrigger").GetComponent<MoneyPickup>();
-            var modMoneyPickup = moneyPickup.gameObject.AddComponent<ModifiedMoneyPickup>();
-            modMoneyPickup.baseObject = moneyPickup.baseObject;
-            modMoneyPickup.pickupEffectPrefab = moneyPickup.pickupEffectPrefab;
-            modMoneyPickup.teamFilter = moneyPickup.teamFilter;
-            UnityEngine.Object.Destroy(moneyPickup);
-            UnityEngine.Object.Destroy(ShareMoneyPack.GetComponent<VelocityRandomOnStart>());
-            ShareMoneyPack.transform.Find("GravityTrigger").gameObject.SetActive(false);
+            fruitPickup = PrefabAPI.InstantiateClone(Resources.Load<GameObject>("Prefabs/NetworkedObjects/HealPack"), "FruitPack", true);
+            fruitPickup.transform.eulerAngles = Vector3.zero;
 
-            //var moneyCopy = Instantiate(moneyAsset);
-            ShareMoneyPack.GetComponentInChildren<MeshFilter>().sharedMesh = moneyAsset.GetComponentInChildren<MeshFilter>().sharedMesh;
-            var meshRenderer = ShareMoneyPack.GetComponentInChildren<MeshRenderer>();
-            //meshRenderer.material = moneyAsset.GetComponentInChildren<MeshRenderer>().material;
-            meshRenderer.SetMaterials(new List<Material>() { moneyAsset.GetComponentInChildren<MeshRenderer>().material });
-            meshRenderer.transform.localScale = Vector3.one * 9;
-            UnityEngine.Object.Destroy(ShareMoneyPack.transform.Find("Display/Mesh/Particle System").gameObject);
+            if (destroyOnTimerLength <= 0)
+            {
+                Object.Destroy(fruitPickup.GetComponent<DestroyOnTimer>());
+                Object.Destroy(fruitPickup.GetComponent<BeginRapidlyActivatingAndDeactivating>());
+            }
+            else
+            {
+                fruitPickup.GetComponent<DestroyOnTimer>().duration = destroyOnTimerLength;
+                fruitPickup.GetComponent<BeginRapidlyActivatingAndDeactivating>().delayBeforeBeginningBlinking = destroyOnTimerLength * 0.85f;
+            }
+            Object.Destroy(fruitPickup.GetComponent<VelocityRandomOnStart>());
+            Object.Destroy(fruitPickup.transform.Find("GravitationController").gameObject);
 
-            //var genericDisplay = ShareMoneyPack.AddComponent<GenericDisplayNameProvider>();
-            //genericDisplay.displayToken = "Dosh";
+            var healthPickup = fruitPickup.transform.Find("PickupTrigger").GetComponent<HealthPickup>();
+            var foodPickup = fruitPickup.transform.Find("PickupTrigger").gameObject.AddComponent<FoodPickup>();
+            foodPickup.baseObject = healthPickup.baseObject;
+            foodPickup.teamFilter = healthPickup.teamFilter;
+            Object.Destroy(healthPickup);
 
-            var purchaseInteraction = ShareMoneyPack.AddComponent<PurchaseInteraction>();
-            purchaseInteraction.contextToken = "Pickup dosh?"; //shouldnt be visible
-            purchaseInteraction.costType = CostTypeIndex.Money;
-            purchaseInteraction.displayNameToken = "DC_DOSH_PICKUP";
-            purchaseInteraction.setUnavailableOnTeleporterActivated = false;
-            purchaseInteraction.automaticallyScaleCostWithDifficulty = false;
-            purchaseInteraction.lockGameObject = null;
+            fruitPickup.GetComponent<Rigidbody>().freezeRotation = true;
 
-            purchaseInteraction.gameObject.AddComponent<MoneyPickupMarker>();
+            //fruitPickup.AddComponent<ConstantForce>();
 
-            var pingInfoProvider = ShareMoneyPack.AddComponent<PingInfoProvider>();
-            pingInfoProvider.pingIconOverride = UnityEngine.AddressableAssets.Addressables.LoadAssetAsync<Sprite>("textures/miscicons/texrulebonusstartingmoney").WaitForCompletion();
+            var fruitModel = Object.Instantiate(Resources.Load<GameObject>("prefabs/pickupmodels/PickupFruit"), fruitPickup.transform.Find("HealthOrbEffect"));
 
-            modMoneyPickup.purchaseInteraction = purchaseInteraction;
+            var jar = Resources.Load<GameObject>("prefabs/pickupmodels/PickupWilloWisp");
 
-            networkedObjectPrefabs.Add(ShareMoneyPack);
-            DoshContent.ShareMoneyPack = ShareMoneyPack;
+            var jarLid = Object.Instantiate(jar.transform.Find("mdlGlassJar/GlassJarLid"));
+            jarLid.parent = fruitModel.transform;
+            jarLid.localScale = new Vector3(1f, 1f, 0.3f);
+            jarLid.localPosition = new Vector3(0f, -0.9f, 0f);
+
+            var marble = Resources.Load<GameObject>("prefabs/pickupmodels/PickupMask");
+
+            jarLid.GetComponent<MeshRenderer>().material = marble.GetComponentInChildren<MeshRenderer>().material;
+
+            foodPickup.modelObject = fruitModel;
+
+            networkedObjectPrefabs.Add(fruitPickup);
         }
 
-        public static void CreateBuffs()
+        public void CreateBuffs()
         {
-            BuffDef PendingDoshBuff = ScriptableObject.CreateInstance<BuffDef>();
-            PendingDoshBuff.buffColor = new Color(1f, 215f / 255f, 0f);
-            PendingDoshBuff.canStack = true;
-            PendingDoshBuff.isDebuff = false;
-            PendingDoshBuff.name = "PendingDoshDrop";
-            PendingDoshBuff.iconSprite = Resources.Load<Sprite>("Textures/BuffIcons/texBuffCloakIcon");
-            FixScriptableObjectName(PendingDoshBuff);
-            DoshContent.buffDefs.Add(PendingDoshBuff);
-            DoshContent.pendingDoshBuff = PendingDoshBuff;
+            BuffDef ModifierKeyBuff = ScriptableObject.CreateInstance<BuffDef>();
+            ModifierKeyBuff.buffColor = new Color(1f, 215f / 255f, 0f);
+            ModifierKeyBuff.canStack = false;
+            ModifierKeyBuff.isDebuff = false;
+            ModifierKeyBuff.name = "Activate your Foreign Fruit to throw!";
+            ModifierKeyBuff.iconSprite = RoR2Content.Equipment.Fruit.pickupIconSprite;
+            FixScriptableObjectName(ModifierKeyBuff);
+            buffDefs.Add(ModifierKeyBuff);
+            modifierKeyBuff = ModifierKeyBuff;
         }
 
         public class MoneyPickupMarker : MonoBehaviour
