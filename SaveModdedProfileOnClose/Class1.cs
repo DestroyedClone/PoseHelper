@@ -51,7 +51,12 @@ namespace SaveModdedProfileOnClose
 
                     void ApplyChange(GenericSkill genericSkill)
                     {
-                        if (genericSkill && genericSkill.skillFamily)
+                        if (!genericSkill || genericSkill == null)
+                        {
+                            return;
+                        }
+
+                        if (genericSkill.skillFamily)
                         {
                             var skillFamily = genericSkill.skillFamily as ScriptableObject;
                             if (skillFamily.name.IsNullOrWhiteSpace())
@@ -62,16 +67,18 @@ namespace SaveModdedProfileOnClose
                                 _logger.LogMessage(skillFamily.name);
                                 index++;
                             }
-                        }
 
-                        foreach (var variant in genericSkill.skillFamily.variants)
-                        {
-                            var skillDef = variant.skillDef;
-                            if ((skillDef as ScriptableObject).name.IsNullOrWhiteSpace())
+                            foreach (var variant in genericSkill.skillFamily.variants)
                             {
-                                _logger.LogMessage($"SkillDef {skillDef.skillName} INDEX:{skillDef.skillIndex} has been updated to:");
-                                (skillDef as ScriptableObject).name = skillDef.skillName;
-                                _logger.LogMessage((skillDef as ScriptableObject).name);
+                                if (!variant || variant == null)
+                                    continue;
+                                var skillDef = variant.skillDef;
+                                if ((skillDef as ScriptableObject).name.IsNullOrWhiteSpace())
+                                {
+                                    _logger.LogMessage($"SkillDef {skillDef.skillName} INDEX:{skillDef.skillIndex} has been updated to:");
+                                    (skillDef as ScriptableObject).name = skillDef.skillName;
+                                    _logger.LogMessage((skillDef as ScriptableObject).name);
+                                }
                             }
                         }
                     }
