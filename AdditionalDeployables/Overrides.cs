@@ -20,23 +20,29 @@ namespace ProjectileLimiter
             On.RoR2.EquipmentSlot.FireGateway += EquipmentSlot_FireGateway;
             On.RoR2.EquipmentSlot.FireSaw += EquipmentSlot_FireSaw;
             On.RoR2.EquipmentSlot.FireBlackhole += EquipmentSlot_FireBlackhole;
+            On.RoR2.EquipmentSlot.FireMeteor += EquipmentSlot_FireMeteor;
         }
 
         #region Overrides
 
-        private static ProjectileDeployableTracker CanDeploy(EquipmentSlot equipmentSlot, PerPlayerDeployableType deployableType)
+        private static bool EquipmentSlot_FireMeteor(On.RoR2.EquipmentSlot.orig_FireMeteor orig, EquipmentSlot self)
+        {
+            if (CanDeploy(self, PerPlayerDeployableType.Meteorite))
+            {
+                self.subcooldownTimer = cfgMeteoriteCooldown;
+                return orig(self);
+            }
+            return false;
+        }
+
+        private static bool CanDeploy(EquipmentSlot equipmentSlot, PerPlayerDeployableType deployableType)
         {
             ProjectileDeployableTracker tracker = equipmentSlot.characterBody.GetComponent<ProjectileDeployableTracker>();
             if (!tracker)
             {
-                return null;
+                return false;
             }
-            switch (deployableType)
-            {
-                case PerPlayerDeployableType.Saw:
-                    return tracker.sawList.Count < cfgSawMax ? tracker : null;
-            }
-            return null;
+            return tracker.CheckSummonAvailability(deployableType);
         }
 
         private static bool EquipmentSlot_FireScanner(On.RoR2.EquipmentSlot.orig_FireScanner orig, EquipmentSlot self)
