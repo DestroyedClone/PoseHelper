@@ -25,6 +25,8 @@ namespace ExtinguishInWater
 {
     [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.EveryoneNeedSameModVersion)]
     [BepInPlugin(ModGuid, ModName, ModVer)]
+    [R2APISubmoduleDependency(nameof(CommandHelper))]
+    [BepInDependency(R2API.R2API.PluginGUID)]
     public class ExtinguishMain : BaseUnityPlugin
     {
         public const string ModVer = "1.0.0";
@@ -53,27 +55,27 @@ namespace ExtinguishInWater
             {
                 On.RoR2.GlobalEventManager.OnCharacterHitGround += ExtinguishInWaterJump;
                 On.RoR2.FootstepHandler.Footstep_string_GameObject += ExtinguishFootstep;
-                On.RoR2.DotController.InflictDot += ExtinguishInflict;
+                On.RoR2.DotController.InflictDot_refInflictDotInfo += ExtinguishInflict;
             }
         }
 
-        private void ExtinguishInflict(On.RoR2.DotController.orig_InflictDot orig, GameObject victimObject, GameObject attackerObject, DotController.DotIndex dotIndex, float duration, float damageMultiplier)
+        private void ExtinguishInflict(On.RoR2.DotController.orig_InflictDot_refInflictDotInfo orig, ref InflictDotInfo inflictDotInfo)
         {
-            if (victimObject)
-                if (CheckForWater(victimObject.transform.position))
+            if (inflictDotInfo.victimObject)
+                if (CheckForWater(inflictDotInfo.victimObject.transform.position))
                 {
-                    if (dotIndex == DotController.DotIndex.PercentBurn || dotIndex == DotController.DotIndex.Burn)
+                    if (inflictDotInfo.dotIndex == DotController.DotIndex.PercentBurn || inflictDotInfo.dotIndex == DotController.DotIndex.Burn)
                     {
                         //Chat.AddMessage("prevented underwater ignition");
-                        duration = 0f;
+                        inflictDotInfo.duration = 0f;
                     }
                 }
                 else
                 {
-                    var component = victimObject.AddComponent<Extinguisher>();
-                    component.characterBody = victimObject.GetComponent<CharacterBody>();
+                    var component = inflictDotInfo.victimObject.AddComponent<Extinguisher>();
+                    component.characterBody = inflictDotInfo.victimObject.GetComponent<CharacterBody>();
                 }
-            orig(victimObject, attackerObject, dotIndex, duration, damageMultiplier);
+            orig(ref inflictDotInfo);
         }
 
         private void ExtinguishFootstep(On.RoR2.FootstepHandler.orig_Footstep_string_GameObject orig, FootstepHandler self, string childName, GameObject footstepEffect)
@@ -123,7 +125,7 @@ namespace ExtinguishInWater
             helpText = "burn_self {stacks} {duration}")]
         public static void MyCommandName(ConCommandArgs args)
         {
-            DotController.DotIndex index = (DotController.DotIndex)Array.FindIndex(DotController.dotDefs, (dotDef) => dotDef.associatedBuff == BuffIndex.OnFire);
+            DotController.DotIndex index = (DotController.DotIndex)Array.FindIndex(DotController.dotDefs, (dotDef) => dotDef.associatedBuff == RoR2Content.Buffs.OnFire);
             for (int y = 0; y < args.GetArgInt(0); y++)
             {
                 DotController.InflictDot(args.senderBody.gameObject, args.senderBody.gameObject, index, args.GetArgInt(1), 0.25f);
