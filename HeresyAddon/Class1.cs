@@ -21,7 +21,7 @@ namespace HeresyAddon
     [BepInPlugin("com.DestroyedClone.HeresyAnims", "HeresyAnims", "1.0.0")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.DifferentModVersionsAreOk)]
-    public class Class1 : BaseUnityPlugin
+    public class HeresyAnimsPlugin : BaseUnityPlugin
     {
         public static ConfigEntry<bool> cfgNoWarnings;
         internal static BepInEx.Logging.ManualLogSource _logger;
@@ -69,7 +69,9 @@ namespace HeresyAddon
                 case "BANDIT2_BODY_NAME":
                     self.PlayAnimation("Gesture, Additive", "ThrowSmokebomb", "ThrowSmokebomb.playbackRate", EntityStates.Bandit2.ThrowSmokebomb.duration);
                     break;
-
+                case "VOIDSURVIVOR_BODY_NAME":
+                    self.PlayAnimation();
+                    break;
                 default:
                     break;
             }
