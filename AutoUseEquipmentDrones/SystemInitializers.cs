@@ -2,6 +2,8 @@
 using System;
 using static BetterEquipmentDroneUse.Main;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
 
 namespace BetterEquipmentDroneUse
 {
@@ -78,6 +80,19 @@ namespace BetterEquipmentDroneUse
 
                 [RoR2Content.Equipment.QuestVolatileBattery.equipmentIndex] = DroneMode.FuelArray,
             };
+
+            if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("com.Moffein.ClampMountainShrine"))
+            {
+
+            }
+        }
+
+
+
+        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+        public static void SetupModdedDictionary()
+        {
+            //DroneModeDictionary.Add(EquipmentIndex.None, DroneMode.None);
         }
 
         [RoR2.SystemInitializer(dependencies: new Type[] { typeof(RoR2.PickupCatalog), typeof(RoR2.ItemCatalog), typeof(RoR2.EquipmentCatalog) })]
