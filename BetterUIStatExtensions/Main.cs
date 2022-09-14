@@ -21,21 +21,22 @@ using static BetterUI.StatsDisplay;
 
 namespace AccuracyTest
 {
-    [BepInPlugin("com.DestroyedClone.AccuracyTest", "Accuracy Test", "1.0.0")]
+    [BepInPlugin("com.DestroyedClone.BetterUIExtension", "Extra BetterUI Stats", "1.0.0")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
     [BepInDependency("com.xoxfaby.BetterUI", BepInDependency.DependencyFlags.HardDependency)]
     [R2APISubmoduleDependency(nameof(EffectAPI), nameof(PrefabAPI), nameof(NetworkingAPI))]
     public class Main : BaseUnityPlugin
     {
-
+        // This mod adds additional stats to the BetterUI stat display
+        // Accuracy will always be imprecise.
         public void Start()
         {
             On.RoR2.GlobalEventManager.OnHitAll += GlobalEventManager_OnHitAll;
             On.RoR2.GlobalEventManager.OnHitEnemy += GlobalEventManager_OnHitEnemy;
             CharacterBody.onBodyStartGlobal += CharacterBody_onBodyStartGlobal;
             BetterUI.StatsDisplay.AddStatsDisplay("$accuracy", (BetterUI.StatsDisplay.DisplayCallback)GetAccuracy);
-            BetterUI.StatsDisplay.AddStatsDisplay("$accuracybind", (BetterUI.StatsDisplay.DisplayCallback)GetAccuracyBind);
+            //BetterUI.StatsDisplay.AddStatsDisplay("$accuracybind", (BetterUI.StatsDisplay.DisplayCallback)GetAccuracyBind);
         }
 
         private static string GetAccuracy(CharacterBody body)
