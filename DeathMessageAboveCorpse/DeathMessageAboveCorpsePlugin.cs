@@ -6,13 +6,13 @@ using R2API.Networking.Interfaces;
 using R2API.Utils;
 using RoR2;
 using RoR2.UI;
+using System.Collections.Generic;
+using System.Linq;
 using System.Security;
 using System.Security.Permissions;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
-using System.Collections.Generic;
-using static DeathMessageAboveCorpse.Quotes;
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -21,10 +21,10 @@ using static DeathMessageAboveCorpse.Quotes;
 
 namespace DeathMessageAboveCorpse
 {
-    [BepInPlugin("com.DestroyedClone.DeathMessageAboveCorpse", "Death Message Above Corpse", "1.0.1")]
+    [BepInPlugin("com.DestroyedClone.DeathMessageAboveCorpse", "Death Message Above Corpse", "1.0.3")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
-    [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
-    [R2APISubmoduleDependency(nameof(PrefabAPI), nameof(NetworkingAPI))]
+    [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.DifferentModVersionsAreOk)]
+    [R2APISubmoduleDependency(nameof(PrefabAPI), nameof(NetworkingAPI), nameof(LanguageAPI))]
     public class DeathMessageAboveCorpsePlugin : BaseUnityPlugin
     {
         public static string[] deathMessagesResolved = new string[] { };
@@ -34,14 +34,28 @@ namespace DeathMessageAboveCorpse
         public static ConfigEntry<bool> cfgOnlyLastLife;
         public static ConfigEntry<float> cfgDelayMultiplayer;
         public static ConfigEntry<bool> cfgShowQuoteOnScreenSingleplayer;
+        public static ConfigEntry<bool> cfgUseFirstGameFont;
         public static float fontSize = 10f;
+
+        private static string[] standardDeathQuoteTokens = (from i in Enumerable.Range(0, 38)
+                                                            select "CORPSEMESSAGE_" + TextSerialization.ToStringInvariant(i)).ToArray<string>();
+
+        private static string[] starstormDeathQuoteTokens = (from i in Enumerable.Range(0, 81)
+                                                             select "CORPSEMESSAGE_STARSTORM_" + TextSerialization.ToStringInvariant(i)).ToArray<string>();
 
         public static GameObject defaultTextObject;
         public static GameObject defaultTrackerObject;
 
+        public static PluginInfo pluginInfo;
+
         // Text displays larger for the client in the middle of the screen (https://youtu.be/vQRPpSx5WLA?t=1336)
         // 3 second delay after the corpse is on the ground before showing either client or server message
         //
+
+        public void Awake()
+        {
+            pluginInfo = Info;
+        }
 
         public void Start()
         {
@@ -99,14 +113,16 @@ namespace DeathMessageAboveCorpse
             cfgDelayMultiplayer = Config.Bind("Delay", "Duration", 3f, "Length of time in seconds before the message displays after the player has stopped moving.");
             cfgShowQuoteOnScreenSingleplayer = Config.Bind("Client", "Show Quote On Screen In Singleplayer", true, "If true, then the death quote will show on the game's end report panel in singleplayer." +
                 "\nAlso sets the delay to 0 seconds in singleplayer.");
+            cfgUseFirstGameFont = Config.Bind("Client", "Use Risk of Rain font", true, "If true, then the death message will use the RiskofRain font." +
+                "\nIf false, then it will still use the uppercase Bombardier font variant.");
             //cfgFinalSurvivorCorpseKept = Config.Bind("", "Keep Final Corpse Alive", true, "If true, keeps the player's final/last-life corpse from getting deleted until the message is finished.");
         }
 
         public void ReadConfig()
         {
             List<string> list = new List<string>(deathMessagesResolved);
-            list.AddRange(deathMessages);
-            if (cfgUseSSMessages.Value) list.AddRange(deathMessagesStarstorm);
+            list.AddRange(standardDeathQuoteTokens);
+            if (cfgUseSSMessages.Value) list.AddRange(starstormDeathQuoteTokens);
             deathMessagesResolved = list.ToArray();
         }
 
@@ -154,7 +170,20 @@ namespace DeathMessageAboveCorpse
 
             DeathMessageLocator deathMessageLocator = textPrefab.AddComponent<DeathMessageLocator>();
             deathMessageLocator.textMeshPro = textPrefab.transform.Find("TextMeshPro").gameObject.GetComponent<TextMeshPro>();
-            deathMessageLocator.textMeshPro.fontSize = fontSize;
+            var tmp = deathMessageLocator.textMeshPro;
+            if (cfgUseFirstGameFont.Value)
+            {
+                //Credit: https://github.com/ThinkInvis/RoR2-TTCG/
+                var tmpfont = LegacyResourcesAPI.Load<TMP_FontAsset>("tmpfonts/misc/tmpRiskOfRainFont Bold OutlineSDF");
+                var tmpmtl = LegacyResourcesAPI.Load<Material>("tmpfonts/misc/tmpRiskOfRainFont Bold OutlineSDF");
+                //var tmpfont = LegacyResourcesAPI.Load<TMPro.TMP_FontAsset>("RoR2/Base/Common/Fonts/Bombardier/tmpBombDropshadow");
+                //var tmpmtl = LegacyResourcesAPI.Load<Material>("RoR2/Base/Common/Fonts/Bombardier/tmpBombDropshadow3D");
+                tmp.font = tmpfont;
+                tmp.material = tmpmtl;
+                tmp.color = Color.white;
+                tmp.fontSize = fontSize - 1;
+            }
+            //deathMessageLocator.textMeshPro.font = LegacyResourcesAPI.Load<TMPro.TMP_FontAsset>("RoR2/Base/Common/Fonts/Bombardier/tmpBombDropshadow.asset");
             deathMessageLocator.languageTextMeshController = textPrefab.transform.Find("TextMeshPro").gameObject.GetComponent<LanguageTextMeshController>();
             deathMessageLocator.destroyOnTimer = textPrefab.GetComponent<DestroyOnTimer>();
             textPrefab.GetComponent<DestroyOnTimer>().duration = cfgDuration.Value > 0 ? cfgDuration.Value : 360000;
@@ -179,7 +208,7 @@ namespace DeathMessageAboveCorpse
 
             private readonly float lenience = 0.15f;
 
-            bool isSinglePlayer = false;
+            private bool isSinglePlayer = false;
 
             private void Start()
             {
@@ -220,7 +249,8 @@ namespace DeathMessageAboveCorpse
                     if (!isSinglePlayer)
                     {
                         new Networking.DeathQuoteMessageToServer(positionToSend).Send(NetworkDestination.Server);
-                    } else
+                    }
+                    else
                     {
                         PerformSingleplayerAction(positionToSend);
                     }
@@ -259,6 +289,9 @@ namespace DeathMessageAboveCorpse
                 }
                 var deathQuote = deathMessagesResolved[quoteIndex];
                 languageTextMeshController.token = deathQuote;
+                //_ = textMeshPro.renderer;
+                //textMeshPro.font = LegacyResourcesAPI.Load<TMPro.TMP_FontAsset>("RoR2/Base/Common/Fonts/Bombardier/tmpBombDropshadow.asset");
+                //languageTextMeshController.token = $"<font=\"Impact SDF\">{Language.GetString(deathQuote)}</font>";
 
                 if (IsSingleplayer() && cfgShowQuoteOnScreenSingleplayer.Value)
                     ShowMessageOnHud();
@@ -289,9 +322,9 @@ namespace DeathMessageAboveCorpse
                 var SteamBuildLabel = hudSimple.transform.Find("MainContainer/SteamBuildLabel");
                 RectTransform trans = (RectTransform)Instantiate(SteamBuildLabel);
                 trans.SetParent(SteamBuildLabel);
-                Object.Destroy(trans.GetComponent<SteamBuildIdLabel>());
+                UnityEngine.Object.Destroy(trans.GetComponent<SteamBuildIdLabel>());
                 var comp = trans.GetComponent<HGTextMeshProUGUI>();
-                comp.text = $"{languageTextMeshController.token}";
+                comp.text = Language.GetString(languageTextMeshController.token);
                 comp.color = new Color32(255, 255, 255, 255);
                 comp.fontSize = 1f;
                 comp.alignment = TextAlignmentOptions.Center;
