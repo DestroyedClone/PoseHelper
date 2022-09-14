@@ -27,6 +27,16 @@ namespace BossDamageTracker
         // Damage right now only tracks effective damage (health lost) not damage taken, so maybe add an option for that?
         //public static bool hookState = false;
 
+        ///Use this for rework.
+        internal class ServerListener : MonoBehaviour, IOnTakeDamageServerReceiver
+        {
+            public void OnTakeDamageServer(DamageReport damageReport)
+            {
+
+            }
+        }
+
+        ///
         public static List<BossGroup> activeBossGroups = new List<BossGroup>();
 
         // config
