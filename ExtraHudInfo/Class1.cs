@@ -1,18 +1,12 @@
-﻿using System;
-using BepInEx;
-using BepInEx.Configuration;
-using R2API;
-using R2API.Networking;
-using R2API.Networking.Interfaces;
-using R2API.Utils;
+﻿using BepInEx;
 using RoR2;
 using RoR2.UI;
+using System;
+using System.Collections.Generic;
 using System.Security;
 using System.Security.Permissions;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Networking;
-using System.Collections.Generic;
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -21,10 +15,7 @@ using System.Collections.Generic;
 
 namespace ExtraHudInfo
 {
-    [BepInPlugin("com.DestroyedClone.ExtraHudInfo", "Extra Hud Info", "1.0.0")]
-    [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
-    [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
-    [R2APISubmoduleDependency(nameof(EffectAPI), nameof(PrefabAPI), nameof(NetworkingAPI))]
+    [BepInPlugin("com.DestroyedClone.HudNumbahs", "Hud Numbahs", "1.0.0")]
     public class Main : BaseUnityPlugin
     {
         public void Start()
@@ -84,7 +75,6 @@ namespace ExtraHudInfo
 
             public CharacterMaster characterMaster;
 
-
             public static GameObject displayPrefab;
 
             public LocalUser localUser = null;
@@ -92,6 +82,7 @@ namespace ExtraHudInfo
 
             //money
             public uint lastMoneyAmount = 0;
+
             public RectTransform moneyRoot;
             public RectTransform valueText;
             public List<int> moneyChanges = new List<int>();
@@ -99,25 +90,30 @@ namespace ExtraHudInfo
 
             //lunar
             public uint lastCoinAmount = 0;
+
             public RectTransform coinRoot;
             public RectTransform valueTextLunar;
             public List<int> coinChanges = new List<int>();
 
             //health
             public HealthComponent healthComponent;
+
             public int lastHealth;
             public List<int> healthChanges = new List<int>();
 
             //shield
             public int lastShield;
+
             public List<int> shieldChanges = new List<int>();
 
             //barrier
             public int lastBarrier;
+
             public List<int> barrierChanges = new List<int>();
 
             //experience
             public CharacterBody characterBody;
+
             public int lastExperience = -1;
             public List<int> expChanges = new List<int>();
             public ExpBar expBar;
@@ -138,9 +134,16 @@ namespace ExtraHudInfo
                 if (userProfile == null) userProfile = localUser.userProfile;
                 if (!characterMaster)
                 {
-                    characterMaster = localUser.cachedMaster;
+                    characterMaster = hud.targetMaster;
                     if (characterMaster)
+                    {
+                        //master -> player character master -> network user
                         lastMoneyAmount = characterMaster.money;
+                        if (characterMaster.playerCharacterMasterController)
+                        {
+                            
+                        }
+                    }
                     lastCoinAmount = userProfile.coins;
                 }
                 if (!moneyRoot || !coinRoot)
@@ -152,7 +155,8 @@ namespace ExtraHudInfo
                         {
                             moneyRoot = (RectTransform)a.transform;
                             valueText = a.targetText.rectTransform;
-                        } else if (a.name == "LunarCoinRoot")
+                        }
+                        else if (a.name == "LunarCoinRoot")
                         {
                             coinRoot = (RectTransform)a.transform;
                             valueTextLunar = a.targetText.rectTransform;
@@ -183,13 +187,12 @@ namespace ExtraHudInfo
                     if (characterBody)
                     {
                         lastExperience = (int)characterBody.experience;
-                        //Application.targetFrameRate = 30;
-                        //QualitySettings.vSyncCount 
-                    } else if (TeamManager.instance)
+                    }
+                    /*if (TeamManager.instance)
                     {
                         var teamIndex = TeamIndex.Player;
                         lastExperience = (int)TeamManager.instance.GetTeamCurrentLevelExperience(teamIndex);
-                    }
+                    }*/
                 }
             }
 
@@ -213,7 +216,8 @@ namespace ExtraHudInfo
                         expChanges.Add(difference);
                         lastExperience = experience;
                     }
-                } else if (TeamManager.instance)
+                }
+                else if (TeamManager.instance)
                 {
                     var teamIndex = TeamIndex.Player;
                     var experience = (int)TeamManager.instance.GetTeamCurrentLevelExperience(teamIndex);
@@ -231,6 +235,7 @@ namespace ExtraHudInfo
             public void ShowExpChange()
             {
                 var value = expChanges[0];
+                //Chat.AddMessage("Exp Change: " + value);
 
                 var instance = UnityEngine.Object.Instantiate(valueTextLunar, (RectTransform)expBar.transform.parent);
                 //instance.position = expBar.transform.position;
@@ -259,7 +264,6 @@ namespace ExtraHudInfo
                     healthChanges.Add(healthDifference);
                     lastHealth = health;
                 }
-
 
                 //shield
                 var shield = (int)healthComponent.shield;
@@ -368,7 +372,6 @@ namespace ExtraHudInfo
                 ShowMoneyChange();
             }
 
-
             public void ShowCoinChange()
             {
                 var value = coinChanges[0];
@@ -398,7 +401,7 @@ namespace ExtraHudInfo
                 var tmp = instance.GetComponent<TextMeshProUGUI>();
                 var isPos = Math.Sign(value) > 0;
                 tmp.color = isPos ? new Color(152f / 255, 156f / 255, 50f / 255) : new Color(148f / 255, 65f / 255, 37f / 255);
-                tmp.text = ( isPos ? "+" : "" )+ value.ToString();
+                tmp.text = (isPos ? "+" : "") + value.ToString();
                 var dot = instance.gameObject.AddComponent<FadeOutDestroy>();
                 dot.duration = 1f;
                 dot.textMeshProUGUI = tmp;
@@ -406,7 +409,6 @@ namespace ExtraHudInfo
 
                 moneyChanges.RemoveAt(0);
             }
-
         }
     }
 }
