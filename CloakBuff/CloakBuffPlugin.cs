@@ -77,6 +77,7 @@ namespace CloakBuff
         public static ConfigEntry<bool> EngiChargeMine { get; set; }
         public static ConfigEntry<bool> EngiSpiderMine { get; set; }
         public static ConfigEntry<bool> EngiSpiderMineCanExplodeOnImpaled { get; set; }
+        public static ConfigEntry<bool> RailgunnerPrimary {get; set;}
         public static ConfigEntry<bool> EnemyAIChange { get; set; }
 
         public GameObject DoppelgangerEffect = Resources.Load<GameObject>("prefabs/temporaryvisualeffects/DoppelgangerEffect");

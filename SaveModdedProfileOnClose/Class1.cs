@@ -35,7 +35,7 @@ namespace SaveModdedProfileOnClose
             orig(src, dest);
             foreach (var survivorDef in src.survivorDefs)
             {
-                if (survivorDef.bodyPrefab && survivorDef.bodyPrefab.GetComponent<SkillLocator>())
+                if (survivorDef && survivorDef.bodyPrefab && survivorDef.bodyPrefab.GetComponent<SkillLocator>())
                 {
                     var skillLoc = survivorDef.bodyPrefab.GetComponent<SkillLocator>();
 
@@ -76,10 +76,10 @@ namespace SaveModdedProfileOnClose
                         }
                     }
 
-                    ApplyChange(skillLoc.primary);
-                    ApplyChange(skillLoc.secondary);
-                    ApplyChange(skillLoc.utility);
-                    ApplyChange(skillLoc.special);
+                    foreach (var genericSkill in survivorDef.bodyPrefab.GetComponents<GenericSkill>())
+                    {
+                        ApplyChange(genericSkill);
+                    }
 
                     modifiedBodyNames.Add(survivorName); //reduces log bloat
                 }
