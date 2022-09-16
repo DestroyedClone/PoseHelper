@@ -1,16 +1,13 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
-using UnityEngine;
 using RoR2;
 using R2API.Utils;
 using System;
-using EntityStates;
 using R2API;
-using RoR2.Skills;
 using System.Security;
 using System.Security.Permissions;
-using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 
 
 [module: UnverifiableCode]
@@ -18,25 +15,42 @@ using System.Collections.Generic;
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
 #pragma warning restore CS0618 // Type or member is obsolete
 
+//dotnet build --configuration Release
 namespace AlternateSkills
 {
-    [BepInPlugin("com.DestroyedClone.AlternateSkills", "Alternate Skills", "1.0.0")]
+    [BepInPlugin("com.DestroyedClone.DCAltSkills", "DCAltSkills", "1.0.0")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
-    [R2APISubmoduleDependency(nameof(LoadoutAPI), nameof(SurvivorAPI), nameof(LanguageAPI), nameof(ProjectileAPI), nameof(DamageAPI))]
+    [R2APISubmoduleDependency(nameof(LoadoutAPI), nameof(LanguageAPI), nameof(DamageAPI), nameof(ContentAddition))]
 
     public class MainPlugin : BaseUnityPlugin
     {
+        public static ConfigFile _config;
+        internal static BepInEx.Logging.ManualLogSource _logger;
+
         public void Awake()
         {
-            //Buffs.RegisterBuffs();
-            //Acrid.AcridMain.Init();
-            //Artificer.ArtificerMain.Init();
-            //Bandit2.Bandit2Main.Init();
-            Captain.CaptainMain.Init();
-            //Commando.CommandoMain.Init();
-            //Mercenary.MercenaryMain.Init();
-            //Treebot.TreebotMain.Init();
+            _config = Config;
+            _logger = Logger;
+
+            Buffs.RegisterBuffs();
+        }
+
+        [RoR2.SystemInitializer(dependencies: new Type[] { typeof(RoR2.SurvivorCatalog) })]
+        public static void AssemblySetup() //credit to bubbet for base code
+        {
+            var survivorMainType = typeof(SurvivorMain);
+            foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
+            {
+                if (!type.IsAbstract)
+                {
+                    if (survivorMainType.IsAssignableFrom(type))
+                    {
+                        var objectInitializer = (SurvivorMain)Activator.CreateInstance(type);
+                        objectInitializer.Init(_config);
+                    }
+                }
+            }
         }
 
         public static BuffDef[] ReturnBuffs(CharacterBody characterBody, bool returnDebuffs, bool returnBuffs)
