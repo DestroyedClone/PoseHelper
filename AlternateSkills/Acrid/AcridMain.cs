@@ -75,7 +75,7 @@ namespace AlternateSkills.Acrid
                 bullseyeSearch.teamMaskFilter.RemoveTeam(TeamComponent.GetObjectTeam(base.gameObject));
                 bullseyeSearch.sortMode = BullseyeSearch.SortMode.DistanceAndAngle;
                 bullseyeSearch.RefreshCandidates();
-                EffectManager.SimpleMuzzleFlash(EntityStates.Croco.Disease.muzzleflashEffectPrefab, base.gameObject, Disease.muzzleString, true);
+                EffectManager.SimpleMuzzleFlash(EntityStates.Croco.Disease.muzzleflashEffectPrefab, base.gameObject, EntityStates.Croco.Disease.muzzleString, true);
                 List<HurtBox> list = bullseyeSearch.GetResults().ToList<HurtBox>();
                 if (list.Count > 0)
                 {
