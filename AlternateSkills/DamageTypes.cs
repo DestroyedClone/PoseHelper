@@ -3,22 +3,14 @@ using MonoMod.Cil;
 using RoR2;
 using System.Collections.Generic;
 using UnityEngine;
+using R2API;
+using R2API.Utils;
 
 namespace AlternateSkills
 {
-    public static class Buffs
+    public static class DamageTypes
     {
-        //internal static BuffDef acceleratedBuff;
-        //internal static BuffDef tacticBuff;
-        //internal static BuffDef promotedBuff;
-        //internal static BuffDef tacticAllyBuff;
-        //internal static BuffDef tacticEnemyBuff;
-        //internal static BuffDef runningBuff;
-        //internal static BuffDef promotedBuff;
-        ///internal static BuffDef promotedScepterBuff;
-        internal static BuffDef mercAdrenalineBuff;
-        internal static BuffDef mercPeaceBuff;
-        internal static BuffDef crocoRemotePoisonDebuff;
+        internal static DamageAPI.ModdedDamageType DTCrocoPoisonCountdown;
 
         internal static List<BuffDef> buffDefs = new List<BuffDef>();
 
@@ -28,7 +20,6 @@ namespace AlternateSkills
 
             mercAdrenalineBuff = AddNewBuff("Adrenaline Rush", RoR2Content.Buffs.Energized.iconSprite, Color.yellow, true, false);
             mercPeaceBuff = AddNewBuff("Tranquility", RoR2Content.Buffs.LunarShell.iconSprite, Color.blue, false, false);
-            crocoRemotePoisonDebuff = AddNewBuff("Infectious Gouge", RoR2Content.Buffs.Poisoned.iconSprite, Color.green, false, true);
 
             //tacticAllyBuff = AddNewBuff("Tactics: Ally", Resources.Load<Sprite>("Textures/BuffIcons/texBuffGenericShield"), Color.blue, true, false);
             //tacticEnemyBuff = AddNewBuff("Tactics: Enemy", Resources.Load<Sprite>("Textures/BuffIcons/texBuffGenericShield"), Color.red, true, false);
