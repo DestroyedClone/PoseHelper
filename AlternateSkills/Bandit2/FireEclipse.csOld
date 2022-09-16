@@ -20,7 +20,7 @@ namespace AlternateSkills.Bandit2
 					position = damageReport.victimBody.corePosition,
 					radius = 7f,
 					falloffModel = BlastAttack.FalloffModel.Linear,
-					attackerFiltering = AttackerFiltering.NeverHit,
+					attackerFiltering = AttackerFiltering.Default,
 					damageType = DamageType.CrippleOnHit
 				}.Fire();
 			}

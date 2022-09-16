@@ -11,11 +11,11 @@ using EntityStates;
 using R2API;
 using RoR2.Skills;
 
-namespace AlternateSkills.Toolbot
+namespace AlternateSkills.Commando
 {
-    public class ToolbotMain
+    public class CommandoMain
     {
-        public static GameObject myCharacter = Resources.Load<GameObject>("prefabs/characterbodies/ToolbotBody");
+        public static GameObject myCharacter = Resources.Load<GameObject>("prefabs/characterbodies/CommandoBody");
         public static BodyIndex bodyIndex = myCharacter.GetComponent<CharacterBody>().bodyIndex;
 
         public static void Init()
@@ -133,7 +133,7 @@ namespace AlternateSkills.Toolbot
             LanguageAPI.Add("COMMANDO_SPECIAL_PROMOTE_DESCRIPTION", "Promote an ally, grants +50% attack speed, +25% damage, +20 armor, and +100% health regen for 8 seconds.");
 
             mySkillDef = ScriptableObject.CreateInstance<SkillDef>();
-            mySkillDef.activationState = new SerializableEntityStateType(typeof(Commando.RunSkill));
+            mySkillDef.activationState = new SerializableEntityStateType(typeof(Commando.Promote));
             mySkillDef.activationStateMachineName = "Weapon";
             mySkillDef.baseMaxStock = 1;
             mySkillDef.baseRechargeInterval = 60f;
