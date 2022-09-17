@@ -60,7 +60,7 @@ namespace AlternateSkills.Captain
             if (bot.currentEnemy.characterBody != characterBody)
             {
                 bot.currentEnemy.characterBody = characterBody;
-                skillLocator.secondary.RunRecharge(15);
+                activatorSkillSlot.rechargeStopwatch = 15;
             } else {
                 targetBody.AddBuff(RoR2Content.Buffs.CloakSpeed);
                 targetBody.AddBuff(RoR2Content.Buffs.PowerBuff);
