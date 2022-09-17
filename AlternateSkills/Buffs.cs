@@ -19,6 +19,7 @@ namespace AlternateSkills
         internal static BuffDef mercAdrenalineBuff;
         internal static BuffDef mercPeaceBuff;
         internal static BuffDef crocoRemotePoisonDebuff;
+        internal static BuffDef captainAgilityBuff;
 
         internal static List<BuffDef> buffDefs = new List<BuffDef>();
 
@@ -29,7 +30,7 @@ namespace AlternateSkills
             mercAdrenalineBuff = AddNewBuff("Adrenaline Rush", RoR2Content.Buffs.Energized.iconSprite, Color.yellow, true, false);
             mercPeaceBuff = AddNewBuff("Tranquility", RoR2Content.Buffs.LunarShell.iconSprite, Color.blue, false, false);
             crocoRemotePoisonDebuff = AddNewBuff("Infectious Gouge", RoR2Content.Buffs.Poisoned.iconSprite, Color.green, false, true);
-
+            captainAgilityBuff = AddNewBuff("Agile Treads", RoR2Content.Buffs.BugWings.iconSprite, Color.green, false, false);
             //tacticAllyBuff = AddNewBuff("Tactics: Ally", Resources.Load<Sprite>("Textures/BuffIcons/texBuffGenericShield"), Color.blue, true, false);
             //tacticEnemyBuff = AddNewBuff("Tactics: Enemy", Resources.Load<Sprite>("Textures/BuffIcons/texBuffGenericShield"), Color.red, true, false);
             //runningBuff = AddNewBuff("Running!", Resources.Load<Sprite>("Textures/BuffIcons/texBuffGenericShield"), Color.red, false, false);
