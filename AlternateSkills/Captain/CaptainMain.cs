@@ -12,6 +12,7 @@ using R2API;
 using RoR2.Skills;
 using System.Linq;
 using RoR2.Orbs;
+using AlternateSkills.Modules;
 
 namespace AlternateSkills.Captain
 {
@@ -103,7 +104,7 @@ namespace AlternateSkills.Captain
         {
             return;
             var mySkillDef = ScriptableObject.CreateInstance<HuntressTrackingSkillDef>();
-            mySkillDef.activationState = new SerializableEntityStateType(typeof(ESShareBuffs));
+            mySkillDef.activationState = new SerializableEntityStateType(typeof(ESAssignTarget));
             mySkillDef.activationStateMachineName = "Weapon";
             mySkillDef.baseMaxStock = 1;
             mySkillDef.baseRechargeInterval = 16;
@@ -130,7 +131,7 @@ namespace AlternateSkills.Captain
         {
             return;
             var mySkillDef = ScriptableObject.CreateInstance<HuntressTrackingSkillDef>();
-            mySkillDef.activationState = new SerializableEntityStateType(typeof(ESDealDebuffDamage));
+            mySkillDef.activationState = new SerializableEntityStateType(typeof(ESAssignTarget));
             mySkillDef.activationStateMachineName = "Weapon";
             mySkillDef.baseMaxStock = 1;
             mySkillDef.baseRechargeInterval = 10;

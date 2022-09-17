@@ -12,6 +12,7 @@ using R2API;
 using RoR2.Skills;
 using UnityEngine.Networking;
 using EntityStates.Captain;
+using AlternateSkills.Modules;
 
 namespace AlternateSkills.Captain
 {

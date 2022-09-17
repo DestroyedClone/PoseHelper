@@ -12,8 +12,9 @@ using R2API;
 using RoR2.Skills;
 using UnityEngine.Networking;
 using EntityStates.Croco;
+using AlternateSkills.Modules;
 
-namespace AlternateSkills
+namespace AlternateSkills.Acrid
 {
     public class ESGouge : BasicMeleeAttack
     {

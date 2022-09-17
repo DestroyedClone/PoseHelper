@@ -4,7 +4,7 @@ using RoR2;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace AlternateSkills
+namespace AlternateSkills.Modules
 {
     public static class Buffs
     {
@@ -25,10 +25,10 @@ namespace AlternateSkills
 
         public static void RegisterBuffs()
         {   
-            MainPlugin._logger.LogMessage("Registering Buffs");
+            MainPlugin._logger.LogMessage("Registering Buffs 14:15");
             // fix the buff catalog to actually register our buffs
 
-            MainPlugin._logger.LogMessage("Registering mercBuff");
+            MainPlugin._logger.LogMessage("Registering mercBuff 14:15");
             mercAdrenalineBuff = AddNewBuff("Adrenaline Rush", RoR2Content.Buffs.Energized.iconSprite, Color.yellow, true, false);
             MainPlugin._logger.LogMessage("Registering peaceBuff");
             mercPeaceBuff = AddNewBuff("Tranquility", RoR2Content.Buffs.LunarShell.iconSprite, Color.blue, false, false);
@@ -48,17 +48,31 @@ namespace AlternateSkills
         // simple helper method
         internal static BuffDef AddNewBuff(string buffName, Sprite buffIcon, Color buffColor, bool canStack, bool isDebuff)
         {
+            int i = 0;
+            MainPlugin._logger.LogMessage(i++);
             BuffDef buffDef = ScriptableObject.CreateInstance<BuffDef>();
+            MainPlugin._logger.LogMessage(i++);
             buffDef.name = buffName;
+            MainPlugin._logger.LogMessage(i++);
             buffDef.buffColor = buffColor;
+            MainPlugin._logger.LogMessage(i++);
             buffDef.canStack = canStack;
+            MainPlugin._logger.LogMessage(i++);
             buffDef.isDebuff = isDebuff;
+            MainPlugin._logger.LogMessage(i++);
             buffDef.eliteDef = null;
+            MainPlugin._logger.LogMessage(i++);
             buffDef.iconSprite = buffIcon;
+            MainPlugin._logger.LogMessage(i++);
             buffDef.isCooldown = false;
+            MainPlugin._logger.LogMessage(i++);
             buffDef.isHidden = false;
+            MainPlugin._logger.LogMessage(i++);
+            R2API.ContentAddition.AddBuffDef(buffDef);
+            MainPlugin._logger.LogMessage(i++);
 
             buffDefs.Add(buffDef);
+            MainPlugin._logger.LogMessage(i++);
 
             return buffDef;
         }

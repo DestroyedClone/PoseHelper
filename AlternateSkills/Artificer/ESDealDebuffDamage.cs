@@ -13,7 +13,7 @@ using RoR2.Skills;
 using UnityEngine.Networking;
 using EntityStates.Mage;
 
-namespace AlternateSkills
+namespace AlternateSkills.Mage
 {
     public class ESDealDebuffDamage : BaseSkillState
     {

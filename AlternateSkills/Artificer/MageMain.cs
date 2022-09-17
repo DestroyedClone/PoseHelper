@@ -12,6 +12,7 @@ using R2API;
 using RoR2.Skills;
 using System.Linq;
 using RoR2.Orbs;
+using AlternateSkills.Modules;
 
 namespace AlternateSkills.Mage
 {
@@ -83,7 +84,7 @@ namespace AlternateSkills.Mage
         {
             if (true) return;
             var mySkillDef = ScriptableObject.CreateInstance<SkillDef>();
-            mySkillDef.activationState = new SerializableEntityStateType(typeof(ESBite));
+            mySkillDef.activationState = new SerializableEntityStateType(typeof(ESShareBuffs));
             mySkillDef.activationStateMachineName = "Weapon";
             mySkillDef.baseMaxStock = 1;
             mySkillDef.baseRechargeInterval = 0;

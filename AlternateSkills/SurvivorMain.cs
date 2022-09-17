@@ -11,6 +11,7 @@ using EntityStates;
 using R2API;
 using RoR2.Skills;
 using RoR2.Projectile;
+using System.Linq;
 
 namespace AlternateSkills
 {
@@ -90,6 +91,7 @@ namespace AlternateSkills
 
         private void AddSkillToSkillFamily(SkillDef skillDef, SkillFamily skillFamily)
         {
+            HG.ArrayUtils.ArrayAppend(ref MainPlugin.ContentPack.entityStateTypes, skillDef.activationState);
             ContentAddition.AddSkillDef(skillDef);
 
             Array.Resize(ref skillFamily.variants, skillFamily.variants.Length + 1);

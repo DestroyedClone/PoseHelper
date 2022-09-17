@@ -8,6 +8,7 @@ using System.Security;
 using System.Security.Permissions;
 using System.Collections.Generic;
 using System.Reflection;
+using R2API.ContentManagement;
 
 
 [module: UnverifiableCode]
@@ -18,7 +19,7 @@ using System.Reflection;
 //dotnet build --configuration Release
 namespace AlternateSkills
 {
-    [BepInPlugin("com.DestroyedClone.DCAltSkills", "DCAltSkills", "1.0.0")]
+    [BepInPlugin(MODUID, "DCAltSkills", "1.0.0")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
     [R2APISubmoduleDependency(nameof(LoadoutAPI), nameof(LanguageAPI), nameof(DamageAPI), nameof(ContentAddition))]
@@ -27,13 +28,20 @@ namespace AlternateSkills
     {
         public static ConfigFile _config;
         internal static BepInEx.Logging.ManualLogSource _logger;
+        public const string MODUID = "com.DestroyedClone.DCAltSkills";
+        
+        public static R2API.ScriptableObjects.R2APISerializableContentPack ContentPack { get; private set; }
 
         public void Awake()
         {
             _config = Config;
             _logger = Logger;
 
-            Buffs.RegisterBuffs();
+            
+            ContentPack = R2API.ContentManagement.R2APIContentManager.ReserveSerializableContentPack();
+            Modules.Buffs.RegisterBuffs();
+            Modules.DamageTypes.RegisterDamageTypes();
+            //new Modules.ContentPacks().Initialize();
         }
 
         [RoR2.SystemInitializer(dependencies: new Type[] { typeof(RoR2.SurvivorCatalog) })]

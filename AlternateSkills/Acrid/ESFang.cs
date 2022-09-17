@@ -13,7 +13,7 @@ using RoR2.Skills;
 using UnityEngine.Networking;
 using EntityStates.Croco;
 
-namespace AlternateSkills
+namespace AlternateSkills.Acrid
 {
     public class ESFang : EntityStates.Croco.Bite
     {

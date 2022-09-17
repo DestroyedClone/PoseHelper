@@ -11,13 +11,16 @@ using EntityStates;
 using R2API;
 using RoR2.Skills;
 using UnityEngine.Networking;
-using EntityStates.Mage;
 
-namespace AlternateSkills.Mage
+namespace AlternateSkills.Commando
 {
-    public class ESFireCanister : EntityStates.Mage.Weapon.FireIceBolt
+	public class ESReinforcement : BaseSkillState
     {
+        // 1. Target an ally
+        // 1b. Just do proximity for now
+        // 2. Add a component to them
+        // 3. Exit.
+
 
     }
-
 }

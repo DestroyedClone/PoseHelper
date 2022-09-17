@@ -11,13 +11,17 @@ using EntityStates;
 using R2API;
 using RoR2.Skills;
 using UnityEngine.Networking;
-using EntityStates.Mage;
 
-namespace AlternateSkills.Mage
+namespace AlternateSkills.Engi
 {
-    public class ESFireCanister : EntityStates.Mage.Weapon.FireIceBolt
+	public class ESCreateClone : BaseSkillState
     {
+        // 1. Target an ally
+        // 1b. Just do proximity for now
+        // 2. Summon clone
+        // 3. Modify, add Mechanical tag if missing.
+        // 4. Exit.
+
 
     }
-
 }

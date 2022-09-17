@@ -12,6 +12,7 @@ using R2API;
 using RoR2.Skills;
 using System.Linq;
 using RoR2.Orbs;
+using AlternateSkills.Modules;
 
 namespace AlternateSkills.Acrid
 {

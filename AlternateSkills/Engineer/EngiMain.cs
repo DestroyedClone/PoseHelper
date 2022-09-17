@@ -12,17 +12,18 @@ using R2API;
 using RoR2.Skills;
 using AlternateSkills.Modules;
 
-namespace AlternateSkills.Commando
+namespace AlternateSkills.Engi
 {
-    public class CommandoMain : SurvivorMain
+    public class EngiMain : SurvivorMain
     {
-        public override string CharacterName => "Commando";
-        public string TokenPrefix = "DCALTSKILLS_COMMANDO";
+        public override string CharacterName => "Engi";
+        public string TokenPrefix = "DCALTSKILLS_ENGI";
 
         public override void SetupSpecial()
         {
+            return;
             var mySkillDef = ScriptableObject.CreateInstance<SkillDef>();
-            mySkillDef.activationState = new SerializableEntityStateType(typeof(ESReinforcement));
+            mySkillDef.activationState = new SerializableEntityStateType(typeof(ESCreateClone));
             mySkillDef.activationStateMachineName = "Weapon";
             mySkillDef.baseMaxStock = 1;
             mySkillDef.baseRechargeInterval = 20;
@@ -43,19 +44,6 @@ namespace AlternateSkills.Commando
             mySkillDef.keywordTokens = new string[]{};
             utilitySkillDefs.Add(mySkillDef);
             base.SetupSpecial();
-        }
-    }
-    public class DCAS_ReinforcementModule : MonoBehaviour
-    {
-        public CharacterBody casterBody;
-        public CharacterBody targetBody;
-
-        public void FireBullet(BulletAttack bulletAttack)
-        {
-            if (!targetBody)
-                return;
-            bulletAttack.origin = targetBody.corePosition;
-            bulletAttack.Fire();
         }
     }
 }
