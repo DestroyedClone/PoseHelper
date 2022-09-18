@@ -120,7 +120,7 @@ namespace AlternateSkills.Acrid
             mySkillDef.rechargeStock = 1;
             mySkillDef.requiredStock = 1;
             mySkillDef.stockToConsume = 0;
-            mySkillDef.icon = SurvivorSkillLocator.primary.skillDef.icon;
+            //mySkillDef.icon = SurvivorSkillLocator.primary.skillDef.icon;
             mySkillDef.skillName = "DCALTSKILLS_CROCO_PRIMARY_CHEW";
             mySkillDef.skillNameToken = $"{mySkillDef.skillName}_NAME";
             mySkillDef.skillDescriptionToken = $"{mySkillDef.skillName}_DESC";
@@ -146,7 +146,7 @@ namespace AlternateSkills.Acrid
             mySkillDef.rechargeStock = 1;
             mySkillDef.requiredStock = 1;
             mySkillDef.stockToConsume = 1;
-            mySkillDef.icon = SurvivorSkillLocator.primary.skillDef.icon;
+            //mySkillDef.icon = SurvivorSkillLocator.primary.skillDef.icon;
             mySkillDef.skillName = "DCALTSKILLS_CROCO_SECONDARY_BITE";
             mySkillDef.skillNameToken = $"{mySkillDef.skillName}_NAME";
             mySkillDef.skillDescriptionToken = $"{mySkillDef.skillName}_DESC";
@@ -172,7 +172,7 @@ namespace AlternateSkills.Acrid
             mySkillDef.rechargeStock = 1;
             mySkillDef.requiredStock = 1;
             mySkillDef.stockToConsume = 1;
-            mySkillDef.icon = SurvivorSkillLocator.primary.skillDef.icon;
+            //mySkillDef.icon = SurvivorSkillLocator.primary.skillDef.icon;
             mySkillDef.skillName = "DCALTSKILLS_CROCO_UTILITY_KICKOFF";
             mySkillDef.skillNameToken = $"{mySkillDef.skillName}_NAME";
             mySkillDef.skillDescriptionToken = $"{mySkillDef.skillName}_DESC";
@@ -198,7 +198,7 @@ namespace AlternateSkills.Acrid
             mySkillDef.rechargeStock = 1;
             mySkillDef.requiredStock = 1;
             mySkillDef.stockToConsume = 1;
-            mySkillDef.icon = SurvivorSkillLocator.primary.skillDef.icon;
+            //mySkillDef.icon = SurvivorSkillLocator.primary.skillDef.icon;
             mySkillDef.skillName = "DCALTSKILLS_CROCO_SPECIAL_GOUGE";
             mySkillDef.skillNameToken = $"{mySkillDef.skillName}_NAME";
             mySkillDef.skillDescriptionToken = $"{mySkillDef.skillName}_DESC";

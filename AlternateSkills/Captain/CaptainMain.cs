@@ -33,7 +33,7 @@ namespace AlternateSkills.Captain
             if (sender.HasBuff(Buffs.captainAgilityBuff))
             {
                 args.moveSpeedMultAdd += 0.5f;
-                args.jumpPowerMultAdd -= 10;
+                args.jumpPowerMultAdd = 0;
             }
         }
 
@@ -64,7 +64,7 @@ namespace AlternateSkills.Captain
             mySkillDef.rechargeStock = 1;
             mySkillDef.requiredStock = 1;
             mySkillDef.stockToConsume = 0;
-            mySkillDef.icon = SurvivorSkillLocator.primary.skillDef.icon;
+            //mySkillDef.icon = SurvivorSkillLocator.primary.skillDef.icon;
             mySkillDef.skillName = TokenPrefix+"_PRIMARY";
             mySkillDef.skillNameToken = $"{mySkillDef.skillName}_NAME";
             mySkillDef.skillDescriptionToken = $"{mySkillDef.skillName}_DESC";
@@ -90,7 +90,7 @@ namespace AlternateSkills.Captain
             mySkillDef.rechargeStock = 1;
             mySkillDef.requiredStock = 1;
             mySkillDef.stockToConsume = 1;
-            mySkillDef.icon = SurvivorSkillLocator.primary.skillDef.icon;
+            //mySkillDef.icon = SurvivorSkillLocator.primary.skillDef.icon;
             mySkillDef.skillName = TokenPrefix+"_SECONDARY";
             mySkillDef.skillNameToken = $"{mySkillDef.skillName}_NAME";
             mySkillDef.skillDescriptionToken = $"{mySkillDef.skillName}_DESC";
@@ -117,7 +117,7 @@ namespace AlternateSkills.Captain
             mySkillDef.rechargeStock = 1;
             mySkillDef.requiredStock = 1;
             mySkillDef.stockToConsume = 1;
-            mySkillDef.icon = SurvivorSkillLocator.utility.skillDef.icon;
+            //mySkillDef.icon = SurvivorSkillLocator.utility.skillDef.icon;
             mySkillDef.skillName = TokenPrefix+"_UTILITY";
             mySkillDef.skillNameToken = $"{mySkillDef.skillName}_NAME";
             mySkillDef.skillDescriptionToken = $"{mySkillDef.skillName}_DESC";
@@ -144,7 +144,7 @@ namespace AlternateSkills.Captain
             mySkillDef.rechargeStock = 1;
             mySkillDef.requiredStock = 1;
             mySkillDef.stockToConsume = 1;
-            mySkillDef.icon = SurvivorSkillLocator.primary.skillDef.icon;
+            //mySkillDef.icon = SurvivorSkillLocator.primary.skillDef.icon;
             mySkillDef.skillName = TokenPrefix+"_SPECIAL";
             mySkillDef.skillNameToken = $"{mySkillDef.skillName}_NAME";
             mySkillDef.skillDescriptionToken = $"{mySkillDef.skillName}_DESC";

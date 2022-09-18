@@ -36,7 +36,7 @@ namespace AlternateSkills.Engi
             mySkillDef.rechargeStock = 1;
             mySkillDef.requiredStock = 1;
             mySkillDef.stockToConsume = 1;
-            mySkillDef.icon = SurvivorSkillLocator.special.skillDef.icon;
+            //mySkillDef.icon = SurvivorSkillLocator.special.skillDef.icon;
             mySkillDef.skillName = TokenPrefix+"_SPECIAL";
             mySkillDef.skillNameToken = $"{mySkillDef.skillName}_NAME";
             mySkillDef.skillDescriptionToken = $"{mySkillDef.skillName}_DESC";
