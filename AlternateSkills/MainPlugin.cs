@@ -22,13 +22,14 @@ namespace AlternateSkills
     [BepInPlugin(MODUID, "DCAltSkills", "1.0.0")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
-    [R2APISubmoduleDependency(nameof(LoadoutAPI), nameof(LanguageAPI), nameof(DamageAPI), nameof(ContentAddition))]
+    [R2APISubmoduleDependency(nameof(LoadoutAPI), nameof(LanguageAPI), nameof(DamageAPI), nameof(ContentAddition), nameof(RecalculateStatsAPI))]
 
     public class MainPlugin : BaseUnityPlugin
     {
         public static ConfigFile _config;
         internal static BepInEx.Logging.ManualLogSource _logger;
         public const string MODUID = "com.DestroyedClone.DCAltSkills";
+        public static bool hasRun = false;
         
         public static R2API.ScriptableObjects.R2APISerializableContentPack ContentPack { get; private set; }
 
@@ -42,11 +43,24 @@ namespace AlternateSkills
             Modules.Buffs.RegisterBuffs();
             Modules.DamageTypes.RegisterDamageTypes();
             //new Modules.ContentPacks().Initialize();
+            On.RoR2.SurvivorCatalog.Init += RunAssemblysetup;
+        }
+
+        public void RunAssemblysetup(On.RoR2.SurvivorCatalog.orig_Init orig)
+        {
+            orig();
+            AssemblySetup();
         }
 
         [RoR2.SystemInitializer(dependencies: new Type[] { typeof(RoR2.SurvivorCatalog) })]
         public static void AssemblySetup() //credit to bubbet for base code
         {
+            if (hasRun)
+                {
+                    _logger.LogWarning("Setup already ran.");
+                    return;
+                }
+            _logger.LogMessage("Running AssemblySetup()");
             var survivorMainType = typeof(SurvivorMain);
             foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
             {
@@ -59,6 +73,7 @@ namespace AlternateSkills
                     }
                 }
             }
+            hasRun = true;
         }
 
         public static BuffDef[] ReturnBuffs(CharacterBody characterBody, bool returnDebuffs, bool returnBuffs)
