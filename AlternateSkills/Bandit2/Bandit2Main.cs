@@ -7,6 +7,7 @@ namespace AlternateSkills.Bandit2
     {
         public override string CharacterName => "Bandit2";
         public string TokenPrefix = "DCALTSKILLS_BANDIT2";
+        public float damageRange = 0.5f;
 
         public override void Init(ConfigFile config)
         {
@@ -33,7 +34,7 @@ namespace AlternateSkills.Bandit2
         {
             if (damageInfo.attacker?.GetComponent<CharacterBody>()?.bodyIndex == BodyIndex)
             {
-                damageInfo.damage *= + (UnityEngine.Random.Range(-0.30f, 0.30f));
+                damageInfo.damage *= + (UnityEngine.Random.Range(-damageRange, damageRange));
             }
             orig(self, damageInfo);
         }
