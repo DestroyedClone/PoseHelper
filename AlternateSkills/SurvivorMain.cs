@@ -32,6 +32,7 @@ namespace AlternateSkills
 
         public virtual void Init(ConfigFile config)
         {
+            MainPlugin._logger.LogMessage($"Setting up for {CharacterName}.");
             SetupDefaults();
             SetupConfig(config);
             SetupAssets();
@@ -117,12 +118,12 @@ namespace AlternateSkills
         }
 
         public virtual void SetupSecondary() {
-            AddSkillsToSkillFamily(secondarySkillDefs, SurvivorSkillLocator.primary.skillFamily); }
+            AddSkillsToSkillFamily(secondarySkillDefs, SurvivorSkillLocator.secondary.skillFamily); }
 
         public virtual void SetupUtility() {
-            AddSkillsToSkillFamily(utilitySkillDefs, SurvivorSkillLocator.primary.skillFamily); }
+            AddSkillsToSkillFamily(utilitySkillDefs, SurvivorSkillLocator.utility.skillFamily); }
         public virtual void SetupSpecial() {
-            AddSkillsToSkillFamily(specialSkillDefs, SurvivorSkillLocator.primary.skillFamily); }
+            AddSkillsToSkillFamily(specialSkillDefs, SurvivorSkillLocator.special.skillFamily); }
 
     }
 }
