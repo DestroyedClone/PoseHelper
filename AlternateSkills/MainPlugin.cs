@@ -22,7 +22,12 @@ namespace AlternateSkills
     [BepInPlugin(MODUID, "DCAltSkills", "1.0.0")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
-    [R2APISubmoduleDependency(nameof(LoadoutAPI), nameof(LanguageAPI), nameof(DamageAPI), nameof(ContentAddition), nameof(RecalculateStatsAPI))]
+    [R2APISubmoduleDependency(nameof(LoadoutAPI), 
+    nameof(LanguageAPI), 
+    nameof(DamageAPI), 
+    nameof(ContentAddition), 
+    nameof(RecalculateStatsAPI),
+    nameof(DeployableAPI))]
 
     public class MainPlugin : BaseUnityPlugin
     {
@@ -76,7 +81,7 @@ namespace AlternateSkills
             hasRun = true;
         }
 
-        public static BuffDef[] ReturnBuffs(CharacterBody characterBody, bool returnDebuffs, bool returnBuffs)
+        public static BuffDef[] ReturnBuffs(CharacterBody characterBody, bool returnDebuffs, bool returnBuffs, bool returnCooldownType = false)
         {
             List<BuffDef> buffDefs = new List<BuffDef>();
             BuffIndex buffIndex = (BuffIndex)0;
