@@ -19,7 +19,7 @@ namespace AlternateSkills.Mage
     {
 
 		[SerializeField]
-		public float baseDuration;
+		public float baseDuration = 1;
 		private float duration;
 
 		private HurtBox initialOrbTarget;
@@ -65,7 +65,7 @@ namespace AlternateSkills.Mage
                 damageColorIndex = DamageColorIndex.Default,
             };
             targetBody.healthComponent.TakeDamage(damageInfo);
-
+            MainPlugin._logger.LogMessage($"Expected Artificer Shatter Damage Dealt: {damageInfo.damage}");
         }
 
         public override void FixedUpdate()
