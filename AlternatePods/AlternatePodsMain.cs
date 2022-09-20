@@ -10,7 +10,8 @@ using System.Security;
 using System.Security.Permissions;
 using UnityEngine;
 using BepInEx.Configuration;
-
+using UnityEngine.AddressableAssets;
+//dotnet build --configuration Release
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
@@ -28,15 +29,59 @@ namespace AlternatePods
     public class AlternatePodsPlugin : BaseUnityPlugin
     {
         internal static BepInEx.Logging.ManualLogSource _logger;
+        internal static ConfigFile _config;
         public static AlternatePodsPlugin instance;
         
         public static event Action<VehicleSeat, GameObject> onPodLandedServer;
         public static event Action<VehicleSeat, GameObject> onRoboPodLandedServer;
 
+        public static GameObject genericPodPrefab;
+        public static GameObject roboCratePodPrefab;
+
+        public static Dictionary<string,GameObject> podName_to_podPrefab = new Dictionary<string, GameObject>();
+
         private void Start() {
+            _logger = Logger;
+            _config = Config;
             instance = this;
-            genericPodPrefab = RoR2Content.Survivors.Commando.bodyPrefab.GetComponent<CharacterBody>().preferredPodPrefab;
-            roboCratePodPrefab = RoR2Content.Survivors.Toolbot.bodyPrefab.GetComponent<CharacterBody>().preferredPodPrefab;
+            roboCratePodPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Toolbot/RoboCratePod.prefab").WaitForCompletion();
+            genericPodPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/SurvivorPod/SurvivorPod.prefab").WaitForCompletion();
+
+            On.RoR2.Run.HandlePlayerFirstEntryAnimation += ReassignPodPrefab;
+            //
+            //
+            new CommandoMain().Init(_config);
+            
+        }
+
+        public GameObject LoadPod(bool isRoboPod)
+        {
+            //return isRoboPod ? 
+        }
+
+        public void ReassignPodPrefab(On.RoR2.Run.orig_HandlePlayerFirstEntryAnimation orig, Run self, CharacterBody body, Vector3 spawnPosition, Quaternion spawnRotation)
+        {
+            var cachedPodPrefab = body.preferredPodPrefab;
+            if (body)
+            {
+                var pointer = body.GetComponent<PodModGenericSkillPointer>();
+                if (pointer && pointer.podmodGenericSkill)
+                {
+                    var podName = pointer.podmodGenericSkill.skillName;
+                    var podPrefab = podName_to_podPrefab.TryGetValue(podName, out GameObject requestedPodPrefab);
+                    if (podPrefab)
+                    {
+                        body.preferredPodPrefab = requestedPodPrefab;
+                    }
+                }
+            }
+            orig(self, body, spawnPosition, spawnRotation);
+            body.preferredPodPrefab = cachedPodPrefab;
+        }
+
+        public class PodModGenericSkillPointer : MonoBehaviour
+        {
+            public GenericSkill podmodGenericSkill = null;
         }
 
         /// <summary>
