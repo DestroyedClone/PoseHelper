@@ -10,56 +10,305 @@ using System;
 using EntityStates;
 using R2API;
 using RoR2.Skills;
+using JetBrains.Annotations;
+using AlternateSkills.Modules;
 
-namespace AlternateSkills.Mercenary
+namespace AlternateSkills.Merc
 {
-    public class MercenaryMain
+    public class MercenaryMain : SurvivorMain
     {
-        public static GameObject myCharacter = Resources.Load<GameObject>("prefabs/characterbodies/MercBody");
-        public static BodyIndex bodyIndex = myCharacter.GetComponent<CharacterBody>().bodyIndex;
+        public override string CharacterName => "Merc";
+        public string TokenPrefix = "DCALTSKILLS_MERC";
+        public const float adrenalineDuration = 1f;
+        public static BuffDef adrenalineBuff => Buffs.mercAdrenalineBuff;
 
-        public static void Init()
+        public override void SetupPassive()
         {
-            SetupSkills();
+            base.SetupPassive();
+            BodyPrefab.GetComponent<CharacterBody>().baseJumpCount = 1;
+            SurvivorSkillLocator.passiveSkill.skillNameToken = TokenPrefix+"_PASSIVE_NAME";
+            SurvivorSkillLocator.passiveSkill.skillDescriptionToken = TokenPrefix+"_PASSIVE_DESC";
+
+            
+            //On.EntityStates.Merc.Weapon.GroundLight2.OnMeleeHitAuthority += MercAdrenPrimary;
+            On.EntityStates.Merc.Weapon.GroundLight2.OnEnter += MercAdrenGroundLight;
+            On.EntityStates.Merc.WhirlwindBase.OnEnter += MercAdrenWhirlwind;
+            On.EntityStates.Merc.Uppercut.OnEnter += MercAdrenUppercut;
+            On.EntityStates.Merc.FocusedAssaultDash.OnMeleeHitAuthority += MercAdrenDash;
+            
         }
 
-        private static void SetupSkills()
+        public override void Hooks()
         {
-            LanguageAPI.Add("MERC_SECONDARY_FALLINGLIGHT_NAME", "Falling Light");
-            LanguageAPI.Add("MERC_SECONDARY_FALLINGLIGHTDESCRIPTION", "<style=cIsUtility>Heavy.</style> Unleash a slicing downwardcut, dealing <style=cIsDamage>550% damage</style> and sending you downwards.");
+            base.Hooks();
+            R2API.RecalculateStatsAPI.GetStatCoefficients += MercBuffs;
+            On.RoR2.Skills.SkillDef.CanExecute += MercPeaceNoAttack;
 
+            //Passive Activations
+            BodyPrefab.AddComponent<DCMercEchoComponent>().owner = BodyPrefab.GetComponent<CharacterBody>();
+        }
+
+        #region Adrenaline
+        public void MercAdrenGroundLight(On.EntityStates.Merc.Weapon.GroundLight2.orig_OnEnter orig, EntityStates.Merc.Weapon.GroundLight2 self)
+        {
+            orig(self);
+            RollForAdrenaline(self.characterBody);
+            TrackEcho(self.characterBody);
+        }
+        public void MercAdrenPrimary(On.EntityStates.Merc.Weapon.GroundLight2.orig_OnMeleeHitAuthority orig, EntityStates.Merc.Weapon.GroundLight2 self)
+        {
+            orig(self);
+            RollForAdrenaline(self.characterBody);
+            TrackEcho(self.characterBody);
+        }
+        public void MercAdrenWhirlwind(On.EntityStates.Merc.WhirlwindBase.orig_OnEnter orig, EntityStates.Merc.WhirlwindBase self)
+        {
+            orig(self);
+            RollForAdrenaline(self.characterBody);
+            TrackEcho(self.characterBody);
+        }
+        public void MercAdrenUppercut(On.EntityStates.Merc.Uppercut.orig_OnEnter orig, EntityStates.Merc.Uppercut self)
+        {
+            orig(self);
+            RollForAdrenaline(self.characterBody);
+            TrackEcho(self.characterBody);
+        }
+        public void MercAdrenDash(On.EntityStates.Merc.FocusedAssaultDash.orig_OnMeleeHitAuthority orig, EntityStates.Merc.FocusedAssaultDash self)
+        {
+            orig(self);
+            RollForAdrenaline(self.characterBody);
+            TrackEcho(self.characterBody);
+        }
+        #endregion
+
+        public void TrackEcho(CharacterBody characterBody)
+        {
+            var component = characterBody.GetComponent<DCMercEchoComponent>();
+            if (component)
+            {
+                component.Track(characterBody.corePosition, "");
+            }
+        }
+
+        public bool MercPeaceNoAttack(On.RoR2.Skills.SkillDef.orig_CanExecute orig, SkillDef self, GenericSkill skillSlot) {
+            if (skillSlot.characterBody && skillSlot.characterBody.HasBuff(Buffs.mercPeaceBuff))
+            {
+                return false;
+            }
+            return orig(self, skillSlot);
+        }
+
+        public void MercBuffs(CharacterBody sender, RecalculateStatsAPI.StatHookEventArgs args)
+        {
+            if (sender.HasBuff(Buffs.mercAdrenalineBuff))
+            {
+                args.attackSpeedMultAdd += 3f;
+            }
+            if (sender.HasBuff(Buffs.mercPeaceBuff))
+            {
+                args.moveSpeedReductionMultAdd += 0.9f;
+                args.jumpPowerMultAdd = 0;
+                sender.isSprinting = false;
+            }
+        }
+
+        public void RollForAdrenaline(CharacterBody characterBody)
+        {            
+            if (Util.CheckRoll(10))
+            {
+                characterBody.AddTimedBuff(adrenalineBuff, adrenalineDuration);
+            }
+        }
+
+        public override void SetupPrimary()
+        {
+            return;
             var mySkillDef = ScriptableObject.CreateInstance<SkillDef>();
-            mySkillDef.activationState = new SerializableEntityStateType(typeof(Mercenary.FallingLight));
+            mySkillDef.activationState = new SerializableEntityStateType(typeof(ESAuralAttack));
             mySkillDef.activationStateMachineName = "Weapon";
             mySkillDef.baseMaxStock = 1;
-            mySkillDef.baseRechargeInterval = 2.5f;
+            mySkillDef.baseRechargeInterval = 0;
             mySkillDef.beginSkillCooldownOnSkillEnd = true;
             mySkillDef.canceledFromSprinting = false;
             mySkillDef.fullRestockOnAssign = true;
-            mySkillDef.interruptPriority = InterruptPriority.Any;
+            mySkillDef.interruptPriority = InterruptPriority.Frozen;
+            mySkillDef.isCombatSkill = true;
+            mySkillDef.mustKeyPress = true;
+            mySkillDef.rechargeStock = 1;
+            mySkillDef.requiredStock = 1;
+            mySkillDef.stockToConsume = 0;
+            //mySkillDef.icon = SurvivorSkillLocator.primary.skillDef.icon;
+            mySkillDef.skillName = TokenPrefix+"_PRIMARY";
+            mySkillDef.skillNameToken = $"{mySkillDef.skillName}_NAME";
+            mySkillDef.skillDescriptionToken = $"{mySkillDef.skillName}_DESC";
+            (mySkillDef as ScriptableObject).name = mySkillDef.skillName;
+            mySkillDef.keywordTokens = new string[]{};
+            primarySkillDefs.Add(mySkillDef);
+            base.SetupPrimary();
+        }
+        
+        public override void SetupSecondary()
+        {
+            var mySkillDef = ScriptableObject.CreateInstance<DCMercSkillDef>();
+            mySkillDef.activationState = new SerializableEntityStateType(typeof(ESActiveEcho));
+            mySkillDef.activationStateMachineName = "Weapon";
+            mySkillDef.baseMaxStock = 1;
+            mySkillDef.baseRechargeInterval = 0;
+            mySkillDef.beginSkillCooldownOnSkillEnd = true;
+            mySkillDef.canceledFromSprinting = false;
+            mySkillDef.fullRestockOnAssign = true;
+            mySkillDef.interruptPriority = InterruptPriority.Frozen;
+            mySkillDef.isCombatSkill = true;
+            mySkillDef.mustKeyPress = true;
+            mySkillDef.rechargeStock = 8;
+            mySkillDef.requiredStock = 1;
+            mySkillDef.stockToConsume = 1;
+            //mySkillDef.icon = SurvivorSkillLocator.secondary.skillDef.icon;
+            mySkillDef.skillName = TokenPrefix+"_SECONDARY";
+            mySkillDef.skillNameToken = $"{mySkillDef.skillName}_NAME";
+            mySkillDef.skillDescriptionToken = $"{mySkillDef.skillName}_DESC";
+            (mySkillDef as ScriptableObject).name = mySkillDef.skillName;
+            mySkillDef.keywordTokens = new string[]{};
+            secondarySkillDefs.Add(mySkillDef);
+            base.SetupSecondary();
+        }
+        
+        public override void SetupUtility()
+        {
+            var skillDefCopy = SurvivorSkillLocator.primary.skillDef;
+            var mySkillDef = ScriptableObject.CreateInstance<SkillDef>();
+            mySkillDef.activationState = new SerializableEntityStateType(typeof(ESWavedash));
+            mySkillDef.activationStateMachineName = skillDefCopy.activationStateMachineName;
+            mySkillDef.baseMaxStock = 1;
+            mySkillDef.baseRechargeInterval = 6;
+            mySkillDef.beginSkillCooldownOnSkillEnd = skillDefCopy.beginSkillCooldownOnSkillEnd;
+            mySkillDef.canceledFromSprinting = false;
+            mySkillDef.fullRestockOnAssign = true;
+            mySkillDef.interruptPriority = InterruptPriority.Frozen;
+            mySkillDef.isCombatSkill = false;
+            mySkillDef.mustKeyPress = true;
+            mySkillDef.rechargeStock = 1;
+            mySkillDef.requiredStock = 1;
+            mySkillDef.stockToConsume = 1;
+            //mySkillDef.icon = SurvivorSkillLocator.utility.skillDef.icon;
+            mySkillDef.skillName = TokenPrefix+"_UTILITY";
+            mySkillDef.skillNameToken = $"{mySkillDef.skillName}_NAME";
+            mySkillDef.skillDescriptionToken = $"{mySkillDef.skillName}_DESC";
+            (mySkillDef as ScriptableObject).name = mySkillDef.skillName;
+            mySkillDef.keywordTokens = new string[]{};
+            utilitySkillDefs.Add(mySkillDef);
+            base.SetupUtility();
+        }
+        
+        public override void SetupSpecial()
+        {
+            var mySkillDef = ScriptableObject.CreateInstance<SkillDef>();
+            mySkillDef.activationState = new SerializableEntityStateType(typeof(ESChargeSlash));
+            mySkillDef.activationStateMachineName = "Weapon";
+            mySkillDef.baseMaxStock = 1;
+            mySkillDef.baseRechargeInterval = 6;
+            mySkillDef.beginSkillCooldownOnSkillEnd = true;
+            mySkillDef.canceledFromSprinting = false;
+            mySkillDef.fullRestockOnAssign = true;
+            mySkillDef.interruptPriority = InterruptPriority.Frozen;
             mySkillDef.isCombatSkill = true;
             mySkillDef.mustKeyPress = true;
             mySkillDef.rechargeStock = 1;
             mySkillDef.requiredStock = 1;
             mySkillDef.stockToConsume = 1;
-            mySkillDef.icon = Resources.Load<Sprite>("textures/achievementicons/texAttackSpeedIcon");
-            mySkillDef.skillDescriptionToken = "MERC_SECONDARY_FALLINGLIGHT_DESCRIPTION";
-            mySkillDef.skillName = "MERC_SECONDARY_FALLINGLIGHT_NAME";
-            mySkillDef.skillNameToken = "MERC_SECONDARY_FALLINGLIGHT_NAME";
+            //mySkillDef.icon = SurvivorSkillLocator.special.skillDef.icon;
+            mySkillDef.skillName = TokenPrefix+"_SPECIAL";
+            mySkillDef.skillNameToken = $"{mySkillDef.skillName}_NAME";
+            mySkillDef.skillDescriptionToken = $"{mySkillDef.skillName}_DESC";
+            (mySkillDef as ScriptableObject).name = mySkillDef.skillName;
+            mySkillDef.keywordTokens = new string[]{};
+            specialSkillDefs.Add(mySkillDef);
+            base.SetupSpecial();
+        }
 
-            LoadoutAPI.AddSkillDef(mySkillDef);
+        public class DCPeace_Module : MonoBehaviour, IOnTakeDamageServerReceiver
+        {
+            public CharacterBody owner;
 
-            var skillLocator = myCharacter.GetComponent<SkillLocator>();
-
-            var skillFamily = skillLocator.secondary.skillFamily;
-
-            Array.Resize(ref skillFamily.variants, skillFamily.variants.Length + 1);
-            skillFamily.variants[skillFamily.variants.Length - 1] = new SkillFamily.Variant
+            public void OnTakeDamageServer(DamageReport damageReport)
             {
-                skillDef = mySkillDef,
-                unlockableDef = null,
-                viewableNode = new ViewablesCatalog.Node(mySkillDef.skillNameToken, false, null)
-            };
+                if (damageReport.attackerBody)
+                {
+                    TeleportHelper.TeleportBody(owner, damageReport.attackerBody.footPosition);
+                    owner.skillLocator.primary.ExecuteIfReady();
+                    owner.RemoveBuff(Buffs.mercPeaceBuff);
+                    Destroy(this);
+                }
+            }
+        }
+        public class DCMercEchoComponent : MonoBehaviour
+        {
+            public CharacterBody owner;
+            private Vector3 positionOfLastSlash;
+            private string slashSound;
+            public bool canSlash = false;
+
+            public void ConsumeSlash()
+            {
+                if (!canSlash) return;
+                BlastAttack fakeAttack = new BlastAttack()
+                {
+                    attacker = owner.gameObject,
+                    inflictor = owner.gameObject,
+                    procCoefficient = 0f,
+                    procChainMask = default,
+                    //impactEffect = null,
+                    losType = BlastAttack.LoSType.None,
+                    damageType = DamageType.ApplyMercExpose,
+                    baseForce = 0,
+                    baseDamage = 0f,
+                    falloffModel = BlastAttack.FalloffModel.None,
+                    radius = 10f,
+                    position = positionOfLastSlash,
+                    attackerFiltering = AttackerFiltering.Default,
+                    teamIndex = owner.teamComponent.teamIndex,
+                    //crit = 
+                };
+                var result = fakeAttack.Fire();
+
+			    Util.PlaySound(slashSound, owner.gameObject);
+                canSlash = false;
+            }
+
+            public void Track(Vector3 position, string slashSound)
+            {
+                positionOfLastSlash = position;
+                this.slashSound = slashSound;
+                canSlash = true;
+            }
+        }
+
+        //based of huntress's
+        public class DCMercSkillDef : SkillDef
+        {
+            public override BaseSkillInstanceData OnAssigned([NotNull] GenericSkill skillSlot)
+            {
+                return new DCMercSkillDef.InstanceData
+                {
+                    echoComponent = skillSlot.GetComponent<DCMercEchoComponent>()
+                };
+            }
+
+            private static bool CanSlash([NotNull] GenericSkill skillSlot)
+            {
+                DCMercEchoComponent echoComponent = ((DCMercSkillDef.InstanceData)skillSlot.skillInstanceData).echoComponent;
+                return (echoComponent != null) ? echoComponent.canSlash : false;
+            }
+
+            public override bool CanExecute([NotNull] GenericSkill skillSlot)
+            {
+			    return DCMercSkillDef.CanSlash(skillSlot) && base.CanExecute(skillSlot);
+            }
+            
+            protected class InstanceData : SkillDef.BaseSkillInstanceData
+            {
+                public DCMercEchoComponent echoComponent;
+            }
         }
     }
 }
