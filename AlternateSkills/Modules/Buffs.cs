@@ -21,6 +21,7 @@ namespace AlternateSkills.Modules
         public static BuffDef crocoRemotePoisonDebuff = null;
         public static BuffDef captainAgilityBuff = null;
         public static BuffDef commandoSquadronBuff;
+        public static BuffDef commandoReinforcingVisualBuff;
 
         internal static List<BuffDef> buffDefs = new List<BuffDef>();
 
@@ -33,7 +34,7 @@ namespace AlternateSkills.Modules
             crocoRemotePoisonDebuff = AddNewBuff("Infectious Gouge", null, Color.green, false, true);
             captainAgilityBuff = AddNewBuff("Agile Treads", null, Color.green, false, false);
             commandoSquadronBuff = AddNewBuff("Squadron", null, Color.yellow, false, false);
-            
+            commandoReinforcingVisualBuff = AddNewBuff("Reinforcing Ally!", null, Color.blue, true, false, true);
             
             //tacticAllyBuff = AddNewBuff("Tactics: Ally", Resources.Load<Sprite>("Textures/BuffIcons/texBuffGenericShield"), Color.blue, true, false);
             //tacticEnemyBuff = AddNewBuff("Tactics: Enemy", Resources.Load<Sprite>("Textures/BuffIcons/texBuffGenericShield"), Color.red, true, false);
@@ -47,7 +48,7 @@ namespace AlternateSkills.Modules
         }
 
         // simple helper method
-        internal static BuffDef AddNewBuff(string buffName, Sprite buffIcon, Color buffColor, bool canStack, bool isDebuff)
+        internal static BuffDef AddNewBuff(string buffName, Sprite buffIcon, Color buffColor, bool canStack, bool isDebuff, bool isCooldown = false)
         {
             BuffDef buffDef = ScriptableObject.CreateInstance<BuffDef>();
             buffDef.name = buffName;
@@ -56,7 +57,7 @@ namespace AlternateSkills.Modules
             buffDef.isDebuff = isDebuff;
             buffDef.eliteDef = null;
             buffDef.iconSprite = buffIcon;
-            buffDef.isCooldown = false;
+            buffDef.isCooldown = isCooldown;
             buffDef.isHidden = false;
             R2API.ContentAddition.AddBuffDef(buffDef);
 
