@@ -93,6 +93,7 @@ namespace AlternateSkills.Commando
             SurvivorSkillLocator.passiveSkill.skillDescriptionToken = TokenPrefix+"_PASSIVE_DESC";
             BodyPrefab.AddComponent<CommandoSquadController>().owner = BodyPrefab.GetComponent<CharacterBody>();
             BodyPrefab.AddComponent<CommandoReinforcementComponent>().casterBody = BodyPrefab.GetComponent<CharacterBody>();
+            BodyPrefab.AddComponent<AllyTracker>();
             base.SetupPassive();
         }
         
@@ -124,7 +125,7 @@ namespace AlternateSkills.Commando
 
         public override void SetupSpecial()
         {
-            var mySkillDef = ScriptableObject.CreateInstance<SkillDef>();
+            var mySkillDef = ScriptableObject.CreateInstance<AllyTrackingSkillDef>();
             mySkillDef.activationState = new SerializableEntityStateType(typeof(ESReinforcement));
             mySkillDef.activationStateMachineName = "Weapon";
             mySkillDef.baseMaxStock = 1;
@@ -144,7 +145,7 @@ namespace AlternateSkills.Commando
             mySkillDef.skillDescriptionToken = $"{mySkillDef.skillName}_DESC";
             (mySkillDef as ScriptableObject).name = mySkillDef.skillName;
             mySkillDef.keywordTokens = new string[]{};
-            utilitySkillDefs.Add(mySkillDef);
+            specialSkillDefs.Add(mySkillDef);
             base.SetupSpecial();
         }
     }
@@ -224,14 +225,17 @@ namespace AlternateSkills.Commando
         {
             if (targetedBodies.Count == 0)
                 return;
-            
+            if (bulletAttack.HasModdedDamageType(DamageTypes.DTCommandoReinforcedBullet))
+                return;
             var attackCopy = CopyBulletAttack(bulletAttack);
+            attackCopy.AddModdedDamageType(DamageTypes.DTCommandoReinforcedBullet);
             foreach (var target in targetedBodies)
             {
                 if (!target)
                     continue;
+                attackCopy.weapon = target.gameObject;
                 attackCopy.origin = target.corePosition;
-                bulletAttack.Fire();
+                attackCopy.Fire();
             }
         }
     }
