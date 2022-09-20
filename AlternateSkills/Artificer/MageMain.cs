@@ -21,22 +21,16 @@ namespace AlternateSkills.Mage
         public override string CharacterName => "Mage";
         public string TokenPrefix = "DCALTSKILLS_MAGE";
 
+
         public override void Hooks()
         {
             base.Hooks();
-            
-            CharacterBody.onBodyStartGlobal += MageComponents;
+            SetupBody();
         }
-        
-        public void MageComponents(CharacterBody self)
+
+        public void SetupBody()
         {
-            if (self.bodyIndex == BodyIndex)
-            {
-                //self.gameObject.AddComponent<MageAspectShareComponent>().owner = self;
-                
-                var prefab = RoR2Content.Survivors.Huntress.bodyPrefab;
-                var copy = self.gameObject.AddComponent<HuntressTracker>();
-            }
+            BodyPrefab.AddComponent<HuntressTracker>();
         }
 
         public class MageAspectShareComponent : MonoBehaviour
