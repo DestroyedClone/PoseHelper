@@ -21,6 +21,11 @@ namespace AlternateSkills.Acrid
         public override string CharacterName => "Croco";
         public string TokenPrefix = "DCALTSKILLS_CROCO";
 
+        public override void Init(ConfigFile config)
+        {
+            return;
+        }
+
         public override void Hooks()
         {
             base.Hooks();
@@ -108,7 +113,7 @@ namespace AlternateSkills.Acrid
         {
             var mySkillDef = ScriptableObject.CreateInstance<SkillDef>();
             mySkillDef.activationState = new SerializableEntityStateType(typeof(ESBite));
-            mySkillDef.activationStateMachineName = "Weapon";
+            mySkillDef.activationStateMachineName = "Mouth";
             mySkillDef.baseMaxStock = 1;
             mySkillDef.baseRechargeInterval = 0;
             mySkillDef.beginSkillCooldownOnSkillEnd = true;
@@ -133,8 +138,8 @@ namespace AlternateSkills.Acrid
         public override void SetupSecondary()
         {
             var mySkillDef = ScriptableObject.CreateInstance<SkillDef>();
-            mySkillDef.activationState = new SerializableEntityStateType(typeof(ESBite));
-            mySkillDef.activationStateMachineName = "Weapon";
+            mySkillDef.activationState = new SerializableEntityStateType(typeof(ESFang));
+            mySkillDef.activationStateMachineName = "Mouth";
             mySkillDef.baseMaxStock = 1;
             mySkillDef.baseRechargeInterval = 5;
             mySkillDef.beginSkillCooldownOnSkillEnd = true;
@@ -159,7 +164,7 @@ namespace AlternateSkills.Acrid
         public override void SetupUtility()
         {
             var mySkillDef = ScriptableObject.CreateInstance<SkillDef>();
-            mySkillDef.activationState = new SerializableEntityStateType(typeof(ESBite));
+            mySkillDef.activationState = new SerializableEntityStateType(typeof(ESKickOff));
             mySkillDef.activationStateMachineName = "Weapon";
             mySkillDef.baseMaxStock = 1;
             mySkillDef.baseRechargeInterval = 8;

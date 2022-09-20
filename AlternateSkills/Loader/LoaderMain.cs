@@ -20,6 +20,11 @@ namespace AlternateSkills.Loader
     {
         public override string CharacterName => "Loader";
         public string TokenPrefix = "DCALTSKILLS_LOADER";
+
+        public override void Init(ConfigFile config)
+        {
+            return;
+        }
         public override void SetupUtility()
         {
             var mySkillDef = ScriptableObject.CreateInstance<HuntressTrackingSkillDef>();

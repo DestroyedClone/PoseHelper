@@ -11,8 +11,7 @@ namespace AlternateSkills.Bandit2
 
         public override void Init(ConfigFile config)
         {
-            base.Init(config);
-            SetupBandit2Body();
+            return;
         }
 
         public void SetupBandit2Body()
@@ -32,9 +31,11 @@ namespace AlternateSkills.Bandit2
 
         public void RandomizeBanditDamage(On.RoR2.HealthComponent.orig_TakeDamage orig, HealthComponent self, DamageInfo damageInfo)
         {
-            if (damageInfo.attacker?.GetComponent<CharacterBody>()?.bodyIndex == BodyIndex)
+            if (damageInfo?.attacker?.GetComponent<CharacterBody>()?.bodyIndex == BodyIndex)
             {
-                damageInfo.damage *= + (UnityEngine.Random.Range(-damageRange, damageRange));
+                var oldDamage = damageInfo.damage;
+                damageInfo.damage *= 1 + (UnityEngine.Random.Range(-damageRange, damageRange));
+                MainPlugin._logger.LogMessage($"Bandit damage change: {oldDamage} -> {damageInfo.damage}");
             }
             orig(self, damageInfo);
         }
