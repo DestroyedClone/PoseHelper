@@ -33,7 +33,7 @@ namespace AlternateSkills.Captain
             if (sender.HasBuff(Buffs.captainAgilityBuff))
             {
                 args.moveSpeedMultAdd += 0.5f;
-                args.jumpPowerMultAdd = 0;
+                args.jumpPowerMultAdd = -1;
             }
         }
 
@@ -76,6 +76,7 @@ namespace AlternateSkills.Captain
 
         public override void SetupSecondary()
         {
+            return;
             var mySkillDef = ScriptableObject.CreateInstance<SkillDef>();
             mySkillDef.activationState = new SerializableEntityStateType(typeof(ESExciteTarget));
             mySkillDef.activationStateMachineName = "Weapon";

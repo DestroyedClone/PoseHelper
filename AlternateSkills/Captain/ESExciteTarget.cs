@@ -37,6 +37,11 @@ namespace AlternateSkills.Captain
 			this.duration = this.baseDuration / this.attackSpeedStat;
 			base.characterBody.SetAimTimer(this.duration + 2f);
 			base.PlayAnimation("Gesture, Additive", "PrepWall", "PrepWall.playbackRate", this.duration);
+            if (!huntressTracker)
+            {
+                MainPlugin._logger.LogWarning("No tracker found for body.");
+                OnExit();
+            }
         }
 
         public override void OnExit()
