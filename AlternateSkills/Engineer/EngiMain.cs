@@ -18,11 +18,24 @@ namespace AlternateSkills.Engi
     {
         public override string CharacterName => "Engi";
         public string TokenPrefix = "DCALTSKILLS_ENGI";
+        public static DeployableSlot DeployableSlot_MechanicalClone;
+        public static int DeployableSlot_MechanicalClone_MaxCount = 1;
+
+        public override void Init(ConfigFile config)
+        {
+            base.Init(config);
+            SetupDeployableSlots();
+        }
+
+        public void SetupDeployableSlots()
+        {
+            BodyPrefab.AddComponent<AllyTracker>();
+            DeployableSlot_MechanicalClone = DeployableAPI.RegisterDeployableSlot((master, multiplier) => DeployableSlot_MechanicalClone_MaxCount);
+        }
 
         public override void SetupSpecial()
         {
-            return;
-            var mySkillDef = ScriptableObject.CreateInstance<SkillDef>();
+            var mySkillDef = ScriptableObject.CreateInstance<AllyTrackingSkillDef>();
             mySkillDef.activationState = new SerializableEntityStateType(typeof(ESCreateClone));
             mySkillDef.activationStateMachineName = "Weapon";
             mySkillDef.baseMaxStock = 1;
@@ -42,7 +55,7 @@ namespace AlternateSkills.Engi
             mySkillDef.skillDescriptionToken = $"{mySkillDef.skillName}_DESC";
             (mySkillDef as ScriptableObject).name = mySkillDef.skillName;
             mySkillDef.keywordTokens = new string[]{};
-            utilitySkillDefs.Add(mySkillDef);
+            specialSkillDefs.Add(mySkillDef);
             base.SetupSpecial();
         }
     }
