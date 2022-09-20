@@ -19,15 +19,15 @@ namespace AlternateSkills.Mage
     {
 
 		[SerializeField]
-		public float baseDuration;
+		public float baseDuration = 1;
 		private float duration;
 
 		private HurtBox initialOrbTarget;
 
 		private HuntressTracker huntressTracker;
 
-        float sharedBuffDuration = 10;
-        float sharedDebuffDuration = 10;
+        float sharedBuffDuration = 15;
+        float sharedDebuffDuration = 15;
 
         public override void OnEnter()
         {
@@ -57,11 +57,13 @@ namespace AlternateSkills.Mage
 
             foreach (var sin in ownerDebuffs)
             {
-                targetBody.AddTimedBuff(sin, sharedDebuffDuration);
+                if (!sin.isCooldown)
+                    targetBody.AddTimedBuff(sin, sharedDebuffDuration);
             }
             foreach (var bless in enemyBuffs)
             {
-                characterBody.AddTimedBuff(bless, sharedBuffDuration);
+                if (!bless.isCooldown)
+                    characterBody.AddTimedBuff(bless, sharedBuffDuration);
             }
         }
 
