@@ -31,17 +31,18 @@ namespace AlternatePods
     [R2APISubmoduleDependency(nameof(PrefabAPI),
     nameof(LoadoutAPI))]
     #region Compats
-    [BepInDependency("com.TeamMoonstorm.Starstorm2", BepInDependency.DependencyFlags.SoftDependency)]
-    [BepInDependency("com.EnforcerGang.Enforcer", BepInDependency.DependencyFlags.SoftDependency)]
-    [BepInDependency("com.rob.DiggerUnearthed", BepInDependency.DependencyFlags.SoftDependency)]
-    [BepInDependency("com.rob.RegigigasMod", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("com.Gnome.ChefMod", BepInDependency.DependencyFlags.SoftDependency)]
-    [BepInDependency("com.TheTimeSweeper.TeslaTrooper", BepInDependency.DependencyFlags.SoftDependency)]
-    [BepInDependency("com.rob.Paladin", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("com.EnforcerGang.Enforcer", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("com.Moffein.HAND_Overclocked", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("com.rob.DiggerUnearthed", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("com.rob.Paladin", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("com.Moffein.SniperClassic", BepInDependency.DependencyFlags.SoftDependency)]
+
+    [BepInDependency("com.TeamMoonstorm.Starstorm2", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("com.rob.RegigigasMod", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("com.TheTimeSweeper.TeslaTrooper", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("com.rob.HenryMod", BepInDependency.DependencyFlags.SoftDependency)]
-    //[BepInDependency("", BepInDependency.DependencyFlags.SoftDependency)]
-    //[BepInDependency("", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("com.rob.DiggerUnearthed", BepInDependency.DependencyFlags.SoftDependency)]
     //[BepInDependency("", BepInDependency.DependencyFlags.SoftDependency)]
     //[BepInDependency("", BepInDependency.DependencyFlags.SoftDependency)]
 
@@ -111,17 +112,17 @@ namespace AlternatePods
                 if (pointer && pointer.podmodGenericSkill)
                 {
                     var podName = pointer.podmodGenericSkill.skillDef.skillName;
-                    _logger.LogMessage($"User has pointer, skillName: {podName}");
+                    //_logger.LogMessage($"User has pointer, skillName: {podName}");
                     if (podName == "PODMOD_SHARED_NOPOD")
                     {
-                        _logger.LogMessage("Podname is nopod, not replacing.");
+                        //_logger.LogMessage("Podname is nopod, not replacing.");
                     }
                     else {
                         var podPrefab = podName_to_podPrefab.TryGetValue(podName, out GameObject requestedPodPrefab);
                         //var podPrefab = skillDef_to_gameObject()
                         if (podPrefab)
                         {
-                            Logger.LogMessage("Replacing generic pod with "+requestedPodPrefab.name);
+                            //Logger.LogMessage("Replacing generic pod with "+requestedPodPrefab.name);
                             body.preferredPodPrefab = requestedPodPrefab;
                         } else {
                             _logger.LogWarning("Couldn't find podprefab for chosen pod name!");
