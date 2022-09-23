@@ -7,10 +7,10 @@ using UnityEngine.AddressableAssets;
 
 namespace AlternatePods
 {
-    public class CrocoMain : PodModCharBase
+    public class TreebotMain : PodModCharBase
     {
         public override GameObject bodyPrefab => 
-            Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Croco/CrocoBody.prefab").WaitForCompletion();
+            Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Treebot/TreebotBody.prefab").WaitForCompletion();
         public override void AddPodsToPodChar()
         {
             podBases.Add(new PaintJob());
