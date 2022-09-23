@@ -22,5 +22,10 @@ namespace AlternatePods
         public static bool tf2SoldierInstalled = false;
         public static bool tf2MedicInstalled = false;
         //
+
+        public static void SetupModCompat()
+        {
+            
+        }
     }
 }

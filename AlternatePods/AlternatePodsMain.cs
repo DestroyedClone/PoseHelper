@@ -11,6 +11,9 @@ using System.Security.Permissions;
 using UnityEngine;
 using BepInEx.Configuration;
 using UnityEngine.AddressableAssets;
+using RoR2.Skills;
+using System.Text;
+
 //dotnet build --configuration Release
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -25,38 +28,78 @@ namespace AlternatePods
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     //[BepInDependency("com.TeamMoonstorm.Starstorm2", BepInDependency.DependencyFlags.SoftDependency)]
     [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.DifferentModVersionsAreOk)]
-    [R2APISubmoduleDependency(nameof(PrefabAPI))]
+    [R2APISubmoduleDependency(nameof(PrefabAPI),
+    nameof(LoadoutAPI))]
+    #region Compats
+    [BepInDependency("com.TeamMoonstorm.Starstorm2", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("com.EnforcerGang.Enforcer", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("com.rob.DiggerUnearthed", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("com.rob.RegigigasMod", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("com.Gnome.ChefMod", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("com.TheTimeSweeper.TeslaTrooper", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("com.rob.Paladin", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("com.Moffein.HAND_Overclocked", BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency("com.rob.HenryMod", BepInDependency.DependencyFlags.SoftDependency)]
+    //[BepInDependency("", BepInDependency.DependencyFlags.SoftDependency)]
+    //[BepInDependency("", BepInDependency.DependencyFlags.SoftDependency)]
+    //[BepInDependency("", BepInDependency.DependencyFlags.SoftDependency)]
+    //[BepInDependency("", BepInDependency.DependencyFlags.SoftDependency)]
+
+    #endregion
     public class AlternatePodsPlugin : BaseUnityPlugin
     {
         internal static BepInEx.Logging.ManualLogSource _logger;
         internal static ConfigFile _config;
         public static AlternatePodsPlugin instance;
         
-        public static event Action<VehicleSeat, GameObject> onPodLandedServer;
-        public static event Action<VehicleSeat, GameObject> onRoboPodLandedServer;
-
-        public static GameObject genericPodPrefab;
-        public static GameObject roboCratePodPrefab;
+        //public static event Action<VehicleSeat, GameObject> onPodLandedServer;
+        //public static event Action<VehicleSeat, GameObject> onRoboPodLandedServer;
 
         public static Dictionary<string,GameObject> podName_to_podPrefab = new Dictionary<string, GameObject>();
+
+        public static Dictionary<SkillDef,GameObject> skillDef_to_gameObject = new Dictionary<SkillDef, GameObject>();
 
         private void Start() {
             _logger = Logger;
             _config = Config;
             instance = this;
-            roboCratePodPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Toolbot/RoboCratePod.prefab").WaitForCompletion();
-            genericPodPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/SurvivorPod/SurvivorPod.prefab").WaitForCompletion();
+            Assets.SetupAssets();
+            ModCompat.SetupModCompat();
 
+            //CommandoACTUALDRAFTMain.Init();
             On.RoR2.Run.HandlePlayerFirstEntryAnimation += ReassignPodPrefab;
             //
             //
-            new CommandoMain().Init(_config);
-            
+            AssemblySetup();
+            OutputAvailablePods();
         }
 
-        public GameObject LoadPod(bool isRoboPod)
+        public void OutputAvailablePods()
         {
-            //return isRoboPod ? 
+            StringBuilder stringBuilder = new StringBuilder();
+                stringBuilder.Append($"Available Pods:");
+                int i = 0;
+            foreach (var pair in podName_to_podPrefab)
+            {
+                stringBuilder.AppendLine($"[{i++}] {pair.Key} - {pair.Value}");
+            }
+            _logger.LogMessage(stringBuilder.ToString());
+        }
+
+        public void AssemblySetup() //credit to bubbet for base code
+        {
+            var survivorMainType = typeof(PodModCharBase);
+            foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
+            {
+                if (!type.IsAbstract)
+                {
+                    if (survivorMainType.IsAssignableFrom(type))
+                    {
+                        var objectInitializer = (PodModCharBase)Activator.CreateInstance(type);
+                        objectInitializer.Init();
+                    }
+                }
+            }
         }
 
         public void ReassignPodPrefab(On.RoR2.Run.orig_HandlePlayerFirstEntryAnimation orig, Run self, CharacterBody body, Vector3 spawnPosition, Quaternion spawnRotation)
@@ -67,11 +110,22 @@ namespace AlternatePods
                 var pointer = body.GetComponent<PodModGenericSkillPointer>();
                 if (pointer && pointer.podmodGenericSkill)
                 {
-                    var podName = pointer.podmodGenericSkill.skillName;
-                    var podPrefab = podName_to_podPrefab.TryGetValue(podName, out GameObject requestedPodPrefab);
-                    if (podPrefab)
+                    var podName = pointer.podmodGenericSkill.skillDef.skillName;
+                    _logger.LogMessage($"User has pointer, skillName: {podName}");
+                    if (podName == "PODMOD_SHARED_NOPOD")
                     {
-                        body.preferredPodPrefab = requestedPodPrefab;
+                        _logger.LogMessage("Podname is nopod, not replacing.");
+                    }
+                    else {
+                        var podPrefab = podName_to_podPrefab.TryGetValue(podName, out GameObject requestedPodPrefab);
+                        //var podPrefab = skillDef_to_gameObject()
+                        if (podPrefab)
+                        {
+                            Logger.LogMessage("Replacing generic pod with "+requestedPodPrefab.name);
+                            body.preferredPodPrefab = requestedPodPrefab;
+                        } else {
+                            _logger.LogWarning("Couldn't find podprefab for chosen pod name!");
+                        }
                     }
                 }
             }
@@ -103,16 +157,5 @@ namespace AlternatePods
             return false;
         }
 
-    }
-    public class Assets
-    {
-        //Prefabs
-        public static GameObject genericPodPrefab;
-        public static GameObject roboCratePodPrefab;
-        public static GameObject batteryQuestPrefab;
-    }
-    public class ModCompat
-    {
-        public static bool starstormInstalled = false;
     }
 }
