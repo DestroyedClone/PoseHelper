@@ -14,12 +14,31 @@ namespace AlternatePods
         public abstract GameObject bodyPrefab { get; }
         public virtual GenericSkill podSlot { get; private set;}
         public virtual List<PodModPodBase> podBases { get; set; } = new List<PodModPodBase>();
-
+        public virtual string modGUID { get; set; }
+        public virtual bool isMonster { get; set; } = false;
         public virtual void Init()
         {
+            if (!ShouldLoadCharacter())
+            {
+                return;
+            }
             SetupPodSlot();
             AddPodsToPodChar();
             RegisterPods();
+        }
+
+        public bool ShouldLoadCharacter()
+        {
+            if (modGUID.Length > 0)
+            {
+                // have it point towards ModCompat.bools?
+                return BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey(modGUID);
+            }
+            if (isMonster)
+            {
+                return AlternatePodsPlugin.cfgAddMonsterPods.Value;
+            }
+            return true;
         }
 
         public virtual void AddPodsToPodChar()
