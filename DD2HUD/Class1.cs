@@ -27,10 +27,6 @@ namespace DD2HUD
     {
         public static Dictionary<BodyIndex[], string> bodyIndices_to_teamName = new Dictionary<BodyIndex[], string>();
 
-        public static bool compat_LobbyAppearanceImprovements = false;
-
-        public static ConfigEntry<bool> cfgModifyCharacterPosition;
-
         private readonly bool DEBUG_addfakenetworkusers = false;
 
         public void Start()
@@ -41,7 +37,7 @@ namespace DD2HUD
                 DD2LobbySetupComponent.debug = DEBUG_addfakenetworkusers;
             }
             SetupConfig();
-            CheckModCompat();
+            ModCompatibility.CheckModCompatibility();
             On.RoR2.UI.CharacterSelectController.Start += CharacterSelectController_Start;
             On.RoR2.UI.CharacterSelectController.SelectSurvivor += CharacterSelectController_SelectSurvivor;
             if (DEBUG_addfakenetworkusers)
@@ -56,13 +52,6 @@ namespace DD2HUD
             cfgModifyCharacterPosition = Config.Bind("", "Modify Character Display Positions", true, "If true, then the character positions will be modified in the lobby.");
         }
 
-        public void CheckModCompat()
-        {
-            if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("com.DestroyedClone.LobbyAppearanceImprovements"))
-            {
-                compat_LobbyAppearanceImprovements = true;
-            }
-        }
 
         private void CharacterSelectController_Start(On.RoR2.UI.CharacterSelectController.orig_Start orig, RoR2.UI.CharacterSelectController self)
         {
@@ -442,5 +431,23 @@ namespace DD2HUD
                 UpdateTeamText(GetTeamName2(survivorIndex));
             }
         }
+    }
+
+    public class ModCompatibility
+    {
+        public static bool compat_LobbyAppearanceImprovements = false;
+
+        public static void CheckModCompatibility()
+        {
+            if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey("com.DestroyedClone.LobbyAppearanceImprovements"))
+            {
+                compat_LobbyAppearanceImprovements = true;
+            }
+        }
+    }
+
+    public static class Config
+    {
+        public static ConfigEntry<bool> cfgModifyCharacterPosition;
     }
 }
