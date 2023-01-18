@@ -1,18 +1,15 @@
 using BepInEx;
-using R2API;
+using BepInEx.Configuration;
 using R2API.Utils;
 using RoR2;
+using RoR2.Skills;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Security;
 using System.Security.Permissions;
-using UnityEngine;
-using BepInEx.Configuration;
-using UnityEngine.AddressableAssets;
-using RoR2.Skills;
 using System.Text;
+using UnityEngine;
 
 //dotnet build --configuration Release
 [module: UnverifiableCode]
@@ -28,42 +25,46 @@ namespace AlternatePods
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     //[BepInDependency("com.TeamMoonstorm.Starstorm2", BepInDependency.DependencyFlags.SoftDependency)]
     [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.DifferentModVersionsAreOk)]
-    [R2APISubmoduleDependency(nameof(PrefabAPI),
-    nameof(LoadoutAPI))]
+
     #region Compats
+
     [BepInDependency("com.Gnome.ChefMod", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("com.EnforcerGang.Enforcer", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("com.Moffein.HAND_Overclocked", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("com.rob.DiggerUnearthed", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("com.rob.Paladin", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("com.Moffein.SniperClassic", BepInDependency.DependencyFlags.SoftDependency)]
-
     [BepInDependency("com.TeamMoonstorm.Starstorm2", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("com.rob.RegigigasMod", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("com.TheTimeSweeper.TeslaTrooper", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("com.rob.HenryMod", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("com.rob.DiggerUnearthed", BepInDependency.DependencyFlags.SoftDependency)]
-    //[BepInDependency("", BepInDependency.DependencyFlags.SoftDependency)]
-    //[BepInDependency("", BepInDependency.DependencyFlags.SoftDependency)]
-
-    #endregion
     public class AlternatePodsPlugin : BaseUnityPlugin
     {
         internal static BepInEx.Logging.ManualLogSource _logger;
         internal static ConfigFile _config;
+
+        //wait, why the fuck am I instancing?
         public static AlternatePodsPlugin instance;
-        
+
         //public static event Action<VehicleSeat, GameObject> onPodLandedServer;
         //public static event Action<VehicleSeat, GameObject> onRoboPodLandedServer;
 
-        public static Dictionary<string,GameObject> podName_to_podPrefab = new Dictionary<string, GameObject>();
+        public static Dictionary<string, GameObject> podName_to_podPrefab = new Dictionary<string, GameObject>();
 
-        public static Dictionary<SkillDef,GameObject> skillDef_to_gameObject = new Dictionary<SkillDef, GameObject>();
+        public static Dictionary<SkillDef, GameObject> skillDef_to_gameObject = new Dictionary<SkillDef, GameObject>();
 
-        private void Start() {
+        public static ConfigEntry<bool> cfgAddMonsterPods;
+        public static ConfigEntry<bool> cfgListPodsOnStartup;
+        public static ConfigEntry<bool> cfgEnableAchievements;
+
+        private void Start()
+        {
             _logger = Logger;
             _config = Config;
             instance = this;
+            SetupConfig();
+
             Assets.SetupAssets();
             ModCompat.SetupModCompat();
 
@@ -72,14 +73,23 @@ namespace AlternatePods
             //
             //
             AssemblySetup();
-            OutputAvailablePods();
+            if (cfgListPodsOnStartup.Value)
+                OutputAvailablePods();
+        }
+
+        public static void SetupConfig()
+        {
+            cfgAddMonsterPods = _config.Bind("Survivor Pods", "Load Monster Pods", false, "If true, then any custom pods that are available for monsters will be loaded."
+            + "\nIf you don't have a way to play as a monster, you should disable this.");
+            cfgListPodsOnStartup = _config.Bind("Logging", "List Available Pods On Startup", true, "If true, the the mod will list the available custom survivor pods on startup.");
+            cfgEnableAchievements = _config.Bind("Achievements", "Enable Achievements", true, "If true, then unlock conditions for pods will be activated.");
         }
 
         public void OutputAvailablePods()
         {
             StringBuilder stringBuilder = new StringBuilder();
-                stringBuilder.Append($"Available Pods:");
-                int i = 0;
+            stringBuilder.Append($"Available Pods:");
+            int i = 0;
             foreach (var pair in podName_to_podPrefab)
             {
                 stringBuilder.AppendLine($"[{i++}] {pair.Key} - {pair.Value}");
@@ -117,14 +127,17 @@ namespace AlternatePods
                     {
                         //_logger.LogMessage("Podname is nopod, not replacing.");
                     }
-                    else {
+                    else
+                    {
                         var podPrefab = podName_to_podPrefab.TryGetValue(podName, out GameObject requestedPodPrefab);
                         //var podPrefab = skillDef_to_gameObject()
                         if (podPrefab)
                         {
                             //Logger.LogMessage("Replacing generic pod with "+requestedPodPrefab.name);
                             body.preferredPodPrefab = requestedPodPrefab;
-                        } else {
+                        }
+                        else
+                        {
                             _logger.LogWarning("Couldn't find podprefab for chosen pod name!");
                         }
                     }
@@ -157,6 +170,5 @@ namespace AlternatePods
             }
             return false;
         }
-
     }
 }

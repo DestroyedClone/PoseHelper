@@ -1,12 +1,6 @@
 ﻿using BepInEx.Configuration;
-using R2API;
-using RoR2;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using UnityEngine;
 using RoR2.Skills;
-using EntityStates;
+using UnityEngine;
 
 namespace AlternatePods
 {
@@ -14,6 +8,7 @@ namespace AlternatePods
     {
         public abstract string BodyName { get; }
         public abstract string PodName { get; }
+
         public virtual string ConfigCategory
         {
             get
@@ -21,6 +16,7 @@ namespace AlternatePods
                 return "Pod: " + BodyName;
             }
         }
+
         public virtual string PodPrefabName
         {
             get
@@ -28,8 +24,9 @@ namespace AlternatePods
                 return BodyName + PodName + "PodPrefab";
             }
         }
-        public virtual string TokenPrefix {get; set;}
-        public virtual SkillDef Skill {get; set;}
+
+        public virtual string TokenPrefix { get; set; }
+        public virtual SkillDef Skill { get; set; }
 
         public virtual void CreateTokenPrefix()
         {
@@ -42,6 +39,7 @@ namespace AlternatePods
             CreateTokenPrefix();
             Skill = CreateSkillDef();
         }
+
         public virtual void SetupConfig(ConfigFile config)
         {
         }
@@ -55,7 +53,7 @@ namespace AlternatePods
             mySkillDef.skillNameToken = $"{TokenPrefix}_NAME";
             mySkillDef.skillDescriptionToken = $"{TokenPrefix}_DESC";
             (mySkillDef as ScriptableObject).name = mySkillDef.skillName;
-            mySkillDef.keywordTokens = new string[]{};
+            mySkillDef.keywordTokens = new string[] { };
             return mySkillDef;
         }
 
@@ -64,9 +62,16 @@ namespace AlternatePods
             AlternatePodsPlugin._logger.LogWarning($"PodBase found for {BodyName} but no modifications were done to it! Assigning Robocrate.");
             return null;
         }
-        
+
         public void GetMeshComponents(GameObject podPrefabInstance, out MeshFilter meshFilter, out MeshRenderer meshRenderer)
         {
+            if (!podPrefabInstance)
+            {
+                AlternatePodsPlugin._logger.LogError("A pod was requested to be created, but its prefab is null!");
+                meshFilter = null;
+                meshRenderer = null;
+                return;
+            }
             var podObj = podPrefabInstance.transform.Find("Base/mdlEscapePod/EscapePodArmature/EscapePodMesh");
             meshFilter = podObj.GetComponent<MeshFilter>();
             meshRenderer = podObj.GetComponent<MeshRenderer>();
@@ -74,7 +79,6 @@ namespace AlternatePods
 
         public void CreatePaintJob(Material material)
         {
-            
         }
     }
 }

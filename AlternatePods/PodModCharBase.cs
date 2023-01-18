@@ -1,21 +1,20 @@
-using BepInEx.Configuration;
 using R2API;
 using RoR2;
+using RoR2.Skills;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using UnityEngine;
-using RoR2.Skills;
 
 namespace AlternatePods
 {
     public abstract class PodModCharBase
     {
         public abstract GameObject bodyPrefab { get; }
-        public virtual GenericSkill podSlot { get; private set;}
+        public virtual GenericSkill podSlot { get; private set; }
         public virtual List<PodModPodBase> podBases { get; set; } = new List<PodModPodBase>();
-        public virtual string modGUID { get; set; }
+        public virtual string modGUID { get; set; } = "";
         public virtual bool isMonster { get; set; } = false;
+
         public virtual void Init()
         {
             if (!ShouldLoadCharacter())
@@ -29,16 +28,17 @@ namespace AlternatePods
 
         public bool ShouldLoadCharacter()
         {
-            if (modGUID.Length > 0)
+            bool shouldLoad = true;
+            if (modGUID != null && modGUID.Length > 0)
             {
                 // have it point towards ModCompat.bools?
-                return BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey(modGUID);
+                shouldLoad &= BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey(modGUID);
             }
             if (isMonster)
             {
-                return AlternatePodsPlugin.cfgAddMonsterPods.Value;
+                shouldLoad &= AlternatePodsPlugin.cfgAddMonsterPods.Value;
             }
-            return true;
+            return shouldLoad;
         }
 
         public virtual void AddPodsToPodChar()
@@ -53,7 +53,7 @@ namespace AlternatePods
             foreach (var pod in podBases)
             {
                 string skillDefName = $"PodMod_{bodyPrefab.name}+{pod.podName}";
-                var skillDef = CreateSkillDef(skillDefName, pod.podToken+"_NAME", pod.podToken+"_DESC");
+                var skillDef = CreateSkillDef(skillDefName, pod.podToken + "_NAME", pod.podToken + "_DESC");
                 AddSkillDef(podSlot.skillFamily, skillDef, pod.GetPodPrefab());
             }
         }
@@ -66,7 +66,7 @@ namespace AlternatePods
             //podSlot.skillName
             (podSlot.skillFamily as ScriptableObject).name = "PodModSkillFamily";
             //ContentAddition.AddSkillFamily(passiveSlot.skillFamily);
-            LoadoutAPI.AddSkillFamily(podSlot.skillFamily);
+            R2API.ContentAddition.AddSkillFamily(podSlot.skillFamily);
             podSlot.skillFamily.variants = new SkillFamily.Variant[1];
             podSlot.skillFamily.variants[0] = new SkillFamily.Variant
             {
@@ -76,7 +76,7 @@ namespace AlternatePods
             };
             bodyPrefab.AddComponent<AlternatePodsPlugin.PodModGenericSkillPointer>().podmodGenericSkill = podSlot;
         }
-        
+
         public void AddSkillDef(SkillFamily skillFamily, SkillDef skillDef, GameObject podPrefab)
         {
             Array.Resize(ref skillFamily.variants, skillFamily.variants.Length + 1);
@@ -97,18 +97,19 @@ namespace AlternatePods
                 podPrefab
             );
         }
+
         public static SkillDef CreateSkillDef(string skillName, string skillNameToken = null, string skillDescriptionToken = null)
         {
             var mySkillDef = ScriptableObject.CreateInstance<SkillDef>();
             //mySkillDef.activationState = null;
             //mySkillDef.icon = SurvivorSkillLocator.special.skillDef.icon;
             mySkillDef.skillName = skillName;
-            mySkillDef.skillNameToken = skillNameToken == null ? skillName+"_NAME" : skillNameToken;
-            mySkillDef.skillDescriptionToken = skillDescriptionToken == null ? skillName+"_DESC" : skillDescriptionToken;
+            mySkillDef.skillNameToken = skillNameToken == null ? skillName + "_NAME" : skillNameToken;
+            mySkillDef.skillDescriptionToken = skillDescriptionToken == null ? skillName + "_DESC" : skillDescriptionToken;
             (mySkillDef as ScriptableObject).name = skillName;
-            mySkillDef.keywordTokens = new string[]{};
+            mySkillDef.keywordTokens = new string[] { };
             //ContentAddition.AddSkillDef(mySkillDef);
-            LoadoutAPI.AddSkillDef(mySkillDef);
+            R2API.ContentAddition.AddSkillDef(mySkillDef);
             return mySkillDef;
         }
     }

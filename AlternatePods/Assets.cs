@@ -1,7 +1,6 @@
+using RoR2.Skills;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
-using RoR2.Skills;
-using R2API;
 
 namespace AlternatePods
 {
@@ -9,6 +8,7 @@ namespace AlternatePods
     {
         //Prefabs
         public static GameObject genericPodPrefab;
+
         public static GameObject roboCratePodPrefab;
         public static GameObject batteryQuestPrefab;
         public static SkillDef defaultSkillDef;
@@ -23,7 +23,7 @@ namespace AlternatePods
             defaultSkillDef.skillNameToken = "PODMOD_SHARED_DEFAULT_NAME";
             defaultSkillDef.skillDescriptionToken = "PODMOD_SHARED_DEFAULT_DESC";
             (defaultSkillDef as ScriptableObject).name = defaultSkillDef.skillName;
-            LoadoutAPI.AddSkillDef(defaultSkillDef);
+            R2API.ContentAddition.AddSkillDef(defaultSkillDef);
         }
     }
 }
