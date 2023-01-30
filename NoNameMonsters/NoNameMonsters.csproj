@@ -8,6 +8,10 @@
 	  <NullableContextOptions>disable</NullableContextOptions>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Remove="NNMPlugin.cs" />
+  </ItemGroup>
+
 
 	<ItemGroup>
 		<PackageReference Include="BepInEx.Analyzers" Version="1.0.*">
