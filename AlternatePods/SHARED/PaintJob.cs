@@ -11,7 +11,7 @@ namespace AlternatePods
     public class PaintJob : PodModPodBase
     {
         public override string podName => "PaintJob";
-        public override string podToken => "PODMOD_SHARED_DEFAULT";
+        public override string podToken => "PODMOD_SHARED_PAINTJOB";
         public override Texture2D icon => null;
 
         public override GameObject CreatePodPrefab()
@@ -50,7 +50,9 @@ namespace AlternatePods
                         var body = vehicleSeat.currentPassengerBody;
                         
                         var bodySkin = SkinCatalog.GetSkinDef((SkinIndex)body.skinIndex);
+                        //var bodyMat = body.modelLocator.modelTransform.GetComponent<ModelSkinController>().skins[body.skinIndex].meshReplacements[0].renderer.material;
                         var bodyMat = bodySkin.rendererInfos[0].defaultMaterial;
+                        materialToSet = bodyMat;
                     }
                 }
                 meshRenderer.SetMaterialArray(new Material[]{materialToSet});
