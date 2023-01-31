@@ -53,40 +53,40 @@ namespace AlternateSkills.Merc
         {
             orig(self);
             RollForAdrenaline(self.characterBody);
-            TrackEcho(self.characterBody);
+            TrackEcho(self.characterBody, "", self.damageCoefficient * self.damageStat);
         }
         public void MercAdrenPrimary(On.EntityStates.Merc.Weapon.GroundLight2.orig_OnMeleeHitAuthority orig, EntityStates.Merc.Weapon.GroundLight2 self)
         {
             orig(self);
             RollForAdrenaline(self.characterBody);
-            TrackEcho(self.characterBody);
+            TrackEcho(self.characterBody, "", self.damageCoefficient * self.damageStat);
         }
         public void MercAdrenWhirlwind(On.EntityStates.Merc.WhirlwindBase.orig_OnEnter orig, EntityStates.Merc.WhirlwindBase self)
         {
             orig(self);
             RollForAdrenaline(self.characterBody);
-            TrackEcho(self.characterBody);
+            TrackEcho(self.characterBody, "", self.baseDamageCoefficient * self.damageStat);
         }
         public void MercAdrenUppercut(On.EntityStates.Merc.Uppercut.orig_OnEnter orig, EntityStates.Merc.Uppercut self)
         {
             orig(self);
             RollForAdrenaline(self.characterBody);
-            TrackEcho(self.characterBody);
+            TrackEcho(self.characterBody, "", EntityStates.Merc.Uppercut.baseDamageCoefficient * self.damageStat);
         }
         public void MercAdrenDash(On.EntityStates.Merc.FocusedAssaultDash.orig_OnMeleeHitAuthority orig, EntityStates.Merc.FocusedAssaultDash self)
         {
             orig(self);
             RollForAdrenaline(self.characterBody);
-            TrackEcho(self.characterBody);
+            TrackEcho(self.characterBody, "", self.damageCoefficient * self.damageStat);
         }
         #endregion
 
-        public void TrackEcho(CharacterBody characterBody)
+        public static void TrackEcho(CharacterBody characterBody, string muzzle, float damage)
         {
             var component = characterBody.GetComponent<DCMercEchoComponent>();
             if (component)
             {
-                component.Track(characterBody.corePosition, "");
+                component.Track(characterBody.corePosition, muzzle, damage, false);
             }
         }
 
@@ -112,11 +112,16 @@ namespace AlternateSkills.Merc
             }
         }
 
-        public void RollForAdrenaline(CharacterBody characterBody)
-        {            
-            if (Util.CheckRoll(10))
+        public static void RollForAdrenaline(CharacterBody characterBody)
+        {
+            //
+            if (!characterBody.HasBuff(adrenalineBuff))
             {
-                characterBody.AddTimedBuff(adrenalineBuff, adrenalineDuration);
+                if (Util.CheckRoll(10))
+                    characterBody.AddTimedBuff(adrenalineBuff, adrenalineDuration);
+            } else {
+                if (Util.CheckRoll(1))
+                    characterBody.AddTimedBuff(adrenalineBuff, adrenalineDuration);
             }
         }
 
@@ -160,7 +165,7 @@ namespace AlternateSkills.Merc
             mySkillDef.interruptPriority = InterruptPriority.Frozen;
             mySkillDef.isCombatSkill = true;
             mySkillDef.mustKeyPress = true;
-            mySkillDef.rechargeStock = 8;
+            mySkillDef.rechargeStock = 5;
             mySkillDef.requiredStock = 1;
             mySkillDef.stockToConsume = 1;
             //mySkillDef.icon = SurvivorSkillLocator.secondary.skillDef.icon;
@@ -175,13 +180,13 @@ namespace AlternateSkills.Merc
         
         public override void SetupUtility()
         {
-            var skillDefCopy = SurvivorSkillLocator.primary.skillDef;
+            return;
             var mySkillDef = ScriptableObject.CreateInstance<SkillDef>();
             mySkillDef.activationState = new SerializableEntityStateType(typeof(ESWavedash));
-            mySkillDef.activationStateMachineName = skillDefCopy.activationStateMachineName;
+            mySkillDef.activationStateMachineName = "Body";
             mySkillDef.baseMaxStock = 1;
             mySkillDef.baseRechargeInterval = 6;
-            mySkillDef.beginSkillCooldownOnSkillEnd = skillDefCopy.beginSkillCooldownOnSkillEnd;
+            mySkillDef.beginSkillCooldownOnSkillEnd = true;
             mySkillDef.canceledFromSprinting = false;
             mySkillDef.fullRestockOnAssign = true;
             mySkillDef.interruptPriority = InterruptPriority.Frozen;
@@ -247,6 +252,8 @@ namespace AlternateSkills.Merc
             private Vector3 positionOfLastSlash;
             private string slashSound;
             public bool canSlash = false;
+            public float damage = 0;
+            public bool wasCrit = false;
 
             public void ConsumeSlash()
             {
@@ -261,25 +268,26 @@ namespace AlternateSkills.Merc
                     losType = BlastAttack.LoSType.None,
                     damageType = DamageType.ApplyMercExpose,
                     baseForce = 0,
-                    baseDamage = 0f,
+                    baseDamage = damage * 0.5f,
                     falloffModel = BlastAttack.FalloffModel.None,
-                    radius = 10f,
+                    radius = 5f,
                     position = positionOfLastSlash,
                     attackerFiltering = AttackerFiltering.Default,
                     teamIndex = owner.teamComponent.teamIndex,
-                    //crit = 
+                    crit = wasCrit
                 };
                 var result = fakeAttack.Fire();
-
 			    Util.PlaySound(slashSound, owner.gameObject);
                 canSlash = false;
             }
 
-            public void Track(Vector3 position, string slashSound)
+            public void Track(Vector3 position, string slashSound, float damage, bool crit)
             {
                 positionOfLastSlash = position;
                 this.slashSound = slashSound;
                 canSlash = true;
+                this.damage = damage;
+                wasCrit = crit;
             }
         }
 

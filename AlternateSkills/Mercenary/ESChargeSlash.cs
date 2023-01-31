@@ -68,7 +68,7 @@ namespace AlternateSkills.Merc
 
 		public override InterruptPriority GetMinimumInterruptPriority()
 		{
-			return InterruptPriority.Skill;
+			return InterruptPriority.Frozen;
 		}
         public bool hasFullyCharged = false;
 

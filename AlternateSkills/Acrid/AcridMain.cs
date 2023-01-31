@@ -190,7 +190,7 @@ namespace AlternateSkills.Acrid
         public override void SetupSpecial()
         {
             var mySkillDef = ScriptableObject.CreateInstance<SkillDef>();
-            mySkillDef.activationState = new SerializableEntityStateType(typeof(ESBite));
+            mySkillDef.activationState = new SerializableEntityStateType(typeof(ESGouge));
             mySkillDef.activationStateMachineName = "Weapon";
             mySkillDef.baseMaxStock = 1;
             mySkillDef.baseRechargeInterval = 8;

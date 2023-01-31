@@ -15,7 +15,7 @@ using EntityStates.Croco;
 
 namespace AlternateSkills.Acrid
 {
-    public class ESFang : EntityStates.Croco.Bite
+    public class ESFang : ESBite
     {
         public override void OnEnter()
         {

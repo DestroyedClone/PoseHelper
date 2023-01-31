@@ -74,33 +74,6 @@ namespace AlternateSkills.Mage
             public EquipmentDef currentEquipmentDef;
         }
 
-        public override void SetupPrimary()
-        {
-            if (true) return;
-            var mySkillDef = ScriptableObject.CreateInstance<SkillDef>();
-            mySkillDef.activationState = new SerializableEntityStateType(typeof(ESShareBuffs));
-            mySkillDef.activationStateMachineName = "Weapon";
-            mySkillDef.baseMaxStock = 1;
-            mySkillDef.baseRechargeInterval = 0;
-            mySkillDef.beginSkillCooldownOnSkillEnd = true;
-            mySkillDef.canceledFromSprinting = false;
-            mySkillDef.fullRestockOnAssign = true;
-            mySkillDef.interruptPriority = InterruptPriority.Frozen;
-            mySkillDef.isCombatSkill = true;
-            mySkillDef.mustKeyPress = true;
-            mySkillDef.rechargeStock = 1;
-            mySkillDef.requiredStock = 1;
-            mySkillDef.stockToConsume = 0;
-            //mySkillDef.icon = SurvivorSkillLocator.primary.skillDef.icon;
-            mySkillDef.skillName = TokenPrefix+"_PRIMARY";
-            mySkillDef.skillNameToken = $"{mySkillDef.skillName}_NAME";
-            mySkillDef.skillDescriptionToken = $"{mySkillDef.skillName}_DESC";
-            (mySkillDef as ScriptableObject).name = mySkillDef.skillName;
-            mySkillDef.keywordTokens = new string[]{};
-            primarySkillDefs.Add(mySkillDef);
-            base.SetupPrimary();
-        }
-
         public override void SetupSecondary()
         {
             return;

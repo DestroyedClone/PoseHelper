@@ -18,11 +18,11 @@ namespace AlternateSkills.Captain
 		static CaptainItemController()
 		{
 			Run.onRunStartGlobal += CaptainItemController.OnRunStart;
-            commonDropList = Addressables.LoadAssetAsync<BasicPickupDropTable>("RoR2/Base/Common/dtTier1Item.asset").WaitForCompletion();
-            uncommonDropList = Addressables.LoadAssetAsync<BasicPickupDropTable>("RoR2/Base/Common/dtTier2Item.asset").WaitForCompletion();
-            legendaryDropList = Addressables.LoadAssetAsync<BasicPickupDropTable>("RoR2/Base/Common/dtTier3Item.asset").WaitForCompletion();
+            CaptainItemController.commonDropList = Addressables.LoadAssetAsync<BasicPickupDropTable>("RoR2/Base/Common/dtTier1Item.asset").WaitForCompletion();
+            CaptainItemController.uncommonDropList = Addressables.LoadAssetAsync<BasicPickupDropTable>("RoR2/Base/Common/dtTier2Item.asset").WaitForCompletion();
+            CaptainItemController.legendaryDropList = Addressables.LoadAssetAsync<BasicPickupDropTable>("RoR2/Base/Common/dtTier3Item.asset").WaitForCompletion();
 
-
+			GenerateDropList();
 		}
 
         private static void GenerateDropList()
@@ -31,19 +31,19 @@ namespace AlternateSkills.Captain
             {
                 new StackRollData()
                 {
-                    dropTable = commonDropList,
+                    dropTable = CaptainItemController.commonDropList,
                     stacks = 1,
                     numRolls = CaptainItemController.commonItemCount
                 },
                 new StackRollData()
                 {
-                    dropTable = uncommonDropList,
+                    dropTable = CaptainItemController.uncommonDropList,
                     stacks = 1,
                     numRolls = CaptainItemController.uncommonItemCount
                 },
                 new StackRollData()
                 {
-                    dropTable = legendaryDropList,
+                    dropTable = CaptainItemController.legendaryDropList,
                     stacks = 1,
                     numRolls = CaptainItemController.legendaryItemCount
                 },
@@ -95,10 +95,11 @@ namespace AlternateSkills.Captain
 				}
 				if (!hasGivenItem)
 				{
-                    List<ItemDef> itemDefsGivenList = new List<ItemDef>();
-                    Inventory component = base.GetComponent<Inventory>();
+                    List<ItemIndex> itemsGivenList = new List<ItemIndex>();
+                    Inventory component = characterBody.inventory;
                     //stackRollDataList was this. not CaptainItemController. before, check here if htere's any issues.
-                    foreach (CaptainItemController.StackRollData stackRollData in CaptainItemController.stackRollDataList)
+                    try {
+					foreach (CaptainItemController.StackRollData stackRollData in stackRollDataList)
                     {
                         if (stackRollData.dropTable)
                         {
@@ -106,10 +107,57 @@ namespace AlternateSkills.Captain
                             {
                                 PickupDef pickupDef = PickupCatalog.GetPickupDef(stackRollData.dropTable.GenerateDrop(CaptainItemController.rng));
                                 component.GiveItem(pickupDef.itemIndex, stackRollData.stacks);
+								itemsGivenList.Add(pickupDef.itemIndex);
                             }
                         }
                     }
-                    itemsDefsGiven = itemsDefsGiven.ToArray();
+					} catch {
+						//using Inventory.GiveRandomItems
+						MainPlugin._logger.LogWarning("Item controller still fucking failed.");
+						
+						WeightedSelection<List<PickupIndex>> whiteWS = new WeightedSelection<List<PickupIndex>>(1);
+						whiteWS.AddChoice(Run.instance.availableTier1DropList, 100f);
+
+						WeightedSelection<List<PickupIndex>> greenWS = new WeightedSelection<List<PickupIndex>>(1);
+						greenWS.AddChoice(Run.instance.availableTier2DropList, 100f);
+
+						WeightedSelection<List<PickupIndex>> redWS = new WeightedSelection<List<PickupIndex>>(1);
+						redWS.AddChoice(Run.instance.availableTier3DropList, 100f);
+
+						void GiveItem(PickupDef pickupDef)
+						{
+							var itemIndexToGive = (pickupDef != null) ? pickupDef.itemIndex : ItemIndex.None;
+							if (itemIndexToGive != ItemIndex.None)
+							{
+								characterBody.inventory.GiveItem(itemIndexToGive);
+								itemsGivenList.Add(itemIndexToGive);
+							}
+							
+						}
+						
+						for (int i = 0; i < commonItemCount; i++)
+						{
+							List<PickupIndex> list = whiteWS.Evaluate(UnityEngine.Random.value);
+							PickupDef pickupDef = PickupCatalog.GetPickupDef(list[UnityEngine.Random.Range(0, list.Count)]);
+							GiveItem(pickupDef);
+						}
+
+						for (int i = 0; i < uncommonItemCount; i++)
+						{
+							List<PickupIndex> list = greenWS.Evaluate(UnityEngine.Random.value);
+							PickupDef pickupDef = PickupCatalog.GetPickupDef(list[UnityEngine.Random.Range(0, list.Count)]);
+							GiveItem(pickupDef);
+						}
+
+						for (int i = 0; i < legendaryItemCount; i++)
+						{
+							List<PickupIndex> list = redWS.Evaluate(UnityEngine.Random.value);
+							PickupDef pickupDef = PickupCatalog.GetPickupDef(list[UnityEngine.Random.Range(0, list.Count)]);
+							GiveItem(pickupDef);
+						}
+
+					}
+					itemsGiven = itemsGivenList.ToArray();
 				}
 			}
 		}
@@ -124,7 +172,7 @@ namespace AlternateSkills.Captain
 					CharacterBody body = summonMasterInstance.GetBody();
 					if (body && (body.bodyFlags & CharacterBody.BodyFlags.Mechanical) > CharacterBody.BodyFlags.None)
 					{
-                        foreach (var itemToGive in itemsDefsGiven)
+                        foreach (var itemToGive in itemsGiven)
                         {
 						    summonMasterInstance.inventory.GiveItem(itemToGive);
                         }
@@ -138,7 +186,7 @@ namespace AlternateSkills.Captain
         public static int uncommonItemCount = 1;
         public static int legendaryItemCount = 0;
 
-        public ItemDef[] itemsDefsGiven;
+        public ItemIndex[] itemsGiven;
 
 		private CharacterBody characterBody;
 

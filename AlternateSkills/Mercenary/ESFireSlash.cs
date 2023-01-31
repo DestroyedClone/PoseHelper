@@ -30,13 +30,18 @@ namespace AlternateSkills.Merc
 				blastAttack.falloffModel = BlastAttack.FalloffModel.None;
 				blastAttack.inflictor = gameObject;
 				blastAttack.losType = BlastAttack.LoSType.None;
-				blastAttack.position = characterBody.corePosition;
+				var aim = inputBank.GetAimRay();
+				var offset = aim.direction * 20 * charge;
+				blastAttack.position = characterBody.corePosition + offset;
 				blastAttack.procCoefficient = 1f;
 				blastAttack.radius = 20 * charge;
 				blastAttack.teamIndex = teamComponent.teamIndex;
 				var result = blastAttack.Fire();
-				
-            }
+				MercenaryMain.RollForAdrenaline(characterBody);
+				MercenaryMain.TrackEcho(characterBody, "", blastAttack.baseDamage);
+				EffectManager.SimpleEffect(effectPrefab, blastAttack.position, 
+					Util.QuaternionSafeLookRotation(aim.direction), true);
+            }			
         }
 
         public void PlayAnimation()
@@ -62,23 +67,22 @@ namespace AlternateSkills.Merc
 
 		public override void OnEnter()
 		{
-			this.duration = FireGrenades.baseDuration / this.attackSpeedStat;
-			this.modelTransform = base.GetModelTransform();
+			this.duration = ESFireSlash.baseDuration / this.attackSpeedStat;
+			//this.modelTransform = base.GetModelTransform();
 			base.StartAimMode(2f, false);
             damageCoefficient = 20;
             animator = GetModelAnimator();
 			base.OnEnter();
 		}
 
-		public override void OnExit()
-		{
-			base.OnExit();
-            FireSlash();
-		}
-
 		public override void FixedUpdate()
 		{
 			base.FixedUpdate();
+			if (!hasSlashed)
+			{
+				hasSlashed = true;
+				FireSlash();
+			}
 			if (base.isAuthority && base.fixedAge >= this.duration)
 			{
 				this.outer.SetNextStateToMain();
@@ -91,12 +95,15 @@ namespace AlternateSkills.Merc
 			return InterruptPriority.Skill;
 		}
 
-		public static GameObject effectPrefab;
+		public bool hasSlashed = false;
+
+		public static GameObject effectPrefab => EntityStates.Merc.Weapon.GroundLight2.comboFinisherSwingEffectPrefab;
 
 		public static GameObject projectilePrefab;
 
 		public float charge = 0.01f;
 
 		private Transform modelTransform;
+		public static float baseDuration = 0.5f;
 	}
 }
