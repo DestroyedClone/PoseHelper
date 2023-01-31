@@ -2,7 +2,7 @@
 using RoR2;
 using RoR2.Projectile;
 using UnityEngine;
-using static HeresyAddon.Class1;
+using static HeresyAddon.HeresyAnimsPlugin;
 
 namespace HeresyAddon
 {

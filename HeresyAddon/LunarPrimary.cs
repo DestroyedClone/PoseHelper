@@ -63,6 +63,14 @@ namespace HeresyAddon
                     OnEnter_Tree(self);
                     break;
 
+                case "VOIDSURVIVOR_BODY_NAME":
+                    OnEnter_VoidSurvivor(self);
+                    break;
+
+                case "RAILGUNNER_BODY_NAME":
+                    OnEnter_Railgunner(self);
+                    break;
+
                 case "HERETIC_BODY_NAME":
                 default:
                     orig(self);
@@ -74,12 +82,16 @@ namespace HeresyAddon
 
         private static void OnEnter_VoidSurvivor(FireLunarNeedle self)
         {
-
+            self.PlayAnimation("Gesture, Additive", "FireNailgun");
+            self.GetModelAnimator().SetBool("isFiringNailgun", true);
+            FireNeedle(self, EntityStates.VoidSurvivor.Weapon.FireBlasterBase.);
         }
 
         private static void OnEnter_Railgunner(FireLunarNeedle self)
         {
-
+            self.PlayAnimation("Gesture, Additive", "FireNailgun");
+            self.GetModelAnimator().SetBool("isFiringNailgun", true);
+            FireNeedle(self, EntityStates.Railgunner.Weapon.FirePistol.animationStateName);
         }
 
         private static void OnEnter_Tool(FireLunarNeedle self)
@@ -140,7 +152,7 @@ namespace HeresyAddon
 
         private static void OnEnter_Engi(FireLunarNeedle self)
         {
-            var stepper = self.characterBody.GetComponent<Class1.HeresyStepperTracker>();
+            var stepper = self.characterBody.GetComponent<HeresyAnimsPlugin.HeresyStepperTracker>();
             if (stepper.Step())
             {
                 self.PlayCrossfade("Gesture Left Cannon, Additive", "FireGrenadeLeft", 0.1f);

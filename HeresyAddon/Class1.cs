@@ -10,6 +10,7 @@ using System.Security.Permissions;
 using UnityEngine;
 using static HeresyAddon.LunarPrimary;
 using static HeresyAddon.LunarSecondary;
+using static HeresyAddon.LunarUtility;
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -18,7 +19,7 @@ using static HeresyAddon.LunarSecondary;
 
 namespace HeresyAddon
 {
-    [BepInPlugin("com.DestroyedClone.HeresyAnims", "HeresyAnims", "1.0.0")]
+    [BepInPlugin("com.DestroyedClone.HeresyAnims", "HeresyAnims", "1.1.0")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.DifferentModVersionsAreOk)]
     public class HeresyAnimsPlugin : BaseUnityPlugin
@@ -57,23 +58,6 @@ namespace HeresyAddon
             {
                 toggle = !toggle;
                 return toggle;
-            }
-        }
-
-        private void GhostUtilitySkillState_OnEnter(On.EntityStates.GhostUtilitySkillState.orig_OnEnter orig, GhostUtilitySkillState self)
-        {
-            orig(self);
-
-            switch (self.characterBody.baseNameToken)
-            {
-                case "BANDIT2_BODY_NAME":
-                    self.PlayAnimation("Gesture, Additive", "ThrowSmokebomb", "ThrowSmokebomb.playbackRate", EntityStates.Bandit2.ThrowSmokebomb.duration);
-                    break;
-                case "VOIDSURVIVOR_BODY_NAME":
-                    self.PlayAnimation();
-                    break;
-                default:
-                    break;
             }
         }
 
