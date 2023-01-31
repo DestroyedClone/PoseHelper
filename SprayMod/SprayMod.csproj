@@ -9,11 +9,14 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Compile Remove="SprayModSOTV.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="BepInEx.Analyzers" Version="1.0.*">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="BepInEx.Core" Version="5.4.19" />
 		<PackageReference Include="Microsoft.Unity.Analyzers" Version="1.10.0">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -22,23 +25,25 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="RiskOfRain2.GameLibs" Version="1.2.3.1-r.0" />
+		<PackageReference Include="BepInEx.Core" Version="5.4.19" />
+		<PackageReference Include="RiskOfRain2.GameLibs" Version="1.2.4-r.0" />
 		<PackageReference Include="UnityEngine.Modules" Version="2019.4.26" />
+		<PackageReference Include="MMHOOK.RoR2" Version="2022.4.19">
+			<NoWarn>NU1701</NoWarn>
+		</PackageReference>
+		<PackageReference Include="R2API" Version="5.0.3" />
 	</ItemGroup>
 
 
 	<ItemGroup>
-		<Reference Include="MMHOOK_RoR2">
-			<HintPath>..\References\lib\MMHOOK_RoR2.dll</HintPath>
+		<Reference Include="Decalicious">
+		  <HintPath>..\References\lib\Decalicious.dll</HintPath>
 		</Reference>
-		<Reference Include="R2API">
-			<HintPath>..\References\lib\R2API.dll</HintPath>
+		<Reference Include="RiskOfOptions">
+		  <HintPath>..\References\lib\RiskOfOptions.dll</HintPath>
 		</Reference>
 		<Reference Include="Unity.ResourceManager">
 			<HintPath>..\References\lib\Unity.ResourceManager.dll</HintPath>
-		</Reference>
-		<Reference Include="Decalicious">
-			<HintPath>..\References\lib\Decalicious.dll</HintPath>
 		</Reference>
 	</ItemGroup>
 </Project>

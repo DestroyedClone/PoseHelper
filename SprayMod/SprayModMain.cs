@@ -1,5 +1,6 @@
 using BepInEx;
 using R2API;
+using R2API.Networking;
 using RoR2;
 using RoR2.VoidRaidCrab;
 using System.Security;
@@ -9,50 +10,85 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using System.Collections.Generic;
 using UnityEngine.Networking;
-using R2API;
+//using ThreeEyedGames;
 using ThreeEyedGames;
+using BepInEx.Configuration;
+using UnityEngine.Networking.Types;
+using R2API.Networking.Interfaces;
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
 #pragma warning restore CS0618 // Type or member is obsolete
+[assembly: HG.Reflection.SearchableAttribute.OptInAttribute]
 namespace SprayMod
 {
     [BepInPlugin("com.DestroyedClone.SprayMod", "SprayMod", "1.0.0")]
     [BepInDependency(R2API.R2API.PluginGUID)]
-    [R2API.Utils.R2APISubmoduleDependency(nameof(PrefabAPI), nameof(R2API.Utils.CommandHelper))]
     public class SprayModMain : BaseUnityPlugin
     {
-        public static Material sprayMaterial;
-        public static Texture2D loadedTexture;
-        public static GameObject sprayObjectPrefab;
 
         public static SprayModMain instance;
 
+        public static Dictionary<NetworkUser, string> server_MasterDict = new Dictionary<NetworkUser, string>();
+        public static Dictionary<NetworkUser, string> server_tempDict = new Dictionary<NetworkUser, string>();
+
+        public static ConfigEntry<string> cfgMySprayURL;
+
+
         public void Start()
         {
+            cfgMySprayURL = Config.Bind("", "Spray URL", "", "");
 
+            instance = this;
 
-
-            /*instance = this;
-            loadedTexture = Addressables.LoadAssetAsync<Texture2D>("RoR2/Base/Achievements/texAttackSpeedIcon.png").WaitForCompletion();
-
-            StartCoroutine(DownloadImage("https://gcdn.thunderstore.io/live/repository/icons/ThinkInvis-TinkersSatchel-2.2.0.png.128x128_q95.jpg"));
-
-            CreateMaterial();
-            CreatePrefab();
+            Assets.Setup();
 
             CharacterBody.onBodyStartGlobal += CharacterBody_onBodyStartGlobal;
 
-            R2API.Utils.CommandHelper.AddToConsoleWhenReady();*/
+            // Regular syncing
+            Run.onRunStartGlobal += Server_OnRunStart;
+            Stage.onServerStageBegin += Server_OnServerStageBegin;
+        }
+
+
+        private void Server_OnServerStageBegin(Stage stage)
+        {
+            if (NetworkServer.active)
+                Server_SyncSprayInformation();
+        }
+
+        private void Server_OnRunStart(Run run)
+        {
+            if (NetworkServer.active)
+                Server_SyncSprayInformation();
+        }
+
+        private void Server_SyncSprayInformation()
+        {
+            //First, we have to ask everyone for their spray URL.
+            new Networking.ServerRequestingClientInfo().Send(NetworkDestination.Clients);
+            foreach (var networkUser in NetworkUser.instancesList)
+            {
+                //this is where we would sanitize
+                //if we fucking knew how to do it
+                if (server_MasterDict.TryGetValue(networkUser, out string URL))
+                {
+
+                } else
+                {
+                    server_MasterDict.Add(networkUser, URL);
+                }
+
+            }
         }
 
         [ConCommand(commandName = "loadTex", flags = ConVarFlags.None, helpText = "loadTex [URL]")]
         public static void CCSpawnEncounter(ConCommandArgs args)
         {
             instance.DownloadImage(args.GetArgString(0));
-            sprayMaterial.mainTexture = loadedTexture;
-            sprayObjectPrefab.transform.Find("FX/Decal").GetComponent<Decal>().Material = sprayMaterial;
+            Assets.defaultSprayMaterial.mainTexture = Assets.loadedTexture;
+            Assets.defaultSprayObjectPrefab.transform.Find("FX/Decal").GetComponent<Decal>().Material = Assets.defaultSprayMaterial;
             Debug.Log("Updated spray material");
         }
 
@@ -62,49 +98,6 @@ namespace SprayMod
             {
                 obj.gameObject.AddComponent<SprayComponent>().charBody = obj;
             }
-        }
-
-        public static void CreateMaterial()
-        {
-            var spitMaterial = Addressables.LoadAssetAsync<Material>("RoR2/Base/Beetle/matBeetleSpitLarge.mat").WaitForCompletion();
-            sprayMaterial = new Material(spitMaterial)
-            {
-                name = "texSprayMaterial",
-                mainTexture = loadedTexture,
-                shader = spitMaterial.shader,
-                color = spitMaterial.color,
-                doubleSidedGI = spitMaterial.doubleSidedGI,
-                enableInstancing = spitMaterial.enableInstancing,
-                globalIlluminationFlags = spitMaterial.globalIlluminationFlags,
-                hideFlags = spitMaterial.hideFlags,
-                mainTextureOffset = spitMaterial.mainTextureOffset,
-                mainTextureScale = spitMaterial.mainTextureScale,
-                renderQueue = spitMaterial.renderQueue,
-                shaderKeywords = spitMaterial.shaderKeywords
-            };
-        }
-
-        public static void CreatePrefab()
-        {
-            var acidPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Beetle/BeetleQueenAcid.prefab").WaitForCompletion();
-            sprayObjectPrefab = PrefabAPI.InstantiateClone(acidPrefab, "SprayObjectPrefab");
-            var fx = sprayObjectPrefab.transform.Find("FX");
-            var animShaderAlpha = fx.GetComponent<AnimateShaderAlpha>();
-            UnityEngine.Object.Destroy(fx.Find("Sphere").gameObject);
-            UnityEngine.Object.Destroy(fx.Find("Hitbox").gameObject);
-            UnityEngine.Object.Destroy(fx.Find("Spittle").gameObject);
-            UnityEngine.Object.Destroy(fx.Find("Gas").gameObject);
-            UnityEngine.Object.Destroy(fx.Find("Point Light").gameObject);
-            var decalObj = fx.Find("Decal");
-            UnityEngine.Object.Destroy(sprayObjectPrefab.GetComponent<RoR2.Projectile.ProjectileController>());
-            UnityEngine.Object.Destroy(sprayObjectPrefab.GetComponent<RoR2.Projectile.ProjectileDamage>());
-            UnityEngine.Object.Destroy(sprayObjectPrefab.GetComponent<RoR2.TeamFilter>());
-            UnityEngine.Object.Destroy(sprayObjectPrefab.GetComponent<RoR2.HitBoxGroup>());
-            UnityEngine.Object.Destroy(sprayObjectPrefab.GetComponent<RoR2.Projectile.ProjectileDotZone>());
-            UnityEngine.Object.Destroy(sprayObjectPrefab.GetComponent<RoR2.VFXAttributes>());
-            UnityEngine.Object.Destroy(sprayObjectPrefab.GetComponent<RoR2.DetachParticleOnDestroyAndEndEmission>());
-            var decal = decalObj.GetComponent<Decal>();
-            decal.Material = sprayMaterial;
         }
 
         public class SprayComponent : MonoBehaviour
@@ -126,7 +119,7 @@ namespace SprayMod
                 {
                     if (!sprayObjInstance)
                     {
-                        sprayObjInstance = Object.Instantiate(sprayObjectPrefab);
+                        sprayObjInstance = Object.Instantiate(Assets.defaultSprayObjectPrefab);
                     }
 
                     if (charBody.inputBank.GetAimRaycast(1000f, out RaycastHit hitInfo))
@@ -146,7 +139,7 @@ namespace SprayMod
             if (request.isNetworkError || request.isHttpError)
                 Debug.Log(request.error);
             else
-                loadedTexture = ((DownloadHandlerTexture)request.downloadHandler).texture;
+                Assets.loadedTexture = ((DownloadHandlerTexture)request.downloadHandler).texture;
         }
     }
 }
