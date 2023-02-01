@@ -4,14 +4,21 @@ This mod adds a short delay between rewards from the teleporter drops. Since mod
 
 The configuration defaults to 0.3s, but the values can be adjusted by the user in the options menu.
 
-
 ![preview](https://raw.githubusercontent.com/DestroyedClone/PoseHelper/master/MountainShrineRewardFix/preview.gif)
 
 ## Credits
+
 Moffein - IL code, consultation
 
 ## Changelog
-`1.2.0` - Use RiskOfOptions to expose the delay config
-`1.1.0` - Added a command that allows for mid-run adjustment of the delay
+
+### 1.2.0
+
+- Use RiskOfOptions to expose the mod config
+- Added an option to drop batches of items
+
+### 1.1.0
+
+- Added a command that allows for mid-run adjustment of the delay
 
 > Written with [StackEdit](https://stackedit.io/).
