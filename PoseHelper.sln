@@ -35,8 +35,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GoldChestForAll", "GoldChes
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ForcedStageVariation", "ForcedStageVariation\ForcedStageVariation.csproj", "{1C39F719-A85F-4567-ABD0-FBD7639CA76D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CloakBuff", "CloakBuff\CloakBuff.csproj", "{D717A004-D149-4B7A-8B17-AA9EDAE44B1A}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TwistedBadMedicine", "TwistedBadMedicine\TwistedBadMedicine.csproj", "{9CE4C2AF-3716-4C53-8F87-5CE31DF99ED0}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RadiusCommand", "RadiusCommand\RadiusCommand.csproj", "{D4533B56-3D50-4755-B8B8-7192B0C9FC5B}"
@@ -92,8 +90,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KKA_AddOn", "KKA_AddOn\KKA_AddOn.csproj", "{AAD61B3E-F471-4A24-9FD1-D747976A4C42}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Greentext", "ChatExtras\Greentext.csproj", "{9465326F-C333-4787-9C2F-54E653028CF9}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AlternatePods", "AlternatePods\AlternatePods.csproj", "{B09D2FD2-8ED1-4015-8509-FB706E875FBA}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AlternateSkills", "AlternateSkills\AlternateSkills.csproj", "{89AB78B5-299A-4AAF-AA21-2BFFD7F83C22}"
 EndProject
@@ -175,10 +171,6 @@ Global
 		{1C39F719-A85F-4567-ABD0-FBD7639CA76D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1C39F719-A85F-4567-ABD0-FBD7639CA76D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1C39F719-A85F-4567-ABD0-FBD7639CA76D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D717A004-D149-4B7A-8B17-AA9EDAE44B1A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D717A004-D149-4B7A-8B17-AA9EDAE44B1A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D717A004-D149-4B7A-8B17-AA9EDAE44B1A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D717A004-D149-4B7A-8B17-AA9EDAE44B1A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9CE4C2AF-3716-4C53-8F87-5CE31DF99ED0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{9CE4C2AF-3716-4C53-8F87-5CE31DF99ED0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9CE4C2AF-3716-4C53-8F87-5CE31DF99ED0}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -291,10 +283,6 @@ Global
 		{9465326F-C333-4787-9C2F-54E653028CF9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9465326F-C333-4787-9C2F-54E653028CF9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9465326F-C333-4787-9C2F-54E653028CF9}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B09D2FD2-8ED1-4015-8509-FB706E875FBA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B09D2FD2-8ED1-4015-8509-FB706E875FBA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B09D2FD2-8ED1-4015-8509-FB706E875FBA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B09D2FD2-8ED1-4015-8509-FB706E875FBA}.Release|Any CPU.Build.0 = Release|Any CPU
 		{89AB78B5-299A-4AAF-AA21-2BFFD7F83C22}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{89AB78B5-299A-4AAF-AA21-2BFFD7F83C22}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{89AB78B5-299A-4AAF-AA21-2BFFD7F83C22}.Release|Any CPU.ActiveCfg = Release|Any CPU
