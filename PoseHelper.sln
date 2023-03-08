@@ -15,7 +15,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LeBuilder", "LeBuilder\LeBu
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LobbyAppearanceImprovements", "LobbyAppearanceImprovements\LobbyAppearanceImprovements.csproj", "{0BAF2028-C072-4DA9-9265-815C1B4D427D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Speedometer", "Speedometer\Speedometer.csproj", "{87ADA314-FB23-49E2-A97F-CC5EFE31F6DC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Speedometer", "Speedometer\Speedometer.csproj", "{87ADA314-FB23-49E2-A97F-CC5EFE31F6DC}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExtinguishInWater", "ExtinguishInWater\ExtinguishInWater.csproj", "{8B61AB2D-F578-4695-9118-B41467EB3F36}"
 EndProject
@@ -29,13 +29,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VersusPlayerBoss", "VersusP
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SurvivorTaunts", "SurvivorTaunts\SurvivorTaunts.csproj", "{451CCCE3-56C4-4801-961F-323B5536D1AE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StageVariantsPlus", "StageVariantsPlus\StageVariantsPlus.csproj", "{2FA12A80-3344-45DE-879B-4299AEAC5A7D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StageVariantsPlus", "StageVariantsPlus\StageVariantsPlus.csproj", "{2FA12A80-3344-45DE-879B-4299AEAC5A7D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GoldChestForAll", "GoldChestForAll\GoldChestForAll.csproj", "{63904AFA-746B-497B-B610-B27B7F05C8F8}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ForcedStageVariation", "ForcedStageVariation\ForcedStageVariation.csproj", "{1C39F719-A85F-4567-ABD0-FBD7639CA76D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TwistedBadMedicine", "TwistedBadMedicine\TwistedBadMedicine.csproj", "{9CE4C2AF-3716-4C53-8F87-5CE31DF99ED0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TwistedBadMedicine", "TwistedBadMedicine\TwistedBadMedicine.csproj", "{9CE4C2AF-3716-4C53-8F87-5CE31DF99ED0}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RadiusCommand", "RadiusCommand\RadiusCommand.csproj", "{D4533B56-3D50-4755-B8B8-7192B0C9FC5B}"
 EndProject
@@ -61,7 +61,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DynamicOverheadText", "Dyna
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MithrixEquipmentDrones", "MithrixEquipmentDrones\MithrixEquipmentDrones.csproj", "{19AB27F2-1F00-4040-82BA-C56061A8EE64}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MultiplayerStatusIndicators", "ShowTyping\MultiplayerStatusIndicators.csproj", "{9059C693-499C-4B64-AB13-CF54E249A0C5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MultiplayerStatusIndicators", "ShowTyping\MultiplayerStatusIndicators.csproj", "{9059C693-499C-4B64-AB13-CF54E249A0C5}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeathMessageAboveCorpse", "DeathMessageAboveCorpse\DeathMessageAboveCorpse.csproj", "{30EA30EC-00AC-498F-9114-0EA0F414D333}"
 EndProject
@@ -70,8 +70,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RandomLoadoutMonsterArtifact", "RandomLoadoutMonsterArtifact\RandomLoadoutMonsterArtifact.csproj", "{62CFAE75-6CB4-4991-903D-35C5631757D6}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HideNamesPatch", "HideNamesPatch\HideNamesPatch.csproj", "{B6F5B2D5-5066-404C-9F80-50A83419C9EE}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ROR1AltSkills", "ROR1AltSkills\ROR1AltSkills.csproj", "{755A1E85-6ECF-49A2-99F2-F9AE4BDFAC82}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HereticSplitsVsMithrix", "HereticSplitsVsMithrix\HereticSplitsVsMithrix.csproj", "{815D1931-0136-4057-889E-E06CEBAB0A01}"
 EndProject
@@ -243,10 +241,6 @@ Global
 		{B6F5B2D5-5066-404C-9F80-50A83419C9EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B6F5B2D5-5066-404C-9F80-50A83419C9EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B6F5B2D5-5066-404C-9F80-50A83419C9EE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{755A1E85-6ECF-49A2-99F2-F9AE4BDFAC82}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{755A1E85-6ECF-49A2-99F2-F9AE4BDFAC82}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{755A1E85-6ECF-49A2-99F2-F9AE4BDFAC82}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{755A1E85-6ECF-49A2-99F2-F9AE4BDFAC82}.Release|Any CPU.Build.0 = Release|Any CPU
 		{815D1931-0136-4057-889E-E06CEBAB0A01}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{815D1931-0136-4057-889E-E06CEBAB0A01}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{815D1931-0136-4057-889E-E06CEBAB0A01}.Release|Any CPU.ActiveCfg = Release|Any CPU
