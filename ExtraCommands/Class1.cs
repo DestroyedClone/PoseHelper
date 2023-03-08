@@ -13,6 +13,18 @@ using UnityEngine.AddressableAssets;
 using System.Collections.Generic;
 using UnityEngine.Networking;
 using RoR2.Skills;
+using System.Globalization;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Text;
+using System.Threading.Tasks;
+using JetBrains.Annotations;
+using RoR2.Stats;
+using UnityEngine;
 
 [module: UnverifiableCode]
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -101,5 +113,140 @@ namespace ExtraCommands
 
         }
 
+
+        [ConCommand(commandName = "arena_next", flags = ConVarFlags.None, helpText = "arena_next [bool:tp to next cell] - Progresses the Void Fields by one cell")]
+        public static void CCArenaProgress(ConCommandArgs args)
+        {
+            if (ArenaMissionController.instance)
+            {
+                ArenaMissionController.instance.EndRound();
+                if (args.Count > 0
+                    && args.GetArgBool(0) == true)
+                {
+                    TeleportHelper.TeleportBody(args.senderBody, ArenaMissionController.instance.nullWards[ArenaMissionController.instance.currentRound].transform.position);
+                }
+            }
+        }
+
+        [ConCommand(commandName = "arena_end", flags = ConVarFlags.None, helpText = "arena_end - Repeatedly progresses the Void Fields by one cell until the event ends")]
+        public static void CCArenaRepeatNext(ConCommandArgs _)
+        {
+            if (ArenaMissionController.instance)
+            {
+                var amc = ArenaMissionController.instance;
+                while (amc.currentRound < amc.totalRoundsMax)
+                {
+                    amc.ReadyNextNullWard();
+                }
+            }
+        }
+
+        [ConCommand(commandName = "moon_tp", flags = ConVarFlags.None, helpText = "moon_tp - Teleports the player to the moon")]
+        public static void CCMoonStart(ConCommandArgs args)
+        {
+            TeleportHelper.TeleportBody(args.senderBody, new Vector3(165.1803f, 497.2362f, 105.2121f));
+        }
+
+        [ConCommand(commandName = "create_items", flags = ConVarFlags.None, helpText = "create_items [itemindices delimited by commas] [offset] - Requires DebugToolkit")]
+        public static void CCSpawnItemPickups(ConCommandArgs args)
+        {
+            if (args.Count == 0)
+            {
+                Debug.Log("Nothing?");
+                return;
+            }
+            var baseValue = args.GetArgString(0);
+            char[] newDelimiter = new char[] { ',' };
+            var newValues = baseValue.Split(newDelimiter, StringSplitOptions.None);
+            foreach (var index in newValues)
+            {
+                int.TryParse(index, out int resultingIndex);
+                var itemIndex = PickupCatalog.itemIndexToPickupIndex[resultingIndex];
+                RoR2.Console.instance.SubmitCmd(args.sender, $"create_pickup {itemIndex} item", false);
+                if (args.Count == 2 && args.GetArgBool(1))
+                {
+                    TeleportHelper.TeleportBody(args.senderBody, args.senderBody.footPosition + Vector3.up * 5f);
+                }
+            }
+        }
+
+        [ConCommand(commandName = "create_equips", flags = ConVarFlags.None, helpText = "create_equips [equipindices delimited by commas] [offset] - Requires DebugToolkit")]
+        public static void CCSpawnEquipPickups(ConCommandArgs args)
+        {
+            if (args.Count == 0)
+            {
+                Debug.Log("Nothing?");
+                return;
+            }
+            var baseValue = args.GetArgString(0);
+            char[] newDelimiter = new char[] { ',' };
+            var newValues = baseValue.Split(newDelimiter, StringSplitOptions.None);
+            foreach (var index in newValues)
+            {
+                int.TryParse(index, out int resultingIndex);
+                var itemIndex = PickupCatalog.equipmentIndexToPickupIndex[resultingIndex];
+                RoR2.Console.instance.SubmitCmd(args.sender, $"create_pickup {itemIndex} equip", false);
+                if (args.Count == 2 && args.GetArgBool(1))
+                {
+                    TeleportHelper.TeleportBody(args.senderBody, args.senderBody.footPosition + Vector3.up * 5f);
+                }
+            }
+        }
+
+        public static bool toggleKillOnStart = false;
+        [ConCommand(commandName = "enemies_instadie", flags = ConVarFlags.None, helpText = "enemies_instadie")]
+        public static void CCMoonSpeedrun(ConCommandArgs args)
+        {
+            toggleKillOnStart = !toggleKillOnStart;
+            if (toggleKillOnStart)
+            {
+                CharacterBody.onBodyStartGlobal += CharacterBody_onBodyStartGlobal;
+            } else
+            {
+                CharacterBody.onBodyStartGlobal -= CharacterBody_onBodyStartGlobal;
+            }
+            Debug.Log($"enemies_instadie set to {toggleKillOnStart}");
+        }
+
+        private static void CharacterBody_onBodyStartGlobal(CharacterBody obj)
+        {
+            if (obj.teamComponent.teamIndex != TeamIndex.Player)
+            {
+                obj.healthComponent.Suicide();
+            }
+        }
+
+        [ConCommand(commandName = "holdout_finish", flags = ConVarFlags.None, helpText = "holdout_finish [opt:all]")]
+        public static void CCHoldoutFinish(ConCommandArgs args)
+        {
+            var zones = UnityEngine.Object.FindObjectsOfType<HoldoutZoneController>();
+            if (args.Count > 0 && args.GetArgString(0).ToLower() == "all")
+            {
+                int count = 0;
+                foreach (var zone in zones)
+                {
+                    if (zone != null)
+                    {
+                        zone.FullyChargeHoldoutZone();
+                        count++;
+                    }
+                }
+                Debug.Log($"Charged {count} holdout zones.");
+                return;
+            }
+
+
+            foreach (var zone in zones)
+            {
+                if (zone != null
+                    && zone.IsBodyInChargingRadius(args.senderBody))
+                {
+                    zone.FullyChargeHoldoutZone();
+                    Debug.Log("Charged current zone.");
+                    return;
+                }
+            }
+            Debug.LogWarning("Couldn't find a holdout zone that holds you.");
+        }
     }
 }
