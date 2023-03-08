@@ -33,11 +33,14 @@ namespace BossDropRewardDelay
         Version = "1.2.0";
 
         public static ConfigEntry<float> cfgSpawnDelay;
+        public static ConfigEntry<int> cfgBatchSize;
         public static float SpawnDelay => cfgSpawnDelay.Value;
+        public static int BatchSize => cfgBatchSize.Value;
 
         public void Awake()
         {
             cfgSpawnDelay = Config.Bind("General", "Delay Between Drops", 0.3f, "The amount of time, in seconds, between each drop.");
+            cfgBatchSize = Config.Bind("General", "Item Batch Size", 1, "The amount of items dropped in each tick");
 
             IL.RoR2.BossGroup.DropRewards += BossGroup_DropRewards;
 
@@ -46,6 +49,12 @@ namespace BossDropRewardDelay
                 min = 0.01f,
                 max = 4,
                 formatString = "{0:0.00}s",
+            }), Guid, FormattedModName);
+
+            ModSettingsManager.AddOption(new IntSliderOption(cfgBatchSize, new IntSliderConfig()
+            {
+                min = 1,
+                max = 50,
             }), Guid, FormattedModName);
         }
 
@@ -99,6 +108,7 @@ namespace BossDropRewardDelay
             public Vector3 vector;
 
             public float age = 0;
+            private int repeat = Plugin.BatchSize;
 
             public void OnEnable()
             {
@@ -112,19 +122,23 @@ namespace BossDropRewardDelay
 
             public void FixedUpdate()
             {
-                // Stopwatch Check
-                age += Time.fixedDeltaTime;
+                if (repeat == 0)
+                {
+                    // Stopwatch Check
+                    age += Time.fixedDeltaTime;
 
-                // allows config to be changed while the items are still dropping
-                if (i != 0 && age < Plugin.SpawnDelay)
-                {
-                    return;
-                }
-                // Drop Count Check
-                if (i >= num)
-                {
-                    enabled = false;
-                    return;
+                    // allows config to be changed while the items are still dropping
+                    if (i != 0 && age < Plugin.SpawnDelay)
+                    {
+                        return;
+                    }
+                    // Drop Count Check
+                    if (i >= num)
+                    {
+                        enabled = false;
+                        return;
+                    }
+                    repeat = Plugin.BatchSize;
                 }
 
                 bool useBossTables = bossDropTables?.Count > 0;
@@ -150,6 +164,7 @@ namespace BossDropRewardDelay
                 i++;
                 vector = rotation * vector;
                 age = 0;
+                repeat--;
             }
         }
     }
