@@ -14,7 +14,7 @@ using UnityEngine;
 
 namespace MonsterTeamSwap
 {
-    [BepInPlugin("com.DestroyedClone.MonsterTeamSwap", "Monster Team Swap", "1.0.1")]
+    [BepInPlugin("com.DestroyedClone.MonsterTeamSwap", "Monster Team Swap", "1.0.0")]
     public class Class1 : BaseUnityPlugin
     {
         public static ConfigEntry<string> cfgNone;
@@ -23,7 +23,8 @@ namespace MonsterTeamSwap
         public static ConfigEntry<string> cfgMonster;
         public static ConfigEntry<string> cfgLunar;
         public static ConfigEntry<string> cfgVoid;
-        public static ConfigEntry<bool> cfgVoidStaysVoid;
+
+        public static Dictionary<GameObject, TeamDef> kvp = new Dictionary<GameObject, TeamDef>();
 
         //public static ConfigEntry<string> cfgOutput;
 
@@ -38,19 +39,45 @@ namespace MonsterTeamSwap
 
             // ImpBody:Lunar
             On.RoR2.DirectorCore.TrySpawnObject += OverrideTeamSpawn;
+
+            //CreatingList();
+            RoR2Application.onLoad += () =>
+            {
+                CreateTeamDef("TEAM_VOID_NAME");
+                CreateTeamDef("TEAM_A_NAME");
+                CreateTeamDef("TEAM_B_NAME");
+                CreateTeamDef("TEAM_C_NAME");
+                for (int i = 0; i < TeamCatalog.teamDefs.Length; i++)
+                {
+                    TeamDef teamDef = TeamCatalog.teamDefs[i];
+                    Debug.Log($"[{i}] {teamDef.nameToken}");
+                }
+            };
+        }
+
+
+        public TeamDef CreateTeamDef(string nameToken)
+        {
+            TeamDef teamDef = new TeamDef
+            {
+                nameToken = "TEAM_VOID_NAME",
+                softCharacterLimit = 40,
+                friendlyFireScaling = 2f,
+                levelUpEffect = LegacyResourcesAPI.Load<GameObject>("Prefabs/Effects/LevelUpEffectEnemy"),
+                levelUpSound = "Play_UI_levelUp_enemy"
+            };
+            TeamCatalog.Register((TeamIndex)TeamCatalog.teamDefs.Length-1, teamDef);
+            return teamDef;
+        }
+
+        public void CreatingList()
+        {
+            kvp.Add(gameObject, new TeamDef());
         }
 
         public void SetupConfig()
         {
-            string catName = "Team Index Overrides";
-            string description = "Add the names of Bodies you want to force switch the teams of.";
-            cfgNone = Config.Bind(catName, "None", "", description + " This is the name of a Team Index, not an exclusion list.");
-            cfgNeutral = Config.Bind(catName, "Neutral", "ImpBody,ImpBossBody", description);
-            cfgPlayer = Config.Bind(catName, "Player", "", description + " Careful, without friendly fire you won't be able to damage them.");
-            cfgMonster = Config.Bind(catName, "Monster", "", description);
-            cfgLunar = Config.Bind(catName, "Lunar", "LunarGolemBody,LunarWispBody,LunarExploderBody", description);
-            cfgVoid = Config.Bind(catName, "Void", "NullifierBody,VoidJailerBody,VoidDevastatorBody,VoidBarnacleBody", description);
-            cfgVoidStaysVoid = Config.Bind("Exceptions", "Void Stays Void", true, "If something is already Void, such as those spawned by void camps, should it stay on the Void team?");
+
         }
 
         private GameObject OverrideTeamSpawn(On.RoR2.DirectorCore.orig_TrySpawnObject orig, DirectorCore self, DirectorSpawnRequest directorSpawnRequest)
@@ -60,20 +87,11 @@ namespace MonsterTeamSwap
                 var characterMaster = directorSpawnRequest.spawnCard.prefab.GetComponent<CharacterMaster>();
                 if (characterMaster)
                 {
-                    if (characterMaster.teamIndex == TeamIndex.Void && cfgVoidStaysVoid.Value)
+                    var bodyIndex = characterMaster.bodyPrefab.GetComponent<CharacterBody>().bodyIndex;
+                    if (bodyIndex_to_teamIndex.TryGetValue(bodyIndex, out TeamIndex teamIndex))
                     {
-                        //Chat.AddMessage($"Keeping teamIndex of {characterMaster.gameObject.name} as Void due to pre-infestation.");
-                    } else
-                    {
-                        if (characterMaster.bodyPrefab)
-                        {
-                            var bodyIndex = characterMaster.bodyPrefab.GetComponent<CharacterBody>().bodyIndex;
-                            if (bodyIndex_to_teamIndex.TryGetValue(bodyIndex, out TeamIndex teamIndex))
-                            {
-                                //Chat.AddMessage($"Overriding teamIndex of {characterMaster.gameObject.name} to {teamIndex}");
-                                directorSpawnRequest.teamIndexOverride = teamIndex;
-                            }
-                        }
+                        //_logger.LogMessage($"Overriding teamIndex to {teamIndex}");
+                        directorSpawnRequest.teamIndexOverride = teamIndex;
                     }
                 }
             }
@@ -81,7 +99,7 @@ namespace MonsterTeamSwap
             return original;
         }
 
-        [RoR2.SystemInitializer(dependencies: typeof(RoR2.BodyCatalog))]
+        //[RoR2.SystemInitializer(dependencies: typeof(RoR2.BodyCatalog))]
         public static void SetupDictionary()
         {
             _logger.LogMessage("Setting up!");
