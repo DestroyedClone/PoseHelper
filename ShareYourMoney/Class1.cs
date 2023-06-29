@@ -1,89 +1,99 @@
 ﻿using BepInEx;
+using BepInEx.Configuration;
 using R2API;
 using R2API.Utils;
-using R2API.Networking;
+using RiskOfOptions;
 using RoR2;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Security.Permissions;
 using UnityEngine;
 using UnityEngine.Networking;
 using static ShareYourMoney.DoshContent;
-using R2API.Networking.Interfaces;
-using RoR2;
-using UnityEngine;
-using UnityEngine.Networking;
 
 #pragma warning disable CS0618 // Type or member is obsolete
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
 #pragma warning restore CS0618 // Type or member is obsolete
 
+[assembly: HG.Reflection.SearchableAttribute.OptIn]
+
 namespace ShareYourMoney
 {
-    [BepInPlugin("com.DestroyedClone.DoshDrop", "Dosh Drop", "1.0.4")]
+    [BepInPlugin("com.DestroyedClone.DoshDrop", "Dosh Drop", "1.0.5")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
-    [R2APISubmoduleDependency(nameof(PrefabAPI), nameof(LanguageAPI), nameof(NetworkingAPI))]
+    [BepInDependency("com.rune580.riskofoptions", BepInDependency.DependencyFlags.SoftDependency)]
     [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.EveryoneNeedSameModVersion)]
-    public class Main : BaseUnityPlugin
+    public class DoshDropPlugin : BaseUnityPlugin
     {
         internal static BepInEx.Logging.ManualLogSource _logger;
+        public static PluginInfo PInfo { get; private set; }
 
         // CFG
-        public static KeyCode keyToDrop;
+        public static ConfigEntry<KeyboardShortcut> cfgCDropKey;
 
-        public static float percentToDrop = 0.5f;
-        public static bool performanceMode = true;
-        public static bool preventModUseOnStageEnd = true;
-        public static bool refundOnStageEnd = true;
+        public static ConfigEntry<bool> cfgCLanguageSwap;
+
+        public static ConfigEntry<float> cfgSPercentToDrop;
+        public static ConfigEntry<bool> cfgSPreventModUseOnStageEnd;
+        public static ConfigEntry<bool> cfgSRefundOnStageEnd;
 
         public static int baseChestCost = 25;
-        public static bool preventMoneyDrops = false; //Server Method
-        public static bool england = false;
+        public static bool SGlobalPreventMoneyDrops = false; //Server Method
+
+        public void Awake()
+        {
+            PInfo = Info;
+        }
 
         public void Start()
         {
             _logger = Logger;
             DoshContent.LoadResources();
             DoshContent.CreateObjects();
-            DoshContent.CreateBuffs();
-            NetworkingAPI.RegisterMessageType<Networking.DoshDropMessageToServer>();
 
-            keyToDrop = Config.Bind("", "Keybind", KeyCode.B, "Button to press to drop money").Value;
-            percentToDrop = Config.Bind("", "Amount to Drop (Server-Side)", 0.5f, "Drop money equivalent to this percentage of the cost of a small chest.").Value;
-            performanceMode = Config.Bind("", "Performance Mode", true, "If true, then money dropped by clients will try to be combined to prevent clients flooding the map with dropped money objects." +
-                "\nOnly applied to thrown money, otherwise normal.").Value;
-            preventModUseOnStageEnd = Config.Bind("", "Prevent On Stage End", true, "If true, then money will be prevented from being dropped on ending the stage.").Value;
-            refundOnStageEnd = Config.Bind("", "Refund Drops On Stage End", true, "If true, then money will get refunded to owners upon ending the stage.").Value;
-            england = Config.Bind("", "English (England)", true, "Renames the English translation for Money to a more regionally appropriate term.").Value;
+            cfgCDropKey = Config.Bind("Client", "Keybind", new KeyboardShortcut(KeyCode.B), "Button to press to drop money");
+            cfgCLanguageSwap = Config.Bind("Client", "English (England)", true, "Renames the English translation for Money to a more regionally appropriate term.");
 
-            On.RoR2.CharacterBody.Update += CheckInputs;
-            if (performanceMode)
-            {
-               // On.RoR2.CharacterBody.FixedUpdate += CharacterBody_FixedUpdate_PerformanceMode;
-            }
-            else
-            {
-                //On.RoR2.CharacterBody.FixedUpdate += CharacterBody_FixedUpdate;
-            }
+            cfgSPercentToDrop = Config.Bind("Server", "Amount to Drop", 0.5f, "Drop money equivalent to this percentage of the cost of a small chest.");
+            cfgSPreventModUseOnStageEnd = Config.Bind("Server", "Prevent On Stage End", true, "If true, then money will be prevented from being dropped on ending the stage.");
+            cfgSRefundOnStageEnd = Config.Bind("Server", "Refund Drops On Stage End", true, "If true, then money will get refunded to owners upon ending the stage.");
+
+            CharacterBody.onBodyStartGlobal += AddInputTrackerToCharacter;
             SetupLanguage();
 
-            On.RoR2.SceneExitController.SetState += SceneExitController_SetState;
-            Stage.onServerStageBegin += Stage_onServerStageBegin;
-            On.RoR2.OutsideInteractableLocker.LockPurchasable += OutsideInteractableLocker_LockPurchasable;
+            On.RoR2.SceneExitController.SetState += RefundMoneyDropsOnSceneExit;
+            Stage.onServerStageBegin += OnStageBegin_ResetPreventMoneyDrops;
+            On.RoR2.OutsideInteractableLocker.LockPurchasable += PreventInteractionLockPrefab;
 
-            //R2API.Utils.CommandHelper.AddToConsoleWhenReady();
+            R2API.Utils.CommandHelper.AddToConsoleWhenReady();
 
             // Sure would be a shame if this thing fell out of bounds.
             //On.RoR2.MapZone.OnTriggerEnter += MapZone_OnTriggerEnter;
+            //On.RoR2.Networking.NetworkManagerSystemSteam.OnClientConnect += (s, u, t) => { };
+            ModCompat.Initialize();
         }
 
-        private void SetupLanguage()
+        public bool CharacterBodyIsLocalUser(CharacterBody body)
+        {
+            return LocalUserManager.GetFirstLocalUser().cachedMaster == body.master;
+        }
+
+        private void AddInputTrackerToCharacter(CharacterBody body)
+        {
+            if (body.isPlayerControlled && body.master && CharacterBodyIsLocalUser(body))
+            {
+                var comp = body.gameObject.AddComponent<DoshDrop_InputCheckerComponent>();
+                comp.userLocalUser = LocalUserManager.GetFirstLocalUser();
+                //body.master.GetComponent<PlayerCharacterMasterController>().networkUser.localUser;
+            }
+        }
+
+        public static void SetupLanguage()
         {
             var token = "DC_DOSH_PICKUP";
-            LanguageAPI.Add(token, england ? "Dosh" : "Money");
+            LanguageAPI.Add(token, cfgCLanguageSwap.Value ? "Dosh" : "Money");
             LanguageAPI.Add(token, "Geld", "de");
             LanguageAPI.Add(token, "Dinero", "es-419");
-            LanguageAPI.Add(token, "Argent", "FR");
+            LanguageAPI.Add(token, cfgCLanguageSwap.Value ? "Fric" : "Argent", "FR");
             LanguageAPI.Add(token, "Soldi", "IT");
             LanguageAPI.Add(token, "お金", "ja");
             LanguageAPI.Add(token, "돈", "ko");
@@ -93,7 +103,7 @@ namespace ShareYourMoney
             LanguageAPI.Add(token, "钱", "zh-CN");
         }
 
-        private void OutsideInteractableLocker_LockPurchasable(On.RoR2.OutsideInteractableLocker.orig_LockPurchasable orig, OutsideInteractableLocker self, PurchaseInteraction purchaseInteraction)
+        private void PreventInteractionLockPrefab(On.RoR2.OutsideInteractableLocker.orig_LockPurchasable orig, OutsideInteractableLocker self, PurchaseInteraction purchaseInteraction)
         {
             if (purchaseInteraction.GetComponent<MoneyPickupMarker>())
             {
@@ -102,33 +112,12 @@ namespace ShareYourMoney
             orig(self, purchaseInteraction);
         }
 
-        private void Stage_onServerStageBegin(Stage obj)
+        private void OnStageBegin_ResetPreventMoneyDrops(Stage obj)
         {
-            preventMoneyDrops = false;
+            SGlobalPreventMoneyDrops = false;
         }
 
-        private void CharacterBody_FixedUpdate(On.RoR2.CharacterBody.orig_FixedUpdate orig, CharacterBody self)
-        {
-            orig(self);
-            if (NetworkServer.active)
-            {
-                if (preventMoneyDrops) return;
-                int doshCount = Mathf.Min(self.GetBuffCount(DoshContent.pendingDoshBuff.buffIndex), 8);    //Can queue up to 8
-                if (doshCount > 0)
-                {
-                    self.ClearTimedBuffs(DoshContent.pendingDoshBuff.buffIndex);
-                    if (self.master)
-                    {
-                        for (int i = 0; i < doshCount; i++)
-                        {
-                            ReleaseMoney(self.master);
-                        }
-                    }
-                }
-            }
-        }
-
-        private void SceneExitController_SetState(On.RoR2.SceneExitController.orig_SetState orig, SceneExitController self, SceneExitController.ExitState newState)
+        private void RefundMoneyDropsOnSceneExit(On.RoR2.SceneExitController.orig_SetState orig, SceneExitController self, SceneExitController.ExitState newState)
         {
             bool approved = newState != self.exitState;
             orig(self, newState);
@@ -136,19 +125,19 @@ namespace ShareYourMoney
             switch (self.exitState)
             {
                 case SceneExitController.ExitState.Idle:
-                    preventMoneyDrops = false;
+                    SGlobalPreventMoneyDrops = false;
                     break;
 
                 case SceneExitController.ExitState.ExtractExp:
-                    if (preventModUseOnStageEnd)
-                        preventMoneyDrops = true;
-                    if (refundOnStageEnd)
+                    if (cfgSPreventModUseOnStageEnd.Value)
+                        SGlobalPreventMoneyDrops = true;
+                    if (cfgSRefundOnStageEnd.Value)
                         RefundMoneyPackPickups();
                     break;
 
                 default:
-                    if (preventModUseOnStageEnd)
-                        preventMoneyDrops = true;
+                    if (cfgSPreventModUseOnStageEnd.Value)
+                        SGlobalPreventMoneyDrops = true;
                     break;
             }
         }
@@ -164,97 +153,87 @@ namespace ShareYourMoney
             }
         }
 
-        private void CheckInputs(On.RoR2.CharacterBody.orig_Update orig, CharacterBody self)
-        {
-            orig(self);
-
-            if (self.isPlayerControlled && self.isPlayerControlled && self.master
-                && !LocalUserManager.readOnlyLocalUsersList[0].isUIFocused
-                && Input.GetKeyDown(keyToDrop) && self.hasEffectiveAuthority)
-            {
-                if (NetworkServer.active)
-                {
-                    if (preventMoneyDrops) return;
-                    ReleaseMoney(self.master);
-                }
-                else
-                {
-                    RoR2.Console.instance.SubmitCmd(NetworkUser.readOnlyLocalPlayersList[0], "doshdrop 0", true);
-                    //new Networking.DoshDropMessageToServer(self.gameObject.GetComponent<NetworkIdentity>().netId, 0).Send(NetworkDestination.Server);
-                }
-            }
-        }
-
-        private void CharacterBody_FixedUpdate_PerformanceMode(On.RoR2.CharacterBody.orig_FixedUpdate orig, CharacterBody self)
-        {
-            orig(self);
-            if (NetworkServer.active)
-            {
-                if (preventMoneyDrops) return;
-                int doshCount = self.GetBuffCount(DoshContent.pendingDoshBuff);
-                if (doshCount > 0)
-                {
-                    Chat.SendBroadcastChat(new Chat.SimpleChatMessage() { baseToken = $"{self.GetDisplayName()} dosh count: {doshCount}" });
-                    self.ClearTimedBuffs(DoshContent.pendingDoshBuff);
-                    if (self.master)
-                    {
-                        //ReleaseMoney(self.master, doshCount);
-                    }
-                }
-            }
-        }
-
         // needs to be able to be sent by clients so they can drop custom money amounts
         // dunno if this just does that tho
         [ConCommand(commandName = "doshdrop", flags = ConVarFlags.ExecuteOnServer, helpText = "doshdrop {positive amount}.")]
-        private static void CMDDropMoney(ConCommandArgs args)
+        private static void CCDropMoney(ConCommandArgs args)
         {
-            ReleaseMoney(args.senderMaster, (uint)Mathf.Abs(args.GetArgInt(0)));
+            if (!Run.instance)
+            {
+                Debug.Log("doshdrop: Can't drop any dosh without being in a run!");
+                return;
+            }
+            if (!args.TryGetSenderBody())
+            {
+                Debug.Log("doshdrop: Can't drop any dosh without a body!");
+                return;
+            }
+            var finalMoney = 0;
+            if (args.Count > 0)
+            {
+                var moneyRequested = args.TryGetArgInt(0);
+                if (!moneyRequested.HasValue)
+                {
+                    Debug.Log("doshdrop: Couldn't parse the the value as an integer.");
+                    return;
+                }
+                if (moneyRequested.Value < 0)
+                {
+                    Debug.Log("doshdrop: Can't drop negative money!");
+                    return;
+                }
+                finalMoney = moneyRequested.Value;
+            }
+            Server_ReleaseMoney(args.senderMaster, (uint)finalMoney);
         }
 
         // Server Method
-        public static void ReleaseMoney(CharacterMaster master, uint goldReward = 0)
+        public static void Server_ReleaseMoney(CharacterMaster master, uint goldReward = 0)
         {
-            if (!NetworkServer.active) return;
+            if (!NetworkServer.active)
+            {
+                _logger.LogWarning("DoshDrop.Server_ReleaseMoney called on client!");
+                return;
+            }
             if (goldReward == 0)
             {
-                goldReward = (uint)Mathf.CeilToInt(Run.instance.GetDifficultyScaledCost(baseChestCost) * percentToDrop * 1);
+                goldReward = (uint)Mathf.CeilToInt(Run.instance.GetDifficultyScaledCost(baseChestCost) * cfgSPercentToDrop.Value * 1);
             }
-            if (master && master.GetBody())
+            if (master)
             {
-                // 15 - 25 = -10, so resulting money is 10 to drop
+                var body = master.GetBody();
+                if (!body)
+                    return;
+
                 if (goldReward > master.money)
                 {
                     goldReward = master.money;
                 }
 
-                //goldReward <= 0 or goldReward < 1??
-                if ((uint)goldReward <= 0)
-                {
-                    //to avoid dropping $0 items.
+                //to avoid dropping $0 items.
+                if (goldReward <= 0)
                     return;
-                }
 
                 GameObject pickup = Instantiate(ShareMoneyPack);
-                pickup.transform.position = master.GetBody().corePosition;
+                pickup.transform.position = body.corePosition;
                 ModifiedMoneyPickup moneyPickup = pickup.GetComponentInChildren<ModifiedMoneyPickup>();
                 moneyPickup.goldReward = (int)goldReward;
-                moneyPickup.owner = master.GetBody() ?? null;
+                moneyPickup.owner = body;
 
-                Rigidbody component = pickup.GetComponent<Rigidbody>();
+                Rigidbody rigidBody = pickup.GetComponent<Rigidbody>();
 
                 Vector3 direction;
-                if (master.GetBody().inputBank)
+                if (body.inputBank)
                 {
-                    Ray aimRay = master.GetBody().inputBank.GetAimRay();
+                    Ray aimRay = body.inputBank.GetAimRay();
                     direction = aimRay.direction;
                     pickup.transform.position = aimRay.origin;  //set position to aimray if aimray is found
                 }
                 else
                 {
-                    direction = master.GetBody().transform.forward;
+                    direction = body.gameObject.transform.forward;
                 }
-                component.velocity = Vector3.up * 5f + (direction * 20f); // please fine tune
+                rigidBody.velocity = Vector3.up * 5f + (direction * 20f); // please fine tune
 
                 // Figure out how to communicate to the client how much money was dropped.
                 //Chat.AddMessage($"You have dropped ${(uint)goldReward}");
@@ -262,6 +241,45 @@ namespace ShareYourMoney
 
                 NetworkServer.Spawn(pickup);
                 master.money = (uint)(Mathf.Max(0f, master.money - goldReward));
+            }
+        }
+
+        public static void ReleaseMoneyAuthority(CharacterMaster characterMaster, uint moneyAmount = 0U)
+        {
+            if (!RoR2.Console.instance) return;
+            RoR2.Console.instance.SubmitCmd(characterMaster.GetComponent<PlayerCharacterMasterController>().networkUser, $"doshdrop {moneyAmount}", false);
+            /*
+            if (NetworkServer.active)
+            {
+                Server_ReleaseMoney(characterMaster, moneyAmount);
+                return;
+            }
+            CallCmdReleaseMoney(characterMaster, moneyAmount);*/
+        }
+
+        public static void CallCmdReleaseMoney(CharacterMaster characterMaster, uint moneyToDrop = 0U)
+        {
+            if (!RoR2.Console.instance) return;
+            RoR2.Console.instance.SubmitCmd(characterMaster.GetComponent<PlayerCharacterMasterController>().networkUser, "doshdrop", false);
+        }
+
+        public class DoshDrop_InputCheckerComponent : MonoBehaviour
+        {
+            public LocalUser userLocalUser;
+            private bool wasPressed = false;
+
+            public void Update()
+            {
+                bool isDropKeyPressed = cfgCDropKey.Value.IsPressedInclusive();
+                if (isDropKeyPressed && wasPressed) return;
+                if (!isDropKeyPressed) wasPressed = false;
+                if (userLocalUser.isUIFocused) return;
+
+                if (isDropKeyPressed)
+                {
+                    ReleaseMoneyAuthority(userLocalUser.cachedMaster);
+                    wasPressed = true;
+                }
             }
         }
     }

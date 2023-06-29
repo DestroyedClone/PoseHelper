@@ -3,46 +3,42 @@ using RoR2;
 using RoR2.ContentManagement;
 using System.Collections;
 using System.Collections.Generic;
-using System.Reflection;
 using UnityEngine;
-using UnityEngine.Networking;
 using UnityEngine.AddressableAssets;
+using UnityEngine.Networking;
 
 namespace ShareYourMoney
 {
     public class DoshContent : IContentPackProvider
     {
         internal static ContentPack contentPack = new ContentPack();
+        public static AssetBundle mainAssetBundle;
+        public const string bundleName = "bigbluecash";
+        public const string assetBundleFolder = "AssetBundles";
 
-        public static GameObject ShareMoneyPack;
+        public static string AssetBundlePath
+        {
+            get
+            {
+                return System.IO.Path.Combine(System.IO.Path.GetDirectoryName(DoshDropPlugin.PInfo.Location), assetBundleFolder, bundleName);
+            }
+        }
 
-        public static AssetBundle MainAssets;
-        public static GameObject moneyAsset;
-
-        public static BuffDef pendingDoshBuff;    //Client adds the buff. If server detects buff, it removes it and triggers the money drop.
-
-        //public static UnlockableDef masteryUnlock;
-
-        //public static SurvivorDef banditReloadedSurvivor;
-
-        public static List<BuffDef> buffDefs = new List<BuffDef>();
         public static List<GameObject> networkedObjectPrefabs = new List<GameObject>();
+        public static GameObject ShareMoneyPack;
+        public static GameObject moneyAsset;
 
         public string identifier => "DoshDrop.content";
 
         public static void LoadResources()
         {
-            using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("ShareYourMoney.bigbluecash"))
-            {
-                MainAssets = AssetBundle.LoadFromStream(stream);
-            }
+            mainAssetBundle = AssetBundle.LoadFromFile(AssetBundlePath);
         }
 
         public IEnumerator LoadStaticContentAsync(LoadStaticContentAsyncArgs args)
         {
             //CreateBuffs();
             //CreateObjects();
-            contentPack.buffDefs.Add(buffDefs.ToArray());
             contentPack.networkedObjectPrefabs.Add(networkedObjectPrefabs.ToArray());
             yield break;
         }
@@ -59,14 +55,9 @@ namespace ShareYourMoney
             yield break;
         }
 
-        private static void FixScriptableObjectName(BuffDef buff)
-        {
-            (buff as ScriptableObject).name = buff.name;
-        }
-
         public static void CreateObjects()
         {//prevent rolling somehow?
-            moneyAsset = DoshContent.MainAssets.LoadAsset<GameObject>("Assets/bigbluecash/BBC.prefab");
+            moneyAsset = DoshContent.mainAssetBundle.LoadAsset<GameObject>("Assets/bigbluecash/BBC.prefab");
             var ShareMoneyPack = PrefabAPI.InstantiateClone(Addressables.LoadAssetAsync<GameObject>("RoR2/Base/BonusGoldPackOnKill/BonusMoneyPack.prefab").WaitForCompletion(), "ShareMoneyPack", true);
             var moneyPickup = ShareMoneyPack.transform.Find("PackTrigger").GetComponent<MoneyPickup>();
             var modMoneyPickup = moneyPickup.gameObject.AddComponent<ModifiedMoneyPickup>();
@@ -99,25 +90,12 @@ namespace ShareYourMoney
             purchaseInteraction.gameObject.AddComponent<MoneyPickupMarker>();
 
             var pingInfoProvider = ShareMoneyPack.AddComponent<PingInfoProvider>();
-            pingInfoProvider.pingIconOverride = UnityEngine.AddressableAssets.Addressables.LoadAssetAsync<Sprite>("textures/miscicons/texrulebonusstartingmoney").WaitForCompletion();
+            pingInfoProvider.pingIconOverride = UnityEngine.AddressableAssets.Addressables.LoadAssetAsync<Sprite>("RoR2/Base/Common/MiscIcons/texRuleBonusStartingMoney.png").WaitForCompletion();
 
             modMoneyPickup.purchaseInteraction = purchaseInteraction;
 
             networkedObjectPrefabs.Add(ShareMoneyPack);
             DoshContent.ShareMoneyPack = ShareMoneyPack;
-        }
-
-        public static void CreateBuffs()
-        {
-            BuffDef PendingDoshBuff = ScriptableObject.CreateInstance<BuffDef>();
-            PendingDoshBuff.buffColor = new Color(1f, 215f / 255f, 0f);
-            PendingDoshBuff.canStack = true;
-            PendingDoshBuff.isDebuff = false;
-            PendingDoshBuff.name = "PendingDoshDrop";
-            PendingDoshBuff.iconSprite = Resources.Load<Sprite>("Textures/BuffIcons/texBuffCloakIcon");
-            FixScriptableObjectName(PendingDoshBuff);
-            DoshContent.buffDefs.Add(PendingDoshBuff);
-            DoshContent.pendingDoshBuff = PendingDoshBuff;
         }
 
         public class MoneyPickupMarker : MonoBehaviour
@@ -147,12 +125,7 @@ namespace ShareYourMoney
 
             public void Refund()
             {
-                allowPickup = false;
-                if (owner.master)
-                {
-                    owner.master.GiveMoney((uint)goldReward);
-                    Destroy(this.baseObject);
-                }
+                ConsumePickup(owner.master);
             }
 
             private void FixedUpdate()
@@ -165,7 +138,6 @@ namespace ShareYourMoney
                 }
             }
 
-            // Token: 0x060013E7 RID: 5095 RVA: 0x00052B84 File Offset: 0x00050D84
             private void OnTriggerStay(Collider other)
             {
                 if (NetworkServer.active && this.alive)
@@ -177,39 +149,39 @@ namespace ShareYourMoney
                     {
                         if (ownerCanPickup && characterBody == owner || characterBody != owner)
                         {
-                            this.alive = false;
-                            Vector3 position = base.transform.position;
-                            characterBody.master.GiveMoney((uint)goldReward);
-                            if (this.pickupEffectPrefab)
-                            {
-                                EffectManager.SimpleEffect(this.pickupEffectPrefab, position, Quaternion.identity, true);
-                            }
-                            UnityEngine.Object.Destroy(this.baseObject);
+                            ConsumePickup(characterBody.master, true);
                         }
                     }
                 }
             }
 
-            // Token: 0x040011AF RID: 4527
+            private void ConsumePickup(CharacterMaster collectorMaster, bool showEffect = false)
+            {
+                allowPickup = false;
+                this.alive = false;
+                Vector3 position = base.transform.position;
+                if (collectorMaster)
+                    collectorMaster.GiveMoney((uint)goldReward);
+                if (this.pickupEffectPrefab && showEffect)
+                    EffectManager.SimpleEffect(this.pickupEffectPrefab, position, Quaternion.identity, true);
+                UnityEngine.Object.Destroy(this.baseObject);
+            }
+
             [Tooltip("The base object to destroy when this pickup is consumed.")]
             public GameObject baseObject;
 
-            // Token: 0x040011B0 RID: 4528
             [Tooltip("The team filter object which determines who can pick up this pack.")]
             public TeamFilter teamFilter;
 
-            // Token: 0x040011B1 RID: 4529
             public GameObject pickupEffectPrefab;
 
-            // Token: 0x040011B4 RID: 4532
             private bool alive = true;
 
-            // Token: 0x040011B5 RID: 4533
             public int goldReward;
 
             private float age = 0;
 
-            private float durationBeforeOwnerPickup = 3f;
+            private readonly float durationBeforeOwnerPickup = 3f;
 
             public CharacterBody owner;
 
