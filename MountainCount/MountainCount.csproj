@@ -13,7 +13,6 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="BepInEx.Core" Version="5.4.17" />
 		<PackageReference Include="Microsoft.Unity.Analyzers" Version="1.10.0">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -22,17 +21,22 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="RiskOfRain2.GameLibs" Version="1.2.1-r.0" />
+		<PackageReference Include="RiskOfRain2.GameLibs" Version="1.2.4-r.0" />
 		<PackageReference Include="UnityEngine.Modules" Version="2019.4.26" />
+		<PackageReference Include="MMHOOK.RoR2" Version="2022.9.20" />
+		<PackageReference Include="R2API" Version="5.0.5" />
 	</ItemGroup>
 
-
 	<ItemGroup>
-		<Reference Include="MMHOOK_RoR2">
-			<HintPath>..\References\lib\MMHOOK_RoR2.dll</HintPath>
+	  <Reference Include="ExtraChallengeShrines">
+	    <HintPath>lib\ExtraChallengeShrines.dll</HintPath>
+	  </Reference>
+
+		<Reference Include="RiskOfOptions">
+			<HintPath>lib\RiskOfOptions.dll</HintPath>
 		</Reference>
-		<Reference Include="R2API">
-			<HintPath>..\References\lib\R2API.dll</HintPath>
+		<Reference Include="MysticsRisky2Utils">
+			<HintPath>lib\MysticsRisky2Utils.dll</HintPath>
 		</Reference>
 	</ItemGroup>
 

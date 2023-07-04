@@ -1,0 +1,21 @@
+{
+	strings: {
+
+		"MOUNTAINCOUNT_SAYAMOUNT_EXPECTEDPERPERSON": "Estimated Drops Per Person: <style=cIsUtility>{0}</style>",
+
+		//[HEADERS LIKE THIS ARE FINE]
+		"MOUNTAINCOUNT_SAYAMOUNT_MOUNTAIN": "<style=cIsDamage>MTN Amount: </style><style=cIsUtility>{0}x</style>",
+		"MOUNTAINCOUNT_SAYAMOUNT_MOUNTAIN_EXPANDED": "<style=cIsDamage>MTN Amount: </style><style=cIsUtility>{0}x ({1} items per person)</style>",
+		"MOUNTAINCOUNT_EXTRACHALLENGESHRINES_SAYAMOUNT_CROWN": "<style=cIsDamage>SKY Amount: </style><style=cIsUtility>{0}x</style>",
+		"MOUNTAINCOUNT_EXTRACHALLENGESHRINES_SAYAMOUNT_CROWN_EXPANDED": "<style=cIsDamage>SKY Amount: </style><style=cIsUtility>{0}x (+{1}x red items & bosses)</style>",
+		"MOUNTAINCOUNT_EXTRACHALLENGESHRINES_SAYAMOUNT_ROCK": "<style=cIsDamage>EARTH Amount: </style><style=cIsUtility>{0}x</style>",
+		"MOUNTAINCOUNT_EXTRACHALLENGESHRINES_SAYAMOUNT_ROCK_EXPANDED": "<style=cIsDamage>EARTH Amount: </style><style=cIsUtility>{0}x (+{1} extra drops)</style>",
+		"MOUNTAINCOUNT_EXTRACHALLENGESHRINES_SAYAMOUNT_EYE": "<style=cIsDamage>WIND Amount: </style><style=cIsUtility>{0}x {1}</style>",
+		"MOUNTAINCOUNT_EXTRACHALLENGESHRINES_SAYAMOUNT_EYE_EXPANDED": "<style=cIsDamage>WIND Amount: </style><style=cIsUtility>{0}x (Boss: {1}, Boss Drop Chance: {2})</style>",
+
+		"MOUNTAINCOUNT_SAYAMOUNT_MOUNTAIN_COMBINED": "<style=cIsDamage>MTN:</style><style=cIsUtility>{0}x</style>",
+		"MOUNTAINCOUNT_EXTRACHALLENGESHRINES_SAYAMOUNT_CROWN_COMBINED": "<style=cIsDamage>SKY:</style><style=cIsUtility>{0}x</style>",
+		"MOUNTAINCOUNT_EXTRACHALLENGESHRINES_SAYAMOUNT_ROCK_COMBINED": "<style=cIsDamage>EARTH:</style><style=cIsUtility>{0}x</style>",
+		"MOUNTAINCOUNT_EXTRACHALLENGESHRINES_SAYAMOUNT_EYE_COMBINED": "<style=cIsDamage>WIND:</style><style=cIsUtility>{0}x {1}</style>"
+	}
+}
