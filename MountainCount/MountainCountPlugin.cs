@@ -15,7 +15,7 @@ using static MountainCount.Config;
 
 namespace MountainCount
 {
-    [BepInPlugin("com.DestroyedClone.MountainCount", "MountainCount", "1.1.0")]
+    [BepInPlugin("com.DestroyedClone.MountainCount", "MountainCount", "0.2.1")]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     [BepInDependency("com.themysticsword.extrachallengeshrines", BepInDependency.DependencyFlags.SoftDependency)]
     [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.DifferentModVersionsAreOk)]

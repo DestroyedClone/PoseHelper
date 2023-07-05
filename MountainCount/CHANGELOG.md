@@ -1,4 +1,4 @@
-* `0.2.01` - Dependency Fix
+* `0.2.1` - Dependency Fix
 	* Migrated MountainShrine reference to Assets
 	* Added a 'ModifyShrineUseToken' abstract method to ShrineReferenceBase in order to isolate `Chat_SendBroadcastChat_ChatMessageBase` method from trying to access fields from unloaded mod dlls
 	* Config default changes
