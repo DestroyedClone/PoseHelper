@@ -13,11 +13,11 @@ namespace MountainCount
 
         public static void Initialize(ConfigFile Config)
         {
-            cfgPrintOnTeleporterEnd = Config.Bind("", "Message On Teleporter Completion", "x?", "If true, then this message will be sent to the server. Recommended usage is x? or xtotal?");
+            cfgPrintOnTeleporterEnd = Config.Bind("", "Message On Teleporter Completion", "xtotal?", "If true, then this chat message will be sent to the server by the server. Recommended usage is x? or xtotal?");
             cfgEditLanguage = Config.Bind("", "Edit Language", true, "Modifies boss shrine usage text to show the current amount.");
             cfgAddChatMessage = Config.Bind("", "Add Command", true, "If true, adds a chat message." +
                 "\n'x?' will show the amount.");
-            cfgExpandedInfo = Config.Bind("", "Expanded Information", false, "If true, then the query messages will be changed based on the info needed." +
+            cfgExpandedInfo = Config.Bind("", "Expanded Information", true, "If true, then the query messages will be changed based on the info needed." +
                 "\nExample: Mountain info will also show the amount of items each person gets.");
 
             cfgPrintOnTeleporterEnd.SettingChanged += CfgPrintOnTeleporterEnd_SettingChanged;

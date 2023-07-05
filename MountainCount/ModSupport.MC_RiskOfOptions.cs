@@ -1,4 +1,5 @@
-﻿using RiskOfOptions;
+﻿using IL.RoR2;
+using RiskOfOptions;
 using RiskOfOptions.OptionConfigs;
 using RiskOfOptions.Options;
 using System.Runtime.CompilerServices;
@@ -19,17 +20,16 @@ namespace MountainCount
                 ModSettingsManager.AddOption(new CheckBoxOption(cfgEditLanguage));
                 ModSettingsManager.AddOption(new CheckBoxOption(cfgAddChatMessage));
 
-                RoR2.Language.onCurrentLanguageChanged += Language_onCurrentLanguageChanged;
+                RoR2Application.OnLoad += RoR2Application_OnLoad;
             }
 
-            private static void Language_onCurrentLanguageChanged()
+            private static void RoR2Application_OnLoad(MonoMod.Cil.ILContext il)
             {
                 ModSettingsManager.AddOption(new CheckBoxOption(cfgExpandedInfo, new CheckBoxConfig()
                 {
                     description = GetExpandedInfoDescription()
                 }));
                 //cant modify collection, so... first language only..
-                RoR2.Language.onCurrentLanguageChanged -= Language_onCurrentLanguageChanged;
             }
 
             [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]

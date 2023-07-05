@@ -2,6 +2,7 @@
 using R2API;
 using R2API.Utils;
 using RoR2;
+using System.Runtime.CompilerServices;
 using System.Security;
 using System.Security.Permissions;
 using System.Text;
@@ -20,14 +21,16 @@ namespace MountainCount
     [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.DifferentModVersionsAreOk)]
     public class MountainCountPlugin : BaseUnityPlugin
     {
-        public static ShrineMountain shrineMountain;
+        public static Assets.ShrineMountain shrineMountain;
 
         public static StringBuilder ModStringBuilder = null;
+        public static BepInEx.Logging.ManualLogSource _logger;
 
         public void Start()
         {
-            shrineMountain = new ShrineMountain();
+            shrineMountain = new Assets.ShrineMountain();
             ModStringBuilder = new StringBuilder();
+            _logger = Logger;
             MountainCount.Config.Initialize(Config);
 
             if (!cfgPrintOnTeleporterEnd.Value.IsNullOrWhiteSpace())
@@ -52,30 +55,26 @@ namespace MountainCount
             Add("EXTRACHALLENGESHRINES_SHRINE_EYE_USE_MESSAGE", " (x{1}|{2})");
         }
 
-        internal static void Chat_SendBroadcastChat_ChatMessageBase(On.RoR2.Chat.orig_SendBroadcastChat_ChatMessageBase orig, ChatMessageBase message)
+        public static void Chat_SendBroadcastChat_ChatMessageBase(On.RoR2.Chat.orig_SendBroadcastChat_ChatMessageBase orig, ChatMessageBase message)
         {
             if (cfgEditLanguage.Value && message is Chat.SubjectFormatChatMessage subjectMsg)
             {
                 switch (subjectMsg.baseToken)
                 {
                     case "SHRINE_BOSS_USE_MESSAGE":
-                        subjectMsg.baseToken = "MOUNTAINCOUNT_SHRINE_BOSS_USE_MESSAGE";
-                        subjectMsg.paramTokens = new string[] { $"{shrineMountain.GetCount()}" };
+                        shrineMountain.ModifyShrineUseToken(ref subjectMsg);
                         break;
 
                     case "EXTRACHALLENGESHRINES_SHRINE_CROWN_USE_MESSAGE":
-                        subjectMsg.baseToken = "MOUNTAINCOUNT_EXTRACHALLENGESHRINES_SHRINE_CROWN_USE_MESSAGE";
-                        subjectMsg.paramTokens = new string[] { $"{ModSupport.MC_ExtraChallengeShrines.shrineCrown.GetCount()}" };
+                        ModSupport.MC_ExtraChallengeShrines.shrineCrown.ModifyShrineUseToken(ref subjectMsg);
                         break;
 
                     case "EXTRACHALLENGESHRINES_SHRINE_ROCK_USE_MESSAGE":
-                        subjectMsg.baseToken = "MOUNTAINCOUNT_EXTRACHALLENGESHRINES_SHRINE_ROCK_USE_MESSAGE";
-                        subjectMsg.paramTokens = new string[] { $"{ModSupport.MC_ExtraChallengeShrines.shrineRock.GetCount()}" };
+                        ModSupport.MC_ExtraChallengeShrines.shrineRock.ModifyShrineUseToken(ref subjectMsg);
                         break;
 
                     case "EXTRACHALLENGESHRINES_SHRINE_EYE_USE_MESSAGE":
-                        subjectMsg.baseToken = "MOUNTAINCOUNT_EXTRACHALLENGESHRINES_SHRINE_EYE_USE_MESSAGE";
-                        subjectMsg.paramTokens = new string[] { ModSupport.MC_ExtraChallengeShrines.shrineEye.GetCount().ToString(), ModSupport.MC_ExtraChallengeShrines.shrineEye.GetSelectedBossName() };
+                        ModSupport.MC_ExtraChallengeShrines.shrineEye.ModifyShrineUseToken(ref subjectMsg);
                         break;
                 }
             }
@@ -97,7 +96,13 @@ namespace MountainCount
                         //isAskingSky = true;
                         //isAskingEarth = true;
                         //isAskingWind = true;
-                        isAskingAll = true;
+                        if (ModSupport.modloaded_ExtraChallengeShrines)
+                        {
+                            isAskingAll = true;
+                        } else
+                        {
+                            isAskingMountain = true;
+                        }
                         break;
 
                     case "xm?":
@@ -127,22 +132,18 @@ namespace MountainCount
                 }
             }
             orig(message);
+
             if (Run.instance)
             {
-                if (isAskingAll && !ModSupport.modloaded_ExtraChallengeShrines)
-                {
-                    isAskingAll = false;
-                    isAskingMountain = true;
-                }
                 SetupStringBuilder();
                 if (isAskingAll)
                 {
                     shrineMountain.AppendInfo();
                     if (ModSupport.modloaded_ExtraChallengeShrines)
                     {
-                        ModSupport.MC_ExtraChallengeShrines.shrineCrown.AppendInfo();
-                        ModSupport.MC_ExtraChallengeShrines.shrineEye.AppendInfo();
-                        ModSupport.MC_ExtraChallengeShrines.shrineRock.AppendInfo();
+                        ModSupport.MC_ExtraChallengeShrines.shrineCrown?.AppendInfo();
+                        ModSupport.MC_ExtraChallengeShrines.shrineEye?.AppendInfo();
+                        ModSupport.MC_ExtraChallengeShrines.shrineRock?.AppendInfo();
                     }
                 }
                 else
@@ -234,42 +235,6 @@ namespace MountainCount
                     ModSupport.MC_ExtraChallengeShrines.SayAmount_Rock();
                     ModSupport.MC_ExtraChallengeShrines.SayAmount_Eye();
                 }*/
-            }
-        }
-
-        public class ShrineMountain : Assets.ShrineReferenceBase
-        {
-            public override string SayCountToken => "MOUNTAINCOUNT_SAYAMOUNT_MOUNTAIN";
-
-            public override string AppendToken => "MOUNTAINCOUNT_SAYAMOUNT_MOUNTAIN_COMBINED";
-
-            public override int GetCount()
-            {
-                if (TeleporterInteraction.instance)
-                    return TeleporterInteraction.instance.shrineBonusStacks;
-                return 0;
-            }
-
-            public override void GetCountExpanded(out object expectedLimitedValue, out object expandedValue1, out object expandedValue2)
-            {
-                expectedLimitedValue = GetCount();
-                expandedValue1 = (int)expectedLimitedValue + 1;
-                if ((int)expectedLimitedValue == 0)
-                {
-                    expandedValue1 = 0;
-                }
-                expandedValue2 = -1;
-            }
-
-            public override void SayCountExpanded()
-            {
-                GetCountExpanded(out object useCount, out object expandedCount, out object _);
-
-                RoR2.Chat.SendBroadcastChat(new RoR2.Chat.SimpleChatMessage()
-                {
-                    baseToken = SayCountExpandedToken,
-                    paramTokens = new string[] { useCount.ToString(), expandedCount.ToString() }
-                });
             }
         }
     }

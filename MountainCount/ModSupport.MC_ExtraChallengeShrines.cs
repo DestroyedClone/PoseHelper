@@ -15,10 +15,10 @@ namespace MountainCount
              * Rock = Earth
              * Eye = Wind
              */
-            public static AssetBundle ecs_AssetBundle;
-            public static ShrineCrown shrineCrown;
-            public static ShrineRock shrineRock;
-            public static ShrineEye shrineEye;
+            public static AssetBundle ecs_AssetBundle = null;
+            public static ShrineCrown shrineCrown = null;
+            public static ShrineRock shrineRock = null;
+            public static ShrineEye shrineEye = null;
 
             [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
             public static void Initialize()
@@ -35,6 +35,10 @@ namespace MountainCount
                 {
                     get
                     {
+                        if (!ModSupport.modloaded_ExtraChallengeShrines)
+                        {
+                            MountainCountPlugin._logger.LogWarning("ExtraChallengeShrinesShrineReferenceBase.ExtraChallengeShrinesTeleporterComponent is loaded despite extra challenge shrines not being loaded. Some things may break!!");
+                        }
                         if (!_teleporterComponent)
                         {
                             if (TeleporterInteraction.instance && TeleporterInteraction.instance.TryGetComponent(out ExtraChallengeShrines.ExtraChallengeShrinesTeleporterComponent tpComponent))
@@ -77,6 +81,12 @@ namespace MountainCount
                     _ = null;
                 }
 
+                public override void ModifyShrineUseToken(ref Chat.SubjectFormatChatMessage subjectFormatChatMessage)
+                {
+                    subjectFormatChatMessage.baseToken = "MOUNTAINCOUNT_EXTRACHALLENGESHRINES_SHRINE_CROWN_USE_MESSAGE";
+                    subjectFormatChatMessage.paramTokens = new string[] { GetCount().ToString() };
+                }
+
                 public override void SayCountExpanded()
                 {
                     GetCountExpanded(out object useCount, out object totalValue, out object _);
@@ -108,6 +118,12 @@ namespace MountainCount
                     var stackValue = ExtraChallengeShrines.Interactables.ShrineRock.extraDropsPerStack.Value;
                     totalValue = Assets.GetStackingLinear(baseValue, stackValue, (int)useCount);
                     _ = null;
+                }
+
+                public override void ModifyShrineUseToken(ref Chat.SubjectFormatChatMessage subjectFormatChatMessage)
+                {
+                    subjectFormatChatMessage.baseToken = "MOUNTAINCOUNT_EXTRACHALLENGESHRINES_SHRINE_ROCK_USE_MESSAGE";
+                    subjectFormatChatMessage.paramTokens = new string[] { GetCount().ToString() };
                 }
 
                 public override void SayCountExpanded()
@@ -178,6 +194,12 @@ namespace MountainCount
                         baseToken = SayCountExpandedToken,
                         paramTokens = new string[] { GetCount().ToString(), GetSelectedBossName(), chanceString.ToString() }
                     });
+                }
+
+                public override void ModifyShrineUseToken(ref Chat.SubjectFormatChatMessage subjectFormatChatMessage)
+                {
+                    subjectFormatChatMessage.baseToken = "MOUNTAINCOUNT_EXTRACHALLENGESHRINES_SHRINE_EYE_USE_MESSAGE";
+                    subjectFormatChatMessage.paramTokens = new string[] { GetCount().ToString(), GetSelectedBossName() };
                 }
             }
         }
