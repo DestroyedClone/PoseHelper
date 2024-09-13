@@ -31,8 +31,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SurvivorTaunts", "SurvivorT
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StageVariantsPlus", "StageVariantsPlus\StageVariantsPlus.csproj", "{2FA12A80-3344-45DE-879B-4299AEAC5A7D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GoldChestForAll", "GoldChestForAll\GoldChestForAll.csproj", "{63904AFA-746B-497B-B610-B27B7F05C8F8}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ForcedStageVariation", "ForcedStageVariation\ForcedStageVariation.csproj", "{1C39F719-A85F-4567-ABD0-FBD7639CA76D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TwistedBadMedicine", "TwistedBadMedicine\TwistedBadMedicine.csproj", "{9CE4C2AF-3716-4C53-8F87-5CE31DF99ED0}"
@@ -153,10 +151,6 @@ Global
 		{2FA12A80-3344-45DE-879B-4299AEAC5A7D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2FA12A80-3344-45DE-879B-4299AEAC5A7D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2FA12A80-3344-45DE-879B-4299AEAC5A7D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{63904AFA-746B-497B-B610-B27B7F05C8F8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{63904AFA-746B-497B-B610-B27B7F05C8F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{63904AFA-746B-497B-B610-B27B7F05C8F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{63904AFA-746B-497B-B610-B27B7F05C8F8}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1C39F719-A85F-4567-ABD0-FBD7639CA76D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1C39F719-A85F-4567-ABD0-FBD7639CA76D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1C39F719-A85F-4567-ABD0-FBD7639CA76D}.Release|Any CPU.ActiveCfg = Release|Any CPU
