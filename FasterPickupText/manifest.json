@@ -1,0 +1,9 @@
+{
+  "name": "FasterPickupText",
+  "version_number": "1.1.01",
+  "website_url": "https://github.com/DestroyedClone/PoseHelper/tree/master/FasterPickupText",
+  "description": "Adds options to change pickup notification durations. Now includes New, First Stack, and Subsequent Stacks duration.",
+  "dependencies": [
+    "bbepis-BepInExPack-5.4.2117"
+  ]
+}

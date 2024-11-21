@@ -32,13 +32,5 @@ Comparison Video and Preview (Video's outdated but it shows the gist of it):
 
 [![](https://img.youtube.com/vi/IpLEEf5eKBY/0.jpg)](https://www.youtube.com/watch?v=IpLEEf5eKBY "Comparison Video and Preview")
 
-
-# Changelog
-* 1.1.0 - SOTV Fix
-	* Added new item/equipment notification duration
-	* Added first stack item/equipment/transformation notification duration
-	* Added subsequent stack item/transformation notification duration
-* 1.0.0 - Release
-
 # Credits
 * craiyon.com - Icon
